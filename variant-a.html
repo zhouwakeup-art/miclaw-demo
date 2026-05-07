@@ -1,0 +1,2346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>小米互联服务 · 交互 Demo (变体 A · 通用 Tab 面板)</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface-2: #fafaf9;
+    --surface-3: #f2f1ec;
+    --border: #e7e5e0;
+    --border-strong: #d4d2cc;
+    --text: #1a1a1a;
+    --text-2: #5f5e5b;
+    --text-3: #8a8983;
+    --accent: #c96442;
+    --accent-bg: #f7ede7;
+    --ok: #3a9a5c;
+    --warn: #c89b2b;
+    --off: #c1c0bc;
+    --danger: #c44c3a;
+
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+    --shadow: 0 4px 12px rgba(0,0,0,.06);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.1);
+
+    --topbar-h: 38px;
+    --sidebar-w: 180px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+                 "Helvetica Neue", "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--text-2); font-size: 14px; margin-bottom: 12px; }
+  .highlight {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 24px;
+    line-height: 1.7;
+  }
+  .highlight b { color: var(--text); }
+
+  /* ===== 主应用外壳 ===== */
+  .app-shell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 640px;
+    position: relative;
+  }
+
+  /* 顶栏整体 (分左右两段) */
+  .topbar {
+    height: var(--topbar-h);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  /* 左半:和左栏同宽,显示 traffic light + 产品名 */
+  .topbar-left {
+    width: var(--sidebar-w);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border-right: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .traffic {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.red { background: #ff5f57; }
+  .dot.yellow { background: #febc2e; }
+  .dot.green { background: #28c940; }
+
+  .workspace-title {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 右半:Tab 栏占满剩余空间 */
+  .top-tabs {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 6px 0 4px;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  /* 主行:左栏 + 主工作区 */
+  .main-row {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ===== 左栏 ===== */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface-2);
+    border-right: 1px solid var(--border);
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    margin-bottom: 1px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-2);
+    transition: background .1s;
+  }
+  .nav-item:hover { background: rgba(0,0,0,.04); color: var(--text); }
+  .nav-item.active {
+    background: rgba(0,0,0,.06);
+    color: var(--text);
+    font-weight: 500;
+  }
+  .nav-item .emoji { font-size: 14px; width: 16px; text-align: center; }
+
+  .nav-item.primary {
+    background: var(--text);
+    color: white;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .nav-item.primary:hover { background: #000; color: white; }
+
+  .sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 10px 4px;
+  }
+
+  .section-label {
+    color: var(--text-3);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+
+  .history-item {
+    padding: 5px 10px;
+    font-size: 13px;
+    color: var(--text-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 1px;
+  }
+  .history-item:hover { background: rgba(0,0,0,.04); color: var(--text); }
+
+  .nav-expandable > .nav-item .chevron {
+    margin-left: auto;
+    color: var(--text-3);
+    font-size: 10px;
+    transition: transform .15s;
+  }
+  .nav-expandable.open > .nav-item .chevron { transform: rotate(90deg); }
+  .nav-expandable > .nav-subitems { display: none; }
+  .nav-expandable.open > .nav-subitems { display: block; }
+  .nav-subitem {
+    padding: 5px 10px 5px 34px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin-bottom: 1px;
+  }
+  .nav-subitem:hover { background: rgba(0,0,0,.04); color: var(--text); }
+
+  .sidebar-spacer { flex: 1; min-height: 8px; }
+
+  /* ===== 主工作区(含 tab 栏 + 内容) ===== */
+  .workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--surface);
+  }
+
+  /* Tab 项 (Notion 风,融入顶栏底部) */
+  .tab-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px 7px 12px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    max-width: 200px;
+    transition: all .1s;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-bottom: -1px;
+    min-width: 0;
+    align-self: flex-end;
+  }
+  .tab-item:hover {
+    background: rgba(0,0,0,.03);
+    color: var(--text);
+  }
+  .tab-item.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 500;
+    border-color: var(--border);
+    z-index: 2;
+  }
+  .tab-item .tab-emoji { font-size: 13px; flex-shrink: 0; }
+  .tab-item .tab-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .tab-item .tab-close,
+  .tab-item .tab-detach {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-3);
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity .1s;
+  }
+  .tab-item:hover .tab-close,
+  .tab-item:hover .tab-detach,
+  .tab-item.active .tab-close,
+  .tab-item.active .tab-detach {
+    opacity: 1;
+  }
+  .tab-item .tab-close:hover,
+  .tab-item .tab-detach:hover {
+    background: rgba(0,0,0,.08);
+    color: var(--text);
+  }
+
+  .tab-new {
+    width: 28px; height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-3);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+    align-self: center;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  .tab-new:hover { background: rgba(0,0,0,.05); color: var(--text); }
+
+  /* Tab 内容视窗 */
+  .tab-viewport {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  .tab-pane {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    overflow: auto;
+  }
+  .tab-pane.active {
+    display: flex;
+  }
+
+  /* 空态(所有 tab 关闭后) */
+  .empty-workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--text-3);
+    text-align: center;
+    gap: 14px;
+  }
+  .empty-workspace .icon { font-size: 48px; opacity: .4; }
+  .empty-workspace .title { font-size: 16px; color: var(--text-2); }
+  .empty-workspace .hint { font-size: 13px; }
+
+  /* ===== 欢迎屏 ===== */
+  .welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px 20px;
+  }
+  .welcome .logo { font-size: 40px; margin-bottom: 16px; }
+  .welcome h2 { font-size: 24px; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .welcome p { color: var(--text-2); text-align: center; max-width: 420px; margin: 0 0 24px; font-size: 14px; }
+
+  .scene-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 480px;
+  }
+  .scene-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-2);
+    transition: all .15s;
+  }
+  .scene-card:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  .input-wrap {
+    padding: 0 24px 24px;
+  }
+  .input-box {
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--shadow-sm);
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .input-btn {
+    width: 26px; height: 26px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--text-2);
+  }
+  .input-btn:hover { background: rgba(0,0,0,.05); }
+  .input-model {
+    padding: 4px 8px;
+    font-size: 12px;
+    color: var(--text-2);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+  .input-text { flex: 1; color: var(--text-3); font-size: 14px; }
+  .send-btn {
+    background: var(--text);
+    color: white;
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .input-box.readonly { background: var(--surface-2); cursor: not-allowed; }
+  .input-box.readonly .input-text { color: var(--text-3); }
+  .input-box.readonly .input-btn,
+  .input-box.readonly .send-btn { opacity: .45; pointer-events: none; }
+  .input-box.readonly .send-btn { background: var(--off); }
+
+  /* 设备互联 tab 内容 */
+  .hub-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+  /* 设备互联 header */
+  .hub-header {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .hub-header-text { flex: 1; min-width: 0; }
+  .hub-header h2 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .hub-add-btn {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .hub-add-btn:hover {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+
+  /* 设备卡片网格 · 容器查询让卡片按自己所在容器宽度响应式 */
+  .hub-content-wrap {
+    container-type: inline-size;
+    container-name: hub;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .device-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+    align-content: start;
+    justify-content: center;
+    position: relative;
+  }
+  .device-grid.single-card {
+    grid-template-columns: minmax(0, 420px);
+    justify-content: center;
+  }
+
+  .device-card-v {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    transition: border-color .15s, background .15s;
+  }
+  .device-card-v:hover { border-color: var(--border-strong); }
+
+  .device-illustration {
+    width: 140px;
+    height: 110px;
+    margin: 4px auto 16px;
+    background: var(--surface-2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+    position: relative;
+  }
+  .device-illustration::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.5), transparent 60%);
+    pointer-events: none;
+    border-radius: 14px;
+  }
+  .device-model-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .device-model-name .chev {
+    font-size: 12px;
+    color: var(--text-3);
+    font-weight: 400;
+  }
+  .device-conn {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-bottom: 16px;
+  }
+
+  .pill-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .pill-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 16px;
+    font-size: 12.5px;
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .15s;
+  }
+  .pill-btn:hover { background: var(--surface-3); border-color: var(--border-strong); }
+
+  .feature-card {
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .feature-card .fc-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .feature-card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 3px;
+    color: var(--text);
+  }
+  .feature-card .fc-desc {
+    font-size: 12px;
+    color: var(--text-3);
+    line-height: 1.5;
+  }
+  .feature-card .fc-action {
+    background: #eaf1ff;
+    color: #2577f0;
+    border: none;
+    border-radius: 999px;
+    padding: 6px 18px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background .15s;
+  }
+  .feature-card .fc-action:hover { background: #dde9ff; }
+  .feature-card .fc-apps {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .feature-card .fc-app-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    transition: transform .15s;
+  }
+  .feature-card .fc-app-icon:hover { transform: scale(1.05); }
+  .fc-app-icon.wechat { background: linear-gradient(135deg, #1aad19, #08a007); }
+  .fc-app-icon.red { background: linear-gradient(135deg, #ff2741, #d91c37); }
+  .fc-app-icon.oa { background: linear-gradient(135deg, #f99e2b, #ea7011); }
+  .fc-app-icon.oa::after {
+    content: 'NEW';
+    position: absolute;
+    top: -4px; right: -6px;
+    background: #e63946;
+    color: white;
+    font-size: 7px;
+    padding: 1px 3px;
+    border-radius: 3px;
+  }
+  .fc-app-icon.files { background: linear-gradient(135deg, #ffd166, #f4a024); }
+
+  /* 卡片拖拽态 */
+  .device-card-v.drop-hover {
+    border: 2px solid var(--accent);
+    background: var(--accent-bg);
+  }
+  .device-card-v.drop-hover > *:not(.drop-hint-v) {
+    opacity: .3;
+  }
+  .drop-hint-v {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    gap: 8px;
+    pointer-events: none;
+    padding: 16px;
+    text-align: center;
+    border-radius: var(--radius-lg);
+  }
+  .drop-hint-v .icon { font-size: 28px; }
+  .device-card-v.drop-hover .drop-hint-v { display: flex; }
+  .device-card-v.sending,
+  .device-card-v.sent {
+    border: 2px solid var(--ok);
+    background: rgba(58,154,92,.06);
+  }
+  .device-card-v.sending > *:not(.drop-hint-v),
+  .device-card-v.sent > *:not(.drop-hint-v) {
+    opacity: .3;
+  }
+  .device-card-v.sending .drop-hint-v,
+  .device-card-v.sent .drop-hint-v {
+    display: flex;
+    color: var(--ok);
+  }
+
+  /* ===== 响应式:窄容器 ===== */
+  /* 窄容器(<720) · 强制单列 */
+  @container hub (max-width: 720px) {
+    .device-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* 中等容器(<560) · 保留所有功能 · 插画缩小、按钮变小、但结构不变 */
+  @container hub (max-width: 560px) {
+    .device-grid { padding: 14px 16px 20px; gap: 12px; }
+    .device-card-v { padding: 16px 16px 16px; }
+    .device-illustration {
+      width: 96px !important;
+      height: 76px !important;
+      font-size: 42px !important;
+      margin: 0 auto 10px !important;
+      border-radius: 12px !important;
+    }
+    .device-model-name { font-size: 16px !important; }
+    .device-conn { margin-bottom: 12px !important; font-size: 11.5px !important; }
+    .pill-actions { margin-bottom: 12px !important; gap: 6px !important; }
+    .pill-btn { padding: 6px 12px !important; font-size: 12px !important; }
+    .feature-card { padding: 12px 14px !important; }
+    .feature-card h4 { font-size: 13.5px !important; }
+    .feature-card .fc-desc { font-size: 11.5px !important; }
+    .feature-card .fc-action { padding: 5px 14px !important; font-size: 12px !important; }
+    .feature-card .fc-app-icon {
+      width: 32px !important;
+      height: 32px !important;
+      font-size: 13px !important;
+      border-radius: 7px !important;
+    }
+  }
+
+  /* 紧凑容器(<440) · 所有功能保留,仅换为"紧凑竖排":
+     - 头部:小图标 + 设备名 + ▾
+     - 连接状态行
+     - 主功能整行按钮(妙享桌面/屏幕扩展 开启)
+     - 手机最近应用 4 图标(副屏投屏)
+     - 底部:启用热点 / 响铃查找
+  */
+  @container hub (max-width: 440px) {
+    .device-grid {
+      padding: 10px 12px 16px !important;
+      gap: 10px !important;
+    }
+    .device-card-v {
+      padding: 12px 14px !important;
+      align-items: stretch !important;
+      text-align: left !important;
+    }
+    /* 紧凑态:把插画变成左上角小图标,让 model-name 与之并排 */
+    .device-card-v .device-illustration {
+      width: 36px !important;
+      height: 36px !important;
+      font-size: 20px !important;
+      margin: 0 !important;
+      border-radius: 8px !important;
+      position: absolute !important;
+      top: 12px !important;
+      left: 14px !important;
+    }
+    .device-card-v .device-illustration::after { display: none !important; }
+    .device-card-v .device-model-name {
+      font-size: 14.5px !important;
+      padding-left: 46px !important;
+      min-height: 36px !important;
+      display: flex !important;
+      align-items: center !important;
+      margin: 0 0 2px !important;
+      text-align: left !important;
+      justify-content: flex-start !important;
+    }
+    .device-card-v .device-conn {
+      padding-left: 46px !important;
+      margin-bottom: 10px !important;
+      font-size: 11.5px !important;
+      text-align: left !important;
+    }
+    /* 主功能卡:整行按钮形态,去掉大插画块,保留标题/描述/开启/最近应用 */
+    .device-card-v .feature-card {
+      padding: 10px 12px !important;
+      margin-bottom: 8px !important;
+    }
+    .device-card-v .feature-card h4 { font-size: 13px !important; margin: 0 !important; }
+    .device-card-v .feature-card .fc-desc { font-size: 11px !important; line-height: 1.4 !important; }
+    .device-card-v .feature-card .fc-row { margin-bottom: 8px !important; }
+    .device-card-v .feature-card .fc-action {
+      padding: 5px 12px !important;
+      font-size: 11.5px !important;
+    }
+    /* 最近应用图标缩小,保留 4 个 */
+    .device-card-v .feature-card .fc-apps {
+      gap: 6px !important;
+      margin-top: 2px !important;
+    }
+    .device-card-v .feature-card .fc-app-icon {
+      width: 28px !important;
+      height: 28px !important;
+      font-size: 12px !important;
+      border-radius: 6px !important;
+    }
+    .device-card-v .feature-card .fc-app-icon.oa::after {
+      font-size: 6px !important;
+      padding: 0 2px !important;
+      top: -3px !important;
+      right: -4px !important;
+    }
+    /* 胶囊按钮行(启用热点 / 响铃查找)放到底部 */
+    .device-card-v .pill-actions {
+      justify-content: flex-start !important;
+      margin-bottom: 0 !important;
+      gap: 6px !important;
+      flex-wrap: wrap !important;
+    }
+    .device-card-v .pill-btn {
+      padding: 5px 10px !important;
+      font-size: 11.5px !important;
+    }
+  }
+
+  /* 顶部拖拽提示 toast */
+  .drop-toast {
+    position: absolute;
+    top: 72px;
+    left: 50%;
+    transform: translate(-50%, -20px);
+    background: var(--accent);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    pointer-events: none;
+    transition: all .2s ease;
+    z-index: 10;
+  }
+  .drop-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  /* 状态切换器(demo) */
+  .hub-state-switcher {
+    margin: 14px 24px 0;
+    display: inline-flex;
+    padding: 3px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    width: fit-content;
+    gap: 2px;
+  }
+  .hub-state-switcher .state-btn {
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-3);
+  }
+  .hub-state-switcher .state-btn:hover { color: var(--text); }
+  .hub-state-switcher .state-btn.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* 空态(线上风格) */
+  .hub-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    text-align: center;
+    background: var(--surface-2);
+    margin: 20px 24px 24px;
+    border-radius: var(--radius-lg);
+  }
+  .hub-empty .empty-icon-wrap {
+    width: 72px; height: 90px;
+    background: var(--surface-3);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .hub-empty .empty-icon-wrap::before {
+    content: '';
+    width: 24px; height: 24px;
+    background: var(--border-strong);
+    border-radius: 50%;
+  }
+  .hub-empty .empty-hint {
+    font-size: 14px;
+    color: var(--text-2);
+    margin-bottom: 24px;
+  }
+  .hub-empty .empty-search-btn {
+    background: #2577f0;
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 13px 80px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(37,119,240,.25);
+  }
+  .hub-empty .empty-search-btn .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hub-empty .empty-desc {
+    font-size: 12.5px;
+    color: var(--text-3);
+    margin-top: 28px;
+    line-height: 1.6;
+    max-width: 360px;
+  }
+
+  /* 顶部拖拽提示条 */
+  .hub-tip {
+    margin: 14px 24px 4px;
+    padding: 10px 14px;
+    background: var(--accent-bg);
+    border: 1px solid rgba(201,100,66,.18);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    color: var(--text-2);
+    line-height: 1.55;
+    transition: all .2s;
+  }
+  .hub-tip.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    font-weight: 500;
+  }
+  .hub-tip b { color: inherit; }
+
+  .hub-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 12px;
+    align-content: start;
+  }
+
+  .device-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color .15s, background .15s, transform .15s;
+    position: relative;
+  }
+  .device-card:hover { border-color: var(--border-strong); }
+
+  /* 拖拽就绪态 */
+  .hub-body.drop-active .device-card {
+    border: 2px dashed var(--border-strong);
+    background: var(--surface-2);
+  }
+  .hub-body.drop-active .device-card > .device-content {
+    opacity: .35;
+    pointer-events: none;
+  }
+  .hub-body.drop-active .device-card .drop-hint {
+    display: flex;
+  }
+  .hub-body.drop-active .device-card.drop-hover {
+    border: 2px solid var(--accent);
+    background: var(--accent-bg);
+    transform: scale(1.01);
+  }
+  .hub-body.drop-active .device-card.drop-hover .drop-hint {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* 发送 / 已发送态 */
+  .device-card.sending,
+  .device-card.sent {
+    border: 2px solid var(--ok);
+    background: rgba(58,154,92,.06);
+  }
+  .device-card.sending .device-content,
+  .device-card.sent .device-content {
+    opacity: .35;
+  }
+  .device-card.sending .drop-hint,
+  .device-card.sent .drop-hint {
+    display: flex;
+    color: var(--ok);
+    font-weight: 500;
+  }
+
+  .drop-hint {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--text-2);
+    gap: 6px;
+    text-align: center;
+    pointer-events: none;
+    padding: 12px;
+  }
+  .drop-hint .drop-icon { font-size: 28px; }
+
+  .device-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .device-name { flex: 1; }
+  .device-menu {
+    color: var(--text-3);
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .device-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chip {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--text-2);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .chip:hover { background: var(--text); color: white; border-color: var(--text); }
+  .chip.primary {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+    padding: 5px 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chip.primary:hover { background: #000; }
+  .app-quicks { margin: 10px 0; }
+  .app-quicks-label {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 6px;
+  }
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    max-width: 260px;
+  }
+  .app-tile {
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    color: white;
+  }
+  .app-tile.qq { background: linear-gradient(135deg, #1e9dff, #0064c8); }
+  .app-tile.files { background: linear-gradient(135deg, #ffbb33, #ff8a33); }
+  .app-tile.gallery { background: linear-gradient(135deg, #ff6eab, #b851de); }
+  .app-tile.map { background: linear-gradient(135deg, #45d9b8, #2b9db0); }
+
+  .add-device-row {
+    grid-column: 1 / -1;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .add-device-row:hover { border-color: var(--text); color: var(--text); }
+
+  /* 设备间群聊(跨端执行) */
+  .cross-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--text-3);
+    text-align: center;
+  }
+  .cross-empty .icon { font-size: 46px; margin-bottom: 14px; opacity: .6; }
+  .cross-empty .title-row { font-size: 15px; color: var(--text-2); font-weight: 500; margin-bottom: 6px; }
+  .cross-empty .desc {
+    font-size: 13px;
+    color: var(--text-3);
+    max-width: 320px;
+    line-height: 1.7;
+  }
+  .cross-empty .desc .kbd {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--text-2);
+  }
+
+  /* 浮动/独立窗口(拖出的 tab) */
+  .floating-window {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.02);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    min-width: 320px;
+    min-height: 320px;
+    resize: both;
+  }
+  .floating-window .fake-titlebar {
+    height: 36px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    cursor: grab;
+    user-select: none;
+  }
+  .floating-window .fake-titlebar:active { cursor: grabbing; }
+  .floating-window .fake-traffic { display: flex; gap: 5px; }
+  .floating-window .fake-dot {
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .floating-window .fake-dot.red { background: #ff5f57; }
+  .floating-window .fake-dot.yellow { background: #febc2e; }
+  .floating-window .fake-dot.green { background: #28c940; }
+  .floating-window .fw-title {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .floating-window .fw-reattach {
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .floating-window .fw-reattach:hover { background: var(--surface-3); }
+  .floating-window .fw-body {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 各 tab 内容通用布局 */
+  .content-header {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .content-header h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
+  .content-header .sub { font-size: 12px; color: var(--text-3); }
+  .content-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+  }
+
+  /* 对话气泡(普通对话、跨端协作流) */
+  .chat-flow { padding: 16px 20px; flex: 1; overflow-y: auto; }
+  .bubble {
+    max-width: 82%;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .bubble.user { margin-left: auto; background: var(--accent-bg); color: var(--text); }
+  .bubble.ai { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
+  .bubble .tag {
+    display: block;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+
+  /* 设备间群聊(只读) */
+  .device-chat { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  .device-msg {
+    display: flex;
+    margin-bottom: 14px;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .device-msg.right { flex-direction: row-reverse; }
+  .device-avatar {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .device-avatar.phone { background: linear-gradient(135deg, #f7ede7, #e5c7b8); }
+  .device-avatar.pad { background: linear-gradient(135deg, #e8f0ff, #c9d7f5); }
+  .device-avatar.pc { background: linear-gradient(135deg, #eef3ec, #c6dec1); }
+  .device-msg .body { max-width: 72%; }
+  .device-msg.right .body { text-align: right; }
+  .device-msg .device-name-label {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 3px;
+  }
+  .device-msg .bubble-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text);
+    display: inline-block;
+    text-align: left;
+  }
+  .device-msg.right .bubble-box {
+    background: #d9e9ff;
+    border-color: #c9d7f5;
+  }
+
+  /* 添加设备 modal */
+  .add-device-modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 440px;
+    padding: 40px 36px 36px;
+    text-align: center;
+    position: relative;
+  }
+  .add-device-modal .close-top {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-3);
+    cursor: pointer;
+    font-size: 15px;
+    background: var(--surface-2);
+    transition: all .15s;
+  }
+  .add-device-modal .close-top:hover {
+    background: var(--surface-3);
+    color: var(--text);
+  }
+  .add-device-modal .phone-placeholder {
+    width: 72px;
+    height: 92px;
+    background: var(--surface-3);
+    border-radius: 14px;
+    margin: 24px auto 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .add-device-modal .phone-placeholder::before {
+    content: '';
+    width: 24px; height: 24px;
+    background: var(--border-strong);
+    border-radius: 50%;
+  }
+  .add-device-modal .searching-text {
+    font-size: 15px;
+    color: var(--text-2);
+    margin-bottom: 28px;
+  }
+  .add-device-modal .search-btn {
+    background: #2577f0;
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 14px 0;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(37,119,240,.3);
+    width: 100%;
+    max-width: 360px;
+  }
+  .add-device-modal .search-btn .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  .add-device-modal .tip-bottom {
+    margin-top: 36px;
+    font-size: 13px;
+    color: var(--text-3);
+    line-height: 1.65;
+  }
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+  }
+  .modal-overlay.show { display: flex; }
+  .confirm-modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 340px;
+    padding: 20px 22px 18px;
+    text-align: center;
+  }
+  .confirm-modal .icon-wrap {
+    width: 48px; height: 48px;
+    margin: 4px auto 14px;
+    border-radius: 12px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+  .confirm-modal h3 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+  .confirm-modal p { font-size: 13px; color: var(--text-2); line-height: 1.55; margin: 0 0 18px; }
+  .confirm-modal .actions { display: flex; gap: 8px; }
+  .confirm-modal .btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .confirm-modal .btn.secondary {
+    background: var(--surface-2);
+    color: var(--text-2);
+    border: 1px solid var(--border);
+  }
+  .confirm-modal .btn.primary { background: var(--text); color: white; }
+
+  /* 占位内容(文件 / 发现 / 设置等) */
+  .placeholder-content {
+    padding: 32px 24px;
+    color: var(--text-3);
+  }
+  .placeholder-content h3 {
+    font-size: 16px;
+    color: var(--text);
+    margin: 0 0 8px;
+    font-weight: 600;
+  }
+  .placeholder-content p {
+    font-size: 13px;
+    line-height: 1.7;
+    max-width: 560px;
+    margin: 0 0 12px;
+  }
+  .placeholder-content ul {
+    padding-left: 20px;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.9;
+  }
+  .placeholder-content ul li { margin-bottom: 4px; }
+
+  /* 提示卡(demo 底部说明) */
+  .demo-note {
+    margin-top: 18px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.8;
+  }
+  .demo-note b { color: var(--text); }
+  .demo-note .kbd {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<h1>变体 A · 通用 Tab 面板系统</h1>
+<p class="subtitle">Notion 浏览器风格的多 Tab · 任何模块都可独立成 Tab · 可拖拽变独立窗口</p>
+
+<div class="highlight">
+  <b>架构变化</b>:左栏不再是"切换主区",而是"打开 Tab"。
+  <b>设备互联</b>成为一个普通 Tab,和新对话/文件/跨端执行地位平等。
+  每个 Tab 可关闭,可拖拽出来成为独立浮动窗口。
+  <br>
+  <b>试试</b>:点击左栏多个项 → 顶部会累积 Tab · 点 Tab 右侧 <span class="kbd">⇱</span> 图标可拖出 · 拖出的窗口可拖动、可 <span class="kbd">回贴</span>
+</div>
+
+<div class="app-shell" id="appShell">
+  <!-- 顶栏:左半(traffic + 标题) + 右半(Tab 栏) -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="traffic">
+        <div class="dot red"></div>
+        <div class="dot yellow"></div>
+        <div class="dot green"></div>
+      </div>
+      <div class="workspace-title">小米互联服务</div>
+    </div>
+    <div class="top-tabs" id="tabBar"></div>
+  </div>
+
+  <div class="main-row">
+    <!-- 左栏 -->
+    <aside class="sidebar">
+      <div class="nav-item primary" data-tab="new-chat">
+        <span class="emoji">✚</span>新对话
+      </div>
+      <div class="nav-item" data-tab="hub">
+        <span class="emoji">🔗</span>设备互联
+      </div>
+      <div class="nav-item" data-tab="cross">
+        <span class="emoji">📶</span>跨端执行
+      </div>
+      <div class="nav-item" data-tab="files">
+        <span class="emoji">🗂️</span>文件
+      </div>
+      <div class="nav-item" data-tab="discover">
+        <span class="emoji">💡</span>发现
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="nav-expandable">
+        <div class="nav-item" data-toggle="expand">
+          <span class="emoji">☁️</span>云服务<span class="chevron">▸</span>
+        </div>
+        <div class="nav-subitems">
+          <div class="nav-subitem" data-tab="cloud-photo">📷 云相册</div>
+          <div class="nav-subitem" data-tab="cloud-note">📝 云笔记</div>
+          <div class="nav-subitem" data-tab="find-device">📍 查找设备</div>
+        </div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="section-label">最近对话</div>
+      <div class="history-item" data-tab="chat-weather">北京今明天气与出行建议</div>
+      <div class="history-item" data-tab="chat-report">周报草稿 · 第 19 周</div>
+      <div class="history-item" data-tab="chat-html">跳动爱心网页生成</div>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="nav-item" data-tab="settings">
+        <span class="emoji">⚙️</span>设置
+      </div>
+    </aside>
+
+    <!-- 主工作区 -->
+    <div class="workspace">
+      <!-- Tab 内容视窗 -->
+      <div class="tab-viewport" id="tabViewport">
+        <div class="empty-workspace" id="emptyWorkspace" style="display:none;">
+          <div class="icon">🪟</div>
+          <div class="title">没有打开的 Tab</div>
+          <div class="hint">点击左栏的板块打开一个 Tab · 或在顶部 + 号新建对话</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 热点引导弹窗 -->
+  <div class="modal-overlay" id="hotspotModal">
+    <div class="confirm-modal">
+      <div class="icon-wrap">📡</div>
+      <h3>设备当前未连接</h3>
+      <p>需要开启手机热点以使用此功能。小爱会引导你的手机开启热点并自动连接。</p>
+      <div class="actions">
+        <div class="btn secondary" data-close-modal="hotspot">稍后</div>
+        <div class="btn primary" data-close-modal="hotspot">开启热点</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加设备弹窗 -->
+  <div class="modal-overlay" id="addDeviceModal">
+    <div class="add-device-modal">
+      <div class="close-top" data-close-modal="add-device">✕</div>
+      <div class="phone-placeholder"></div>
+      <div class="searching-text">正在发现附近的小米手机</div>
+      <div class="search-btn">
+        <div class="spinner"></div>
+        <span>搜索中...</span>
+      </div>
+      <div class="tip-bottom">
+        请确保小米手机在附近,并与此设备<br>登录相同小米账号、连接相同网络
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="demo-note">
+  <b>通用 Tab 系统 · 关键特征</b><br>
+  · 顶栏像 Notion 一样,所有打开的板块都是 Tab,横向排列<br>
+  · 左栏每一项(除"最近对话"外)都对应一个可打开的 Tab,已打开再点是激活<br>
+  · hover Tab 时出现关闭(✕) 和 拖出(⇱) 按钮<br>
+  · 点 ⇱ 可把 Tab 拖出成独立浮动窗口,窗口头部可拖动,右上"回贴"把窗口收回 Tab<br>
+  · 所有 Tab 关闭后主窗口显示空态(参考 Notion 关掉所有 Tab 的行为)<br>
+  · <b>设备互联不再是特殊贴边面板</b>,它就是一个普通 Tab,行为与其他板块完全一致
+</div>
+
+</div>
+
+<!-- Tab 内容模板(JS 会把它们搬到视窗里,不显示在这里) -->
+<div id="tabTemplates" style="display:none;">
+
+  <!-- 新对话欢迎屏 -->
+  <template data-tab-template="new-chat">
+    <div class="welcome">
+      <div class="logo">✦</div>
+      <h2>Hi, 我是超级小爱</h2>
+      <p>你的全生态 AI 助手,能问、能做、能记住,有什么事情尽管交给我吧</p>
+      <div class="scene-grid">
+        <div class="scene-card">💬  打开手机微信</div>
+        <div class="scene-card">📲  把手机上的照片传过来</div>
+        <div class="scene-card">🗂️  整理桌面</div>
+        <div class="scene-card">🎨  生成网页</div>
+      </div>
+    </div>
+    <div class="input-wrap">
+      <div class="input-box">
+        <div class="input-btn">＋</div>
+        <div class="input-model">快速 ▾</div>
+        <div class="input-text">发消息或 @ 设备帮你做事</div>
+        <div class="send-btn">↑</div>
+      </div>
+    </div>
+  </template>
+
+  <!-- 设备互联 -->
+  <template data-tab-template="hub">
+    <div class="hub-content-wrap">
+      <div class="hub-header">
+        <div class="hub-header-text">
+          <h2>设备互联</h2>
+        </div>
+        <div class="hub-add-btn" data-hub-add>＋ 添加设备</div>
+      </div>
+
+      <div class="hub-state-switcher">
+        <div class="state-btn active" data-hub-state="phone-pad">手机 + 平板</div>
+        <div class="state-btn" data-hub-state="phone-only">只有手机</div>
+        <div class="state-btn" data-hub-state="empty">空态</div>
+      </div>
+
+      <!-- 手机 + 平板 -->
+      <div data-hub-variant="phone-pad" style="display: flex; flex-direction: column; flex: 1; position: relative;">
+        <div class="device-grid" data-hub-grid>
+
+          <!-- 手机卡 -->
+          <div class="device-card-v" data-device="Xiaomi MIX Flip 2">
+            <div class="drop-hint-v">
+              <div class="icon">📤</div>
+              <div>松开鼠标发送到<br>Xiaomi MIX Flip 2</div>
+            </div>
+
+            <div class="device-illustration">📱</div>
+            <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
+            <div class="device-conn">局域网连接</div>
+
+            <div class="feature-card">
+              <div class="fc-row">
+                <div>
+                  <h4>妙享桌面</h4>
+                  <div class="fc-desc">在 Mac 上使用小米手机</div>
+                </div>
+                <div class="fc-action">开启</div>
+              </div>
+              <div class="fc-apps">
+                <div class="fc-app-icon wechat">💬</div>
+                <div class="fc-app-icon red">📕</div>
+                <div class="fc-app-icon oa">OA</div>
+                <div class="fc-app-icon files">📁</div>
+              </div>
+            </div>
+
+            <div class="pill-actions">
+              <div class="pill-btn">🔗 启用热点</div>
+              <div class="pill-btn">▶️ 响铃查找</div>
+            </div>
+          </div>
+
+          <!-- 平板卡 -->
+          <div class="device-card-v" data-device="Xiaomi Pad 6S Pro">
+            <div class="drop-hint-v">
+              <div class="icon">📤</div>
+              <div>松开鼠标发送到<br>Xiaomi Pad 6S Pro</div>
+            </div>
+
+            <div class="device-illustration">📲</div>
+            <h3 class="device-model-name">Xiaomi Pad 6S Pro 12.4 <span class="chev">▾</span></h3>
+            <div class="device-conn">局域网连接</div>
+
+            <div class="feature-card">
+              <div class="fc-row" style="margin-bottom: 0;">
+                <div>
+                  <h4>屏幕扩展</h4>
+                  <div class="fc-desc">把小米平板当作 Mac 的扩展显示器</div>
+                </div>
+                <div class="fc-action">开启</div>
+              </div>
+            </div>
+
+            <div class="pill-actions">
+              <div class="pill-btn">▶️ 响铃查找</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="drop-toast" data-drop-toast>💡 拖到目标设备卡上发送</div>
+      </div>
+
+      <!-- 只有手机 -->
+      <div data-hub-variant="phone-only" style="display: none; flex-direction: column; flex: 1; position: relative;">
+        <div class="device-grid single-card" data-hub-grid>
+
+          <div class="device-card-v" data-device="Xiaomi MIX Flip 2">
+            <div class="drop-hint-v">
+              <div class="icon">📤</div>
+              <div>松开鼠标发送到<br>Xiaomi MIX Flip 2</div>
+            </div>
+
+            <div class="device-illustration">📱</div>
+            <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
+            <div class="device-conn">局域网连接</div>
+
+            <div class="feature-card">
+              <div class="fc-row">
+                <div>
+                  <h4>妙享桌面</h4>
+                  <div class="fc-desc">在 Mac 上使用小米手机</div>
+                </div>
+                <div class="fc-action">开启</div>
+              </div>
+              <div class="fc-apps">
+                <div class="fc-app-icon wechat">💬</div>
+                <div class="fc-app-icon red">📕</div>
+                <div class="fc-app-icon oa">OA</div>
+                <div class="fc-app-icon files">📁</div>
+              </div>
+            </div>
+
+            <div class="pill-actions">
+              <div class="pill-btn">🔗 启用热点</div>
+              <div class="pill-btn">▶️ 响铃查找</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="drop-toast" data-drop-toast>💡 拖到目标设备卡上发送</div>
+      </div>
+
+      <!-- 空态 -->
+      <div data-hub-variant="empty" style="display: none; flex: 1; flex-direction: column;">
+        <div class="hub-empty">
+          <div class="empty-icon-wrap"></div>
+          <div class="empty-hint">正在发现附近的小米手机</div>
+          <div class="empty-search-btn">
+            <div class="spinner"></div>
+            <span>搜索中...</span>
+          </div>
+          <div class="empty-desc">
+            请确保小米手机在附近,并与此设备<br>登录相同小米账号、连接相同网络
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- 跨端执行(只读群聊) -->
+  <template data-tab-template="cross">
+    <div class="content-header">
+      <h2>跨端执行</h2>
+      <div class="sub">设备协作的只读观察窗 · 操作请在「新对话」里 @ 设备发起</div>
+    </div>
+    <div class="device-chat">
+      <div class="device-msg right">
+        <div class="device-avatar pc">💻</div>
+        <div class="body">
+          <div class="device-name-label">Xiaomi Book Pro 14</div>
+          <div class="bubble-box">@Xiaomi 17 Pro 帮我找一下昨天拍的小猫的照片,翻一下手机的相册传给我</div>
+        </div>
+      </div>
+      <div class="device-msg">
+        <div class="device-avatar phone">📱</div>
+        <div class="body">
+          <div class="device-name-label">Xiaomi 17 Pro</div>
+          <div class="bubble-box">收到,翻找手机相册中...</div>
+        </div>
+      </div>
+      <div class="device-msg right">
+        <div class="device-avatar pc">💻</div>
+        <div class="body">
+          <div class="device-name-label">Xiaomi Book Pro 14</div>
+          <div class="bubble-box">@Xiaomi Pad 8 Pro 帮我看看昨天写的文档有没有疏漏,有的话补一下逻辑漏洞</div>
+        </div>
+      </div>
+      <div class="device-msg">
+        <div class="device-avatar pad">📲</div>
+        <div class="body">
+          <div class="device-name-label">Xiaomi Pad 8 Pro</div>
+          <div class="bubble-box">收到,我现在去看看</div>
+        </div>
+      </div>
+      <div class="device-msg">
+        <div class="device-avatar pad">📲</div>
+        <div class="body">
+          <div class="device-name-label">Xiaomi Pad 8 Pro</div>
+          <div class="bubble-box">文档还行,没啥漏洞</div>
+        </div>
+      </div>
+      <div class="device-msg">
+        <div class="device-avatar phone">📱</div>
+        <div class="body">
+          <div class="device-name-label">Xiaomi 17 Pro</div>
+          <div class="bubble-box">找到了!已发送 3 张小猫照片到 Xiaomi Book Pro 14</div>
+        </div>
+      </div>
+    </div>
+    <div class="input-wrap">
+      <div class="input-box readonly">
+        <div class="input-btn">＋</div>
+        <div class="input-text">仅支持查看设备之间的任务执行记录</div>
+        <div class="send-btn">↑</div>
+      </div>
+    </div>
+  </template>
+
+  <!-- 普通对话(举例:天气对话) -->
+  <template data-tab-template="chat-weather">
+    <div class="content-header">
+      <h2>北京今明天气与出行建议</h2>
+      <div class="sub">与超级小爱对话</div>
+    </div>
+    <div class="chat-flow">
+      <div class="bubble user">
+        <span class="tag">我</span>
+        北京下周天气怎么样?周三要去 798 拍照,带啥合适?
+      </div>
+      <div class="bubble ai">
+        <span class="tag">超级小爱</span>
+        下周北京以晴为主,周三白天 22~28℃,紫外线较强。<br><br>
+        建议:<br>
+        · 防晒帽 + 墨镜<br>
+        · 轻薄外套(早晚温差 8℃)<br>
+        · 备用 SD 卡(已检测到你有剩余空间)
+      </div>
+    </div>
+    <div class="input-wrap">
+      <div class="input-box">
+        <div class="input-btn">＋</div>
+        <div class="input-model">快速 ▾</div>
+        <div class="input-text">继续和超级小爱对话...</div>
+        <div class="send-btn">↑</div>
+      </div>
+    </div>
+  </template>
+
+  <template data-tab-template="chat-report">
+    <div class="content-header">
+      <h2>周报草稿 · 第 19 周</h2>
+      <div class="sub">与超级小爱对话</div>
+    </div>
+    <div class="chat-flow">
+      <div class="bubble user"><span class="tag">我</span>帮我整理本周的 git commits 生成周报</div>
+      <div class="bubble ai">
+        <span class="tag">超级小爱</span>
+        已抓取 12 条 commits,整理如下:<br>
+        · 完成设备互联的 UI 重构<br>
+        · 优化跨端任务编排的状态同步<br>
+        · 修复云笔记同步偶发失败<br>
+        需要我把这份周报导出到文件板块吗?
+      </div>
+    </div>
+    <div class="input-wrap">
+      <div class="input-box">
+        <div class="input-btn">＋</div>
+        <div class="input-model">快速 ▾</div>
+        <div class="input-text">继续对话...</div>
+        <div class="send-btn">↑</div>
+      </div>
+    </div>
+  </template>
+
+  <template data-tab-template="chat-html">
+    <div class="content-header">
+      <h2>跳动爱心网页生成</h2>
+      <div class="sub">与超级小爱对话</div>
+    </div>
+    <div class="chat-flow">
+      <div class="bubble user"><span class="tag">我</span>帮我做一个能跳动的爱心 HTML 页面</div>
+      <div class="bubble ai">
+        <span class="tag">超级小爱</span>
+        已生成 heart.html ✓<br>
+        · 尺寸: 2.3 KB · 已保存到「文件」板块
+      </div>
+    </div>
+    <div class="input-wrap">
+      <div class="input-box">
+        <div class="input-btn">＋</div>
+        <div class="input-model">快速 ▾</div>
+        <div class="input-text">继续对话...</div>
+        <div class="send-btn">↑</div>
+      </div>
+    </div>
+  </template>
+
+  <!-- 文件(占位) -->
+  <template data-tab-template="files">
+    <div class="content-header">
+      <h2>文件</h2>
+      <div class="sub">AI 产物归档 · 只装对话中生成的文件</div>
+    </div>
+    <div class="placeholder-content">
+      <h3>示例内容</h3>
+      <p>文件板块列出所有通过 AI 对话产出的文件:HTML、PPT、图片、报告等。</p>
+      <ul>
+        <li>heart.html · 4/16 17:30 · 2.3 KB</li>
+        <li>周报_w19.xlsx · 4/16 14:22 · 18.4 KB</li>
+        <li>会议纪要_0416.pdf · 4/16 10:05 · 45 KB</li>
+        <li>产品方案_v2.docx · 4/15 20:41 · 32 KB</li>
+      </ul>
+      <p style="margin-top: 14px;">每个文件都有 💬 徽标,点击跳回生成它的对话。</p>
+    </div>
+  </template>
+
+  <!-- 发现(占位) -->
+  <template data-tab-template="discover">
+    <div class="content-header">
+      <h2>发现</h2>
+      <div class="sub">Skill + MCP 合并的能力市场</div>
+    </div>
+    <div class="placeholder-content">
+      <h3>为你推荐</h3>
+      <p>沉浸办公模式 · 跨端发票整理 · 会议纪要一键出</p>
+      <h3 style="margin-top: 18px;">热门能力</h3>
+      <ul>
+        <li>🗺️ 高德地图 · 15 tools</li>
+        <li>📦 快递 100 · 5 tools</li>
+        <li>🎨 画布设计 · 内置</li>
+        <li>🛠️ 本地工具 · 8 tools</li>
+      </ul>
+    </div>
+  </template>
+
+  <!-- 云相册(占位) -->
+  <template data-tab-template="cloud-photo">
+    <div class="content-header">
+      <h2>云相册</h2>
+      <div class="sub">手机拍摄自动云同步</div>
+    </div>
+    <div class="placeholder-content">
+      <p>464 张照片,24 个视频 · 最近删除(30 天)</p>
+      <p style="margin-top: 10px;">提示:在变体 A 里,云相册不再是"另开 Web 窗口",而是一个普通 Tab。用户可以把它拖出来成独立窗口,也可以留在主窗口 Tab 中。</p>
+    </div>
+  </template>
+
+  <!-- 云笔记(占位) -->
+  <template data-tab-template="cloud-note">
+    <div class="content-header">
+      <h2>云笔记</h2>
+      <div class="sub">手机 / PC 多端编辑</div>
+    </div>
+    <div class="placeholder-content">
+      <p>全部笔记 · 收藏 · 标签</p>
+      <p style="margin-top: 10px;">同上:云笔记也是一个 Tab,可独立成窗口。</p>
+    </div>
+  </template>
+
+  <!-- 查找设备(占位) -->
+  <template data-tab-template="find-device">
+    <div class="content-header">
+      <h2>查找设备</h2>
+      <div class="sub">依赖云端定位 · 任意设备登录账号都能查</div>
+    </div>
+    <div class="placeholder-content">
+      <p>📱 Xiaomi MIX Flip 2 · 北京市 村上一屋(小米科技园店) · 刚刚</p>
+      <p>📲 Pad 6 Pro · 2 小时前在望京 SOHO</p>
+      <p style="margin-top: 10px;">支持响铃查找 / 远程锁定。</p>
+    </div>
+  </template>
+
+  <!-- 设置(占位) -->
+  <template data-tab-template="settings">
+    <div class="content-header">
+      <h2>设置</h2>
+      <div class="sub">账号、通用、互联、定时任务等</div>
+    </div>
+    <div class="placeholder-content">
+      <h3>账号</h3>
+      <p>Yaki · 小米 ID: 2389984542</p>
+      <h3 style="margin-top: 18px;">通用</h3>
+      <ul>
+        <li>清除缓存</li>
+        <li>系统权限管理</li>
+        <li>隐私与安全</li>
+      </ul>
+      <h3 style="margin-top: 18px;">定时任务</h3>
+      <p>管理定时任务(从原设置板块保留)</p>
+    </div>
+  </template>
+
+</div>
+
+<script>
+  // ======== Tab 元数据 ========
+  const TAB_META = {
+    'new-chat':    { title: '新对话',       emoji: '✚' },
+    'cross':       { title: '跨端执行',     emoji: '📶' },
+    'files':       { title: '文件',         emoji: '🗂️' },
+    'discover':    { title: '发现',         emoji: '💡' },
+    'hub':         { title: '设备互联', emoji: '🔗' },
+    'cloud-photo': { title: '云相册',       emoji: '📷' },
+    'cloud-note':  { title: '云笔记',       emoji: '📝' },
+    'find-device': { title: '查找设备',     emoji: '📍' },
+    'settings':    { title: '设置',         emoji: '⚙️' },
+    'chat-weather':{ title: '北京今明天气',  emoji: '💬' },
+    'chat-report': { title: '周报草稿',     emoji: '💬' },
+    'chat-html':   { title: '爱心网页生成',  emoji: '💬' },
+  };
+
+  // ======== Tab 管理器 ========
+  const state = {
+    openTabs: [],      // 当前已打开的 tab id 列表
+    activeTab: null,   // 当前激活的 tab id
+    detached: {},      // { tabId: floatingWindowEl }
+  };
+
+  const tabBar = document.getElementById('tabBar');
+  const viewport = document.getElementById('tabViewport');
+  const emptyWorkspace = document.getElementById('emptyWorkspace');
+
+  function renderTabBar() {
+    tabBar.innerHTML = '';
+    state.openTabs.forEach(id => {
+      if (state.detached[id]) return; // detached 的不显示在 tab bar
+      const meta = TAB_META[id];
+      const el = document.createElement('div');
+      el.className = 'tab-item' + (state.activeTab === id ? ' active' : '');
+      el.dataset.tabId = id;
+      el.innerHTML = `
+        <span class="tab-emoji">${meta.emoji}</span>
+        <span class="tab-title">${meta.title}</span>
+        <span class="tab-detach" title="拖出为独立窗口">⇱</span>
+        <span class="tab-close" title="关闭">✕</span>
+      `;
+      el.querySelector('.tab-title').addEventListener('click', (e) => {
+        e.stopPropagation();
+        activateTab(id);
+      });
+      el.querySelector('.tab-emoji').addEventListener('click', (e) => {
+        e.stopPropagation();
+        activateTab(id);
+      });
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.tab-close') || e.target.closest('.tab-detach')) return;
+        activateTab(id);
+      });
+      el.querySelector('.tab-close').addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeTab(id);
+      });
+      el.querySelector('.tab-detach').addEventListener('click', (e) => {
+        e.stopPropagation();
+        detachTab(id);
+      });
+      tabBar.appendChild(el);
+    });
+    // + 新建按钮(默认打开新对话)
+    const plus = document.createElement('div');
+    plus.className = 'tab-new';
+    plus.textContent = '＋';
+    plus.title = '新对话';
+    plus.addEventListener('click', () => openTab('new-chat'));
+    tabBar.appendChild(plus);
+  }
+
+  function renderViewport() {
+    // 清掉除空态外的所有 pane
+    viewport.querySelectorAll('.tab-pane').forEach(p => p.remove());
+    // 空态显示逻辑
+    const visibleTabs = state.openTabs.filter(id => !state.detached[id]);
+    if (visibleTabs.length === 0) {
+      emptyWorkspace.style.display = 'flex';
+      return;
+    }
+    emptyWorkspace.style.display = 'none';
+    visibleTabs.forEach(id => {
+      const pane = buildPane(id);
+      if (state.activeTab === id) pane.classList.add('active');
+      viewport.appendChild(pane);
+    });
+  }
+
+  function buildPane(id) {
+    const pane = document.createElement('div');
+    pane.className = 'tab-pane';
+    pane.dataset.tabId = id;
+    const tpl = document.querySelector(`[data-tab-template="${id}"]`);
+    if (tpl) {
+      pane.appendChild(tpl.content.cloneNode(true));
+    } else {
+      pane.innerHTML = `<div class="placeholder-content"><p>${id} 内容尚未定义</p></div>`;
+    }
+    bindContentInteractions(pane);
+    return pane;
+  }
+
+  function bindContentInteractions(root) {
+    // 热点弹窗触发
+    root.querySelectorAll('[data-needs-hotspot]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('hotspotModal').classList.add('show');
+      });
+    });
+
+    // 设备互联:空态 / 有设备态切换
+    root.querySelectorAll('[data-hub-state]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.hubState;
+        const scope = btn.closest('.tab-pane, .fw-body') || root;
+        scope.querySelectorAll('[data-hub-state]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        scope.querySelectorAll('[data-hub-variant]').forEach(v => {
+          v.style.display = v.dataset.hubVariant === key ? 'flex' : 'none';
+        });
+      });
+    });
+
+    // 设备互联:添加设备按钮(两处都绑)
+    root.querySelectorAll('[data-hub-add]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('addDeviceModal').classList.add('show');
+      });
+    });
+
+    // 设备互联:文件拖拽到设备卡(对所有有设备卡的 variant 都生效)
+    const variants = root.querySelectorAll('[data-hub-variant]');
+    const toast = root.querySelector('[data-drop-toast]');
+    variants.forEach(variant => {
+      const cards = variant.querySelectorAll('.device-card-v');
+      if (cards.length === 0) return;
+
+      const showToast = () => toast && toast.classList.add('show');
+      const hideToast = () => toast && toast.classList.remove('show');
+      const clearHover = () => cards.forEach(c => c.classList.remove('drop-hover'));
+
+      variant.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        showToast();
+      });
+      variant.addEventListener('dragover', (e) => {
+        e.preventDefault();
+      });
+      variant.addEventListener('dragleave', (e) => {
+        if (e.target === variant) {
+          hideToast();
+          clearHover();
+        }
+      });
+
+      cards.forEach(card => {
+        card.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          clearHover();
+          card.classList.add('drop-hover');
+        });
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+        });
+        card.addEventListener('dragleave', (e) => {
+          if (!card.contains(e.relatedTarget)) {
+            card.classList.remove('drop-hover');
+          }
+        });
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const deviceName = card.dataset.device;
+          const files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
+          const fileCount = files ? files.length : 1;
+
+          hideToast();
+          card.classList.remove('drop-hover');
+          card.classList.add('sending');
+          const hint = card.querySelector('.drop-hint-v');
+          if (hint) {
+            hint.innerHTML = `<div class="icon">⏳</div><div>发送 ${fileCount} 个文件到<br>${deviceName}...</div>`;
+          }
+
+          setTimeout(() => {
+            card.classList.remove('sending');
+            card.classList.add('sent');
+            if (hint) {
+              hint.innerHTML = `<div class="icon">✓</div><div>已发送到<br>${deviceName}</div>`;
+            }
+            setTimeout(() => {
+              card.classList.remove('sent');
+              if (hint) {
+                hint.innerHTML = `<div class="icon">📤</div><div>松开鼠标发送到<br>${deviceName}</div>`;
+              }
+            }, 1600);
+          }, 1100);
+        });
+      });
+    });
+  }
+
+  function openTab(id) {
+    // 如果已打开:激活; 否则添加
+    if (!state.openTabs.includes(id)) {
+      state.openTabs.push(id);
+    }
+    state.activeTab = id;
+    // 如果是已 detached 的,回贴到主窗口
+    if (state.detached[id]) {
+      reattachTab(id);
+      return;
+    }
+    renderTabBar();
+    renderViewport();
+  }
+
+  function activateTab(id) {
+    if (state.activeTab === id) return;
+    state.activeTab = id;
+    renderTabBar();
+    renderViewport();
+  }
+
+  function closeTab(id) {
+    // 如果是 detached 的,关掉浮动窗
+    if (state.detached[id]) {
+      state.detached[id].remove();
+      delete state.detached[id];
+    }
+    state.openTabs = state.openTabs.filter(t => t !== id);
+    if (state.activeTab === id) {
+      const next = state.openTabs.find(t => !state.detached[t]);
+      state.activeTab = next || null;
+    }
+    renderTabBar();
+    renderViewport();
+  }
+
+  function detachTab(id) {
+    const meta = TAB_META[id];
+    // 构造浮动窗
+    const win = document.createElement('div');
+    win.className = 'floating-window';
+    win.style.left = '300px';
+    win.style.top = '120px';
+    // 设备互联 tab 脱出后默认用偏窄尺寸,演示响应式压缩
+    if (id === 'hub') {
+      win.style.width = '420px';
+      win.style.height = '600px';
+    } else {
+      win.style.width = '520px';
+      win.style.height = '440px';
+    }
+    win.innerHTML = `
+      <div class="fake-titlebar" data-drag>
+        <div class="fake-traffic">
+          <div class="fake-dot red" data-close-window></div>
+          <div class="fake-dot yellow"></div>
+          <div class="fake-dot green"></div>
+        </div>
+        <div class="fw-title">${meta.emoji} ${meta.title}</div>
+        <div class="fw-reattach" data-reattach>回贴</div>
+      </div>
+      <div class="fw-body"></div>
+    `;
+    const body = win.querySelector('.fw-body');
+    const pane = buildPane(id);
+    pane.classList.add('active');
+    pane.style.position = 'static';
+    body.appendChild(pane);
+
+    // 拖动
+    const titlebar = win.querySelector('[data-drag]');
+    let dragging = false, startX, startY, origX, origY;
+    titlebar.addEventListener('mousedown', (e) => {
+      if (e.target.closest('[data-reattach]') || e.target.closest('[data-close-window]')) return;
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      const rect = win.getBoundingClientRect();
+      origX = rect.left; origY = rect.top;
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      win.style.left = (origX + e.clientX - startX) + 'px';
+      win.style.top = (origY + e.clientY - startY) + 'px';
+    });
+    document.addEventListener('mouseup', () => { dragging = false; });
+
+    // 回贴
+    win.querySelector('[data-reattach]').addEventListener('click', () => reattachTab(id));
+    // 关闭
+    win.querySelector('[data-close-window]').addEventListener('click', () => closeTab(id));
+
+    document.body.appendChild(win);
+    state.detached[id] = win;
+
+    // 如果当前激活的是这个 tab,切到下一个可见 tab
+    if (state.activeTab === id) {
+      const next = state.openTabs.find(t => t !== id && !state.detached[t]);
+      state.activeTab = next || null;
+    }
+    renderTabBar();
+    renderViewport();
+  }
+
+  function reattachTab(id) {
+    if (!state.detached[id]) return;
+    state.detached[id].remove();
+    delete state.detached[id];
+    state.activeTab = id;
+    renderTabBar();
+    renderViewport();
+  }
+
+  // ======== 左栏交互 ========
+  document.querySelectorAll('[data-tab]').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = item.dataset.tab;
+      openTab(id);
+    });
+  });
+
+  document.querySelectorAll('[data-toggle="expand"]').forEach(head => {
+    head.addEventListener('click', (e) => {
+      e.stopPropagation();
+      head.parentElement.classList.toggle('open');
+    });
+  });
+
+  // 关闭 modal(根据 data-close-modal 的值找到对应 modal)
+  document.querySelectorAll('[data-close-modal]').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.closeModal;
+      const modalIds = {
+        'hotspot': 'hotspotModal',
+        'add-device': 'addDeviceModal',
+      };
+      const target = modalIds[key];
+      if (target) document.getElementById(target).classList.remove('show');
+    });
+  });
+
+  // ======== 初始化 ========
+  openTab('new-chat');
+  // 默认也打开设备互联,演示"多 Tab"
+  openTab('hub');
+  activateTab('new-chat');
+</script>
+
+</body>
+</html>
