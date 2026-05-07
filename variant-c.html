@@ -568,16 +568,6 @@
     margin-top: 24px; line-height: 1.6; max-width: 320px;
   }
 
-  /* ===== 贴边形态 ===== */
-  .docked-panel {
-    width: 360px;
-    flex-shrink: 0;
-    background: var(--surface);
-    border-left: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    min-height: 0;
-  }
-
   /* ===== 浮窗形态 ===== */
   .floating-window {
     position: fixed;
@@ -724,12 +714,12 @@
 <body>
 
 <div class="page">
-  <h1>变体 C · 设备互联双模态</h1>
-  <p class="subtitle">设备互联默认是主区 tab · 它的页面右上角有"窗口模式"按钮,可脱出为贴边 / 浮窗</p>
+  <h1>变体 C · 设备互联独立窗口</h1>
+  <p class="subtitle">设备互联默认是主区 tab · 它的页面右上角有"独立窗口"按钮,可脱出为浮窗</p>
 
   <div class="highlight">
     <b>架构意图</b>:日常内容(新对话 / 设备互联 / 跨端执行 / 文件 / 发现 / 云服务)都在主窗口里切换,和其他板块一视同仁。
-    <b>但只有设备互联</b>在它的 tab 页面右上角多一个 <span class="kbd">⧉ 窗口模式</span> 按钮 —— 可以让它脱离主区,变成贴边面板或浮动窗口,便于一边对话一边监控设备 / 拖文件。
+    <b>但只有设备互联</b>在它的 tab 页面右上角多一个 <span class="kbd">⧉ 独立窗口</span> 按钮 —— 可以让它脱离主区变成浮窗,便于一边对话一边监控设备 / 拖文件。
     <br>
     <b>为什么只有它特殊</b>:用户在对话里 @ 设备、跨端执行协作时,常常需要眼角余光随时看到设备状态 / 扔文件过去,其他板块则是"进去做完就出来",不需要并排。
   </div>
@@ -823,7 +813,7 @@
             <div class="hub-panel" data-hub-host="main">
               <div class="hub-panel-head">
                 <div class="title">设备互联</div>
-                <div class="head-btn text-btn" id="hubPopoutBtn" title="切换为窗口模式">⧉ 窗口模式</div>
+                <div class="head-btn text-btn" id="hubPopoutBtn" title="脱出为独立窗口">⧉ 独立窗口</div>
               </div>
               <div class="hub-panel-body" id="hubMainBody">
                 <!-- 面板内容由 JS 渲染 -->
@@ -972,32 +962,16 @@
     </div>
   </div>
 
-  <!-- 设备互联模式选择菜单(放在 app-shell 外,避免被 sidebar 裁切) -->
-  <div class="mode-menu" id="modeMenu">
-    <div class="mode-item" data-mode="docked">
-      <div class="mode-icon">▐</div>
-      <div>
-        贴边面板
-        <span class="mode-desc">脱离主区,固定在窗口右侧</span>
-      </div>
-    </div>
-    <div class="mode-item" data-mode="floating">
-      <div class="mode-icon">◱</div>
-      <div>
-        浮动窗口
-        <span class="mode-desc">独立可拖动的小窗</span>
-      </div>
-    </div>
-  </div>
+  <!-- (浮窗模式下不再需要菜单;保留空节点以减少 JS 改动) -->
+  <div class="mode-menu" id="modeMenu" style="display: none !important;"></div>
 
   <div class="demo-note">
     <b>关键特征</b><br>
     · 主框架沿用 v1:左栏导航,主区直接切换内容<br>
     · <b>设备互联</b>默认是嵌入式主区,和其他板块地位一致<br>
-    · 设备互联页面右上角有 <span class="kbd">⧉ 窗口模式</span> 按钮,点击弹出 <span class="kbd">贴边面板</span> / <span class="kbd">浮动窗口</span> 菜单<br>
-    · 选择后主区会跳回上一个屏,设备互联以贴边 / 浮窗独立展示<br>
-    · 贴边 / 浮窗里点 ✕ 收回主区嵌入形态,点 ⇆ 在两形态间互换<br>
-    · 无论嵌入 / 贴边 / 浮窗,设备卡都用 container query 自适应宽度,功能始终完整
+    · 设备互联页面右上角有 <span class="kbd">⧉ 独立窗口</span> 按钮,点击直接把面板脱出为可拖动浮窗<br>
+    · 脱出后主区跳回上一个屏,浮窗内点 <span class="kbd">↩ 回到主区</span> 或红点关闭<br>
+    · 浮窗再窄也用 container query 保留所有功能
   </div>
 
 </div>
@@ -1007,8 +981,7 @@
   <div class="hub-panel">
     <div class="hub-panel-head">
       <div class="title">设备互联</div>
-      <div class="head-btn" data-mode-swap title="切换为另一种形态">⇆</div>
-      <div class="head-btn" data-hub-close title="关闭">✕</div>
+      <div class="head-btn text-btn" data-hub-close title="回到主区">↩ 回到主区</div>
     </div>
     <div class="hub-panel-body">
       <div class="hub-panel-toolbar">
@@ -1178,51 +1151,10 @@
 
   // ======== 切窗模式菜单:从 hub-panel-head 的"窗口模式"按钮弹出 ========
   const popoutBtn = document.getElementById('hubPopoutBtn');
-  function positionMenu() {
-    // 优先对齐到当前可见的触发按钮:主区 popout / 贴边 / 浮窗切窗按钮
-    const trigger = document.querySelector('[data-mode-trigger].active-trigger') || popoutBtn;
-    const rect = trigger.getBoundingClientRect();
-    modeMenu.style.top = (rect.bottom + 6) + 'px';
-    modeMenu.style.left = (rect.right - 220) + 'px';
-  }
 
-  function toggleModeMenu(forceOpen) {
-    const isOpen = modeMenu.classList.contains('show');
-    if (forceOpen === true || (forceOpen !== false && !isOpen)) {
-      positionMenu();
-      modeMenu.classList.add('show');
-    } else {
-      modeMenu.classList.remove('show');
-    }
-  }
-
-  popoutBtn.dataset.modeTrigger = '1';
   popoutBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    // 嵌入式主区点击 → 菜单,供选贴边 or 浮窗
-    document.querySelectorAll('[data-mode-trigger]').forEach(el => el.classList.remove('active-trigger'));
-    popoutBtn.classList.add('active-trigger');
-    toggleModeMenu();
-  });
-
-  window.addEventListener('resize', () => {
-    if (modeMenu.classList.contains('show')) positionMenu();
-  });
-  window.addEventListener('scroll', () => {
-    if (modeMenu.classList.contains('show')) positionMenu();
-  }, true);
-
-  document.addEventListener('click', (e) => {
-    if (!modeMenu.contains(e.target)) toggleModeMenu(false);
-  });
-
-  modeMenu.addEventListener('click', (e) => {
-    const item = e.target.closest('.mode-item');
-    if (!item) return;
-    e.stopPropagation();
-    const mode = item.dataset.mode;
-    openHub(mode);
-    toggleModeMenu(false);
+    openHub('floating');
   });
 
   // ======== 设备互联面板:构造 ========
@@ -1305,106 +1237,85 @@
       });
     });
 
-    // 关闭(在贴边/浮窗中点 ✕) → 回到嵌入式主区
+    // 回到主区(浮窗 panel-head 里的 ↩ / titlebar 里的"回到主区")
     root.querySelectorAll('[data-hub-close]').forEach(btn => {
       btn.addEventListener('click', () => {
         closeHub();
         switchScreen('hub');
       });
     });
-    // 切换形态(⇆)
-    root.querySelectorAll('[data-mode-swap]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const next = state.hubMode === 'docked' ? 'floating' : 'docked';
-        openHub(next);
-      });
-    });
   }
 
-  // ======== 设备互联面板:打开/关闭/切换 ========
+  // ======== 设备互联面板:打开/关闭 ========
   function openHub(mode) {
-    // 如果已经是同一形态,就什么都不做
-    if (state.hubMode === mode) return;
+    // 只支持 floating
+    if (mode !== 'floating') return;
+    if (state.hubMode === 'floating') return;
     // 如果当前在 hub tab,先切回上一个屏(避免主区留一个空 hub)
     if (state.activeScreen === 'hub') {
       switchScreen(state.prevScreen);
     }
-    // 先清掉旧的
     removeHubPanels();
-    state.hubMode = mode;
+    state.hubMode = 'floating';
 
-    if (mode === 'docked') {
-      const panel = document.createElement('div');
-      panel.className = 'docked-panel';
-      panel.appendChild(buildHubPanel());
-      dockedWrap.appendChild(panel);
-    } else if (mode === 'floating') {
-      const win = document.createElement('div');
-      win.className = 'floating-window';
-      win.id = 'floatingHub';
-      // 定位到主窗口右上附近
-      const shellRect = document.getElementById('appShell').getBoundingClientRect();
-      win.style.left = (shellRect.right - 420) + 'px';
-      win.style.top = (shellRect.top + 60) + 'px';
-      win.style.width = '400px';
-      win.style.height = '560px';
-      win.innerHTML = `
-        <div class="fake-titlebar" data-drag>
-          <div class="fake-traffic">
-            <div class="fake-dot red" data-close-window></div>
-            <div class="fake-dot yellow"></div>
-            <div class="fake-dot green"></div>
-          </div>
-          <div class="fw-title">🔗 设备互联</div>
-          <div class="fw-dock" data-dock-swap>贴到侧边</div>
+    const win = document.createElement('div');
+    win.className = 'floating-window';
+    win.id = 'floatingHub';
+    const shellRect = document.getElementById('appShell').getBoundingClientRect();
+    win.style.left = (shellRect.right - 420) + 'px';
+    win.style.top = (shellRect.top + 60) + 'px';
+    win.style.width = '400px';
+    win.style.height = '560px';
+    win.innerHTML = `
+      <div class="fake-titlebar" data-drag>
+        <div class="fake-traffic">
+          <div class="fake-dot red" data-close-window></div>
+          <div class="fake-dot yellow"></div>
+          <div class="fake-dot green"></div>
         </div>
-        <div class="fw-body"></div>
-      `;
-      const body = win.querySelector('.fw-body');
-      body.appendChild(buildHubPanel());
+        <div class="fw-title">🔗 设备互联</div>
+        <div class="fw-dock" data-reattach>回到主区</div>
+      </div>
+      <div class="fw-body"></div>
+    `;
+    const body = win.querySelector('.fw-body');
+    body.appendChild(buildHubPanel());
 
-      // 拖动
-      const titlebar = win.querySelector('[data-drag]');
-      let dragging = false, startX, startY, origX, origY;
-      titlebar.addEventListener('mousedown', (e) => {
-        if (e.target.closest('[data-dock-swap]') || e.target.closest('[data-close-window]')) return;
-        dragging = true;
-        startX = e.clientX; startY = e.clientY;
-        const rect = win.getBoundingClientRect();
-        origX = rect.left; origY = rect.top;
-        e.preventDefault();
-      });
-      document.addEventListener('mousemove', (e) => {
-        if (!dragging) return;
-        win.style.left = (origX + e.clientX - startX) + 'px';
-        win.style.top = (origY + e.clientY - startY) + 'px';
-      });
-      document.addEventListener('mouseup', () => { dragging = false; });
+    // 拖动
+    const titlebar = win.querySelector('[data-drag]');
+    let dragging = false, startX, startY, origX, origY;
+    titlebar.addEventListener('mousedown', (e) => {
+      if (e.target.closest('[data-reattach]') || e.target.closest('[data-close-window]')) return;
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      const rect = win.getBoundingClientRect();
+      origX = rect.left; origY = rect.top;
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      win.style.left = (origX + e.clientX - startX) + 'px';
+      win.style.top = (origY + e.clientY - startY) + 'px';
+    });
+    document.addEventListener('mouseup', () => { dragging = false; });
 
-      win.querySelector('[data-dock-swap]').addEventListener('click', () => openHub('docked'));
-      win.querySelector('[data-close-window]').addEventListener('click', () => closeHub());
+    win.querySelector('[data-reattach]').addEventListener('click', () => {
+      closeHub();
+      switchScreen('hub');
+    });
+    win.querySelector('[data-close-window]').addEventListener('click', () => closeHub());
 
-      document.body.appendChild(win);
-    }
-
-    updateHubIconState();
+    document.body.appendChild(win);
   }
 
   function closeHub() {
     removeHubPanels();
     state.hubMode = null;
-    updateHubIconState();
   }
 
   function removeHubPanels() {
-    const docked = dockedWrap.querySelector('.docked-panel');
-    if (docked) docked.remove();
     const floating = document.getElementById('floatingHub');
     if (floating) floating.remove();
-  }
-
-  function updateHubIconState() {
-    // 嵌入式始终是 hub-main nav 激活(跟 activeScreen 一起走)
   }
 
   // ======== 左栏 · 主区切屏 ========
