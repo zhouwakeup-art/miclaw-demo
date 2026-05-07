@@ -241,6 +241,54 @@
   .nav-item.primary:hover { background: #000; color: white; }
   .nav-item.primary .emoji { color: white; }
 
+  /* 云服务可展开的二级菜单 */
+  .nav-expandable > .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    margin-bottom: 1px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-2);
+    transition: background .1s;
+  }
+  .nav-expandable > .nav-item:hover {
+    background: rgba(0,0,0,.04);
+    color: var(--text);
+  }
+  .nav-expandable > .nav-item .chevron {
+    margin-left: auto;
+    color: var(--text-3);
+    font-size: 10px;
+    transition: transform .15s;
+  }
+  .nav-expandable.open > .nav-item .chevron {
+    transform: rotate(90deg);
+  }
+  .nav-expandable > .nav-subitems {
+    display: none;
+    margin: 2px 0 4px;
+  }
+  .nav-expandable.open > .nav-subitems {
+    display: block;
+  }
+  .nav-subitem {
+    padding: 5px 10px 5px 34px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin-bottom: 1px;
+  }
+  .nav-subitem:hover { background: rgba(0,0,0,.04); color: var(--text); }
+  .nav-subitem.active {
+    background: rgba(0,0,0,.06);
+    color: var(--text);
+    font-weight: 500;
+  }
+
   /* 把设置顶到底部 */
   .sidebar-spacer { flex: 1; min-height: 8px; }
 
@@ -276,66 +324,6 @@
     background: rgba(0,0,0,.06);
     color: var(--text);
     font-weight: 500;
-  }
-
-  /* 跨端执行置顶条(简洁态:仅一行带 📌) */
-  .pinned-session {
-    padding: 5px 10px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    margin: 0 0 1px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--text-2);
-    transition: background .1s;
-  }
-  .pinned-session:hover { background: rgba(0,0,0,.04); color: var(--text); }
-  .pinned-session.active {
-    background: rgba(0,0,0,.06);
-    color: var(--text);
-    font-weight: 500;
-  }
-  .pinned-session .pin-icon {
-    font-size: 11px;
-    color: var(--text-3);
-    flex-shrink: 0;
-  }
-  .pinned-session.active .pin-icon { color: var(--text); }
-
-  /* 对话内升级提示条:"此对话已升级为跨端执行" */
-  .upgrade-notice {
-    margin: 12px 0 16px;
-    padding: 12px 14px;
-    border: 1px solid rgba(201,100,66,.2);
-    background: linear-gradient(135deg, rgba(201,100,66,.06), rgba(201,100,66,.02));
-    border-radius: var(--radius);
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .upgrade-notice .pin-mark {
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 11px;
-    margin-top: 1px;
-  }
-  .upgrade-notice .content {
-    flex: 1;
-    font-size: 12.5px;
-    line-height: 1.5;
-    color: var(--text-2);
-  }
-  .upgrade-notice .content strong {
-    color: var(--text);
-    font-weight: 600;
   }
 
   /* 子阶段切换器(s3 内部) */
@@ -530,6 +518,121 @@
     color: var(--text-3);
     margin-bottom: 4px;
     font-weight: 500;
+  }
+
+  /* ===== 设备间对话(跨端执行,只读) ===== */
+  .device-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px 20px;
+  }
+  .device-msg {
+    display: flex;
+    margin-bottom: 14px;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .device-msg.right { flex-direction: row-reverse; }
+  .device-avatar {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .device-avatar.phone { background: linear-gradient(135deg, #f7ede7, #e5c7b8); }
+  .device-avatar.pad { background: linear-gradient(135deg, #e8f0ff, #c9d7f5); }
+  .device-avatar.pc { background: linear-gradient(135deg, #eef3ec, #c6dec1); }
+  .device-msg .body { max-width: 72%; }
+  .device-msg.right .body { text-align: right; }
+  .device-msg .device-name {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 3px;
+  }
+  .device-msg .bubble-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text);
+    display: inline-block;
+    text-align: left;
+  }
+  .device-msg.right .bubble-box {
+    background: #d9e9ff;
+    border-color: #c9d7f5;
+  }
+  .device-msg .quoted {
+    font-size: 11.5px;
+    color: var(--text-3);
+    padding: 5px 8px;
+    background: var(--surface-2);
+    border-left: 2px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  /* 只读输入框 */
+  .input-box.readonly {
+    background: var(--surface-2);
+    border-color: var(--border);
+    cursor: not-allowed;
+  }
+  .input-box.readonly .input-text { color: var(--text-3); }
+  .input-box.readonly .input-btn,
+  .input-box.readonly .send-btn {
+    opacity: .45;
+    pointer-events: none;
+  }
+  .input-box.readonly .send-btn { background: var(--off); }
+
+  /* 跨端执行空态 */
+  .cross-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--text-3);
+    text-align: center;
+  }
+  .cross-empty .icon {
+    font-size: 46px;
+    margin-bottom: 14px;
+    opacity: .6;
+  }
+  .cross-empty .title-row {
+    font-size: 15px;
+    color: var(--text-2);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .cross-empty .desc {
+    font-size: 13px;
+    color: var(--text-3);
+    max-width: 320px;
+    line-height: 1.7;
+  }
+  .cross-empty .desc .kbd {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 12px;
+    color: var(--text-2);
   }
 
   /* ===== Device Panel ===== */
@@ -1752,7 +1855,7 @@
 <div class="tabs">
   <button class="tab active" data-screen="s1">对话 · 欢迎屏</button>
   <button class="tab" data-screen="s2">对话 · 进行中</button>
-  <button class="tab" data-screen="s3">跨端执行</button>
+  <button class="tab" data-screen="s3">跨端执行 · 只读</button>
   <button class="tab" data-screen="s5">添加设备</button>
   <button class="tab" data-screen="s6">设置</button>
   <button class="tab" data-screen="s7">云服务 · 云相册</button>
@@ -1773,18 +1876,26 @@
       <div class="topbar-icon" title="互联快捷面板">📱<span class="badge">3</span></div>
     </div>
     <div class="app">
-      <aside class="sidebar">
+            <aside class="sidebar">
         <div class="nav-item primary active" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+        <div class="nav-item" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
+        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
+        <div class="nav-item" data-nav="discover"><span class="emoji">💡</span>发现</div>
+        <div class="sidebar-divider"></div>
+        <div class="nav-expandable" data-nav="cloud">
+          <div class="nav-item"><span class="emoji">☁️</span>云服务<span class="chevron">▸</span></div>
+          <div class="nav-subitems">
+            <div class="nav-subitem" data-cloud="photo">📷 云相册</div>
+            <div class="nav-subitem" data-cloud="note">📝 云笔记</div>
+            <div class="nav-subitem" data-cloud="find">📍 查找设备</div>
+          </div>
+        </div>
+        <div class="sidebar-divider"></div>
         <div class="section-label">最近对话</div>
-        <div class="pinned-session" data-pinned><span class="pin-icon">📌</span>跨端执行</div>
         <div class="history-item">北京今明天气与出行建议</div>
         <div class="history-item">周报草稿 · 第 19 周</div>
         <div class="history-item">跳动爱心网页生成</div>
         <div class="history-item">推荐一本关于认知科学的书</div>
-        <div class="sidebar-divider"></div>
-        <div class="nav-item" data-nav="inspire"><span class="emoji">💡</span>发现</div>
-        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
         <div class="sidebar-spacer"></div>
         <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
       </aside>
@@ -1823,18 +1934,26 @@
       <div class="topbar-icon" title="互联快捷面板">📱<span class="badge">3</span></div>
     </div>
     <div class="app">
-      <aside class="sidebar">
+            <aside class="sidebar">
         <div class="nav-item primary" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+        <div class="nav-item" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
+        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
+        <div class="nav-item" data-nav="discover"><span class="emoji">💡</span>发现</div>
+        <div class="sidebar-divider"></div>
+        <div class="nav-expandable" data-nav="cloud">
+          <div class="nav-item"><span class="emoji">☁️</span>云服务<span class="chevron">▸</span></div>
+          <div class="nav-subitems">
+            <div class="nav-subitem" data-cloud="photo">📷 云相册</div>
+            <div class="nav-subitem" data-cloud="note">📝 云笔记</div>
+            <div class="nav-subitem" data-cloud="find">📍 查找设备</div>
+          </div>
+        </div>
+        <div class="sidebar-divider"></div>
         <div class="section-label">最近对话</div>
-        <div class="pinned-session" data-pinned><span class="pin-icon">📌</span>跨端执行</div>
         <div class="history-item active">北京今明天气与出行建议</div>
         <div class="history-item">周报草稿 · 第 19 周</div>
         <div class="history-item">跳动爱心网页生成</div>
         <div class="history-item">推荐一本关于认知科学的书</div>
-        <div class="sidebar-divider"></div>
-        <div class="nav-item" data-nav="inspire"><span class="emoji">💡</span>发现</div>
-        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
         <div class="sidebar-spacer"></div>
         <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
       </aside>
@@ -1874,190 +1993,177 @@
   </div>
 </div>
 
-<!-- ========== 屏 3：跨端执行 · 从空态到稳态的完整生命周期 ========== -->
+<!-- ========== 屏 3：跨端执行(只读观察窗) ========== -->
 <div class="screen" id="s3">
-  <div class="screen-title">跨端执行 · 完整生命周期</div>
-  <div class="screen-note">切换下方三个阶段查看演进:空态 → 首次触发(升级为跨端执行) → 稳态常驻置顶</div>
+  <div class="screen-title">跨端执行 · 设备协作的只读观察窗</div>
+  <div class="screen-note">独立 tab · 仅展示设备间的任务执行记录,不支持输入 · 用户发起还是在"新对话"里 @ 设备</div>
 
   <div class="substage-bar">
-    <div class="substage active" data-stage="3a"><span class="stage-num">1</span>空态</div>
-    <div class="substage" data-stage="3b"><span class="stage-num">2</span>首次 @ 设备</div>
-    <div class="substage" data-stage="3c"><span class="stage-num">3</span>稳态常驻</div>
+    <div class="substage active" data-stage="3a"><span class="stage-num">1</span>空态 · 还没发起过跨端任务</div>
+    <div class="substage" data-stage="3b"><span class="stage-num">2</span>协作中 · 设备正在接力完成</div>
   </div>
 
-  <!-- 阶段 1:空态 · 用户还没 @ 过设备,左栏无置顶 -->
+  <!-- 阶段 1:空态 -->
   <div class="substage-pane active" data-pane="3a">
     <div class="window">
       <div class="topbar">
         <div class="traffic"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-        <div class="topbar-title">MiClaw</div>
+        <div class="topbar-title">小米互联服务</div>
         <div class="topbar-icon" title="融合设备中心">📱<span class="badge">3</span></div>
       </div>
       <div class="app">
         <aside class="sidebar">
-          <div class="nav-item primary active" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
-          <div class="section-label">最近对话</div>
-          <div class="history-item">推荐一本关于认知科学的书</div>
-          <div class="history-item">帮我起 5 个产品名</div>
-          <div class="history-item">周报草稿 · 第 19 周</div>
+          <div class="nav-item primary" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+          <div class="nav-item active" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
+          <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
+          <div class="nav-item" data-nav="discover"><span class="emoji">💡</span>发现</div>
           <div class="sidebar-divider"></div>
-        <div class="nav-item" data-nav="inspire"><span class="emoji">💡</span>发现</div>
-        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
+          <div class="nav-expandable" data-nav="cloud">
+            <div class="nav-item"><span class="emoji">☁️</span>云服务<span class="chevron">▸</span></div>
+            <div class="nav-subitems">
+              <div class="nav-subitem" data-cloud="photo">📷 云相册</div>
+              <div class="nav-subitem" data-cloud="note">📝 云笔记</div>
+              <div class="nav-subitem" data-cloud="find">📍 查找设备</div>
+            </div>
+          </div>
+          <div class="sidebar-divider"></div>
+          <div class="section-label">最近对话</div>
+          <div class="history-item">北京今明天气与出行建议</div>
+          <div class="history-item">周报草稿 · 第 19 周</div>
           <div class="sidebar-spacer"></div>
           <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
         </aside>
-        <main class="main">
-          <div class="welcome">
-            <div class="logo">✦</div>
-            <h2>Hi, 我是超级小爱</h2>
-            <p>你的全生态 AI 助手,能问、能做、能记住,有什么事情尽管交给我吧</p>
-            <div class="scene-grid">
-              <div class="scene-card">💬  打开手机微信</div>
-              <div class="scene-card">📲  把手机上的照片传过来</div>
-              <div class="scene-card">🗂️  整理桌面</div>
-              <div class="scene-card">🎨  生成网页</div>
+        <main class="main" style="padding: 0;">
+          <div style="padding: 18px 20px 10px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 600;">跨端执行</div>
+          <div class="cross-empty">
+            <div class="icon">📶</div>
+            <div class="title-row">还没有跨端任务</div>
+            <div class="desc">
+              去 <span class="kbd">＋ 新对话</span> 里 <span class="kbd">@ 设备</span> 让 AI 帮你做事,<br>
+              执行过程会出现在这里,让你看到设备之间如何协作
             </div>
           </div>
-          <div class="input-box">
+          <div class="input-box readonly">
             <div class="input-btn">＋</div>
-            <div class="input-model">快速 ▾</div>
-            <div class="input-text">发消息或 @ 设备帮你做事</div>
+            <div class="input-text">仅支持查看设备之间的任务执行记录</div>
             <div class="send-btn">↑</div>
           </div>
         </main>
       </div>
     </div>
-    <div style="margin-top: 12px; font-size: 12px; color: var(--text-3); max-width: 820px;">
-      👆 这里就是 <strong style="color:var(--text);">s1 欢迎屏</strong>——用户从没发起过跨端任务时的默认状态。左栏只有普通对话和 ＋新对话 主按钮,场景卡片自然引导用户试试跨端能力。
+    <div style="margin-top: 12px; font-size: 12px; color: var(--text-3); max-width: 1200px;">
+      👆 空态:用户还没发起过跨端任务,展示引导,指向"去新对话里 @ 设备"。输入框禁用。
     </div>
   </div>
 
-  <!-- 阶段 2:首次 @ 设备 · 在普通新对话里输入,系统升级本会话 -->
+  <!-- 阶段 2:协作中 · 只读观察 -->
   <div class="substage-pane" data-pane="3b">
     <div class="window">
       <div class="topbar">
         <div class="traffic"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-        <div class="topbar-title">MiClaw</div>
+        <div class="topbar-title">小米互联服务</div>
         <div class="topbar-icon" title="融合设备中心">📱<span class="badge">3</span></div>
       </div>
       <div class="app">
         <aside class="sidebar">
           <div class="nav-item primary" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
-          <div class="section-label">最近对话</div>
-          <div class="pinned-session active" data-pinned><span class="pin-icon">📌</span>跨端执行</div>
-          <div class="history-item">推荐一本关于认知科学的书</div>
-          <div class="history-item">帮我起 5 个产品名</div>
-          <div class="history-item">周报草稿 · 第 19 周</div>
+          <div class="nav-item active" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
+          <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
+          <div class="nav-item" data-nav="discover"><span class="emoji">💡</span>发现</div>
           <div class="sidebar-divider"></div>
-        <div class="nav-item" data-nav="inspire"><span class="emoji">💡</span>发现</div>
-        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
-          <div class="sidebar-spacer"></div>
-          <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
-        </aside>
-        <main class="main">
-          <div class="chat-title">📱 跨端执行 · 3 台设备在线</div>
-          <div class="chat-flow">
-            <div class="bubble user">
-              <span class="tag">我 · 刚才</span>
-              @手机 把昨天发票拍的那几张图整理到 PC 桌面
-            </div>
-
-            <div class="upgrade-notice">
-              <div class="pin-mark">📌</div>
-              <div class="content">
-                <strong>已升级为跨端执行</strong><br>
-                这条对话已置顶到最近对话顶部,之后所有 @ 设备的任务都会进入这里。小爱会记住你的设备习惯。
-              </div>
-            </div>
-
-            <div class="bubble ai">
-              <span class="tag">小爱 · 手机执行</span>
-              找到 3 张相关图片(10:23 - 11:45 拍摄)<br>
-              已传到 PC 桌面 / 发票_0506 文件夹 ✓
+          <div class="nav-expandable" data-nav="cloud">
+            <div class="nav-item"><span class="emoji">☁️</span>云服务<span class="chevron">▸</span></div>
+            <div class="nav-subitems">
+              <div class="nav-subitem" data-cloud="photo">📷 云相册</div>
+              <div class="nav-subitem" data-cloud="note">📝 云笔记</div>
+              <div class="nav-subitem" data-cloud="find">📍 查找设备</div>
             </div>
           </div>
-          <div class="input-box">
-            <div class="input-btn">＋</div>
-            <div class="input-model">@ 设备</div>
-            <div class="input-text">让设备帮你做点什么...</div>
-            <div class="send-btn">↑</div>
-          </div>
-        </main>
-      </div>
-    </div>
-    <div style="margin-top: 12px; font-size: 12px; color: var(--text-3); max-width: 820px;">
-      👆 用户第一次 @ 手机,系统把这条会话<strong style="color:var(--text);">从普通对话升级为"跨端执行"</strong>,左栏立刻出现置顶卡,对话内给一条轻量提示说明发生了什么。
-    </div>
-  </div>
-
-  <!-- 阶段 3:稳态常驻 · 跨端执行跨天跨 session 累积 -->
-  <div class="substage-pane" data-pane="3c">
-    <div class="window">
-      <div class="topbar">
-        <div class="traffic"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-        <div class="topbar-title">MiClaw</div>
-        <div class="topbar-icon" title="融合设备中心">📱<span class="badge">3</span></div>
-      </div>
-      <div class="app">
-        <aside class="sidebar">
-          <div class="nav-item primary" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+          <div class="sidebar-divider"></div>
           <div class="section-label">最近对话</div>
-          <div class="pinned-session active" data-pinned><span class="pin-icon">📌</span>跨端执行</div>
           <div class="history-item">北京今明天气与出行建议</div>
           <div class="history-item">周报草稿 · 第 19 周</div>
           <div class="history-item">跳动爱心网页生成</div>
           <div class="history-item">推荐一本关于认知科学的书</div>
-          <div class="sidebar-divider"></div>
-        <div class="nav-item" data-nav="inspire"><span class="emoji">💡</span>发现</div>
-        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
           <div class="sidebar-spacer"></div>
           <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
         </aside>
-        <main class="main">
-          <div class="chat-title">📱 跨端执行 · 3 台设备在线</div>
-          <div class="chat-flow">
-            <div class="bubble user">
-              <span class="tag">我 · 昨天</span>
-              把今天的会议录音转文字发到我微信
+        <main class="main" style="padding: 0;">
+          <div style="padding: 18px 20px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 15px; font-weight: 600;">跨端执行</span>
+            <span style="font-size: 12px; color: var(--text-3);">⋯</span>
+          </div>
+
+          <div class="device-chat">
+            <!-- PC 发指令 -->
+            <div class="device-msg right">
+              <div class="device-avatar pc">💻</div>
+              <div class="body">
+                <div class="device-name">Xiaomi Book Pro 14</div>
+                <div class="bubble-box">@Xiaomi 17 Pro 帮我找一下昨天拍的小猫的照片,翻一下手机的相册传给我</div>
+              </div>
             </div>
-            <div class="bubble ai">
-              <span class="tag">小爱 · 跨端协作</span>
-              调用手机云录音,找到 14:00 会议录音(32 分钟)<br>
-              转写完成 → 已通过手机发送到你的文件传输助手 ✓
+
+            <!-- 手机响应 -->
+            <div class="device-msg">
+              <div class="device-avatar phone">📱</div>
+              <div class="body">
+                <div class="device-name">Xiaomi 17 Pro</div>
+                <div class="bubble-box">收到,翻找手机相册中...</div>
+              </div>
             </div>
-            <div class="bubble user">
-              <span class="tag">我 · 今天上午</span>
-              @Pad 屏幕扩展一下,用扩展模式
+
+            <!-- PC 再发指令 -->
+            <div class="device-msg right">
+              <div class="device-avatar pc">💻</div>
+              <div class="body">
+                <div class="device-name">Xiaomi Book Pro 14</div>
+                <div class="bubble-box">@Xiaomi Pad 8 Pro 帮我看看昨天写的文档有没有疏漏,有的话补一下逻辑漏洞</div>
+              </div>
             </div>
-            <div class="bubble ai">
-              <span class="tag">小爱 · Pad 接入</span>
-              Pad 6 Pro 已作为扩展显示器连入 ✓<br>
-              <span style="color: var(--text-3); font-size: 12px;">💡 注意到你每次回家都开 Pad 扩展,要不要设个自动规则?</span>
+
+            <!-- Pad 响应 -->
+            <div class="device-msg">
+              <div class="device-avatar pad">📲</div>
+              <div class="body">
+                <div class="device-name">Xiaomi Pad 8 Pro</div>
+                <div class="bubble-box">收到,我现在去看看</div>
+              </div>
             </div>
-            <div class="bubble user">
-              <span class="tag">我 · 刚才</span>
-              @手机 昨天拍的发票再整理一批到桌面
+
+            <!-- Pad 汇报 -->
+            <div class="device-msg">
+              <div class="device-avatar pad">📲</div>
+              <div class="body">
+                <div class="device-name">Xiaomi Pad 8 Pro</div>
+                <div class="bubble-box">文档还行,没啥漏洞</div>
+              </div>
             </div>
-            <div class="bubble ai">
-              <span class="tag">小爱 · 手机执行</span>
-              找到 5 张图片 → 已传到 PC 桌面 / 发票_0507 ✓<br>
-              <span style="color: var(--text-3); font-size: 12px;">💡 和上周那批发票放同一个目录,需要我汇总一下发票总额吗?</span>
+
+            <!-- 手机汇报(带引用) -->
+            <div class="device-msg">
+              <div class="device-avatar phone">📱</div>
+              <div class="body">
+                <div class="device-name">Xiaomi 17 Pro</div>
+                <div>
+                  <div class="quoted">| @Xiaomi 17 Pro 帮我找一下昨天拍的小猫的照片,翻一下手机的相册传...</div>
+                  <div class="bubble-box">找到了!</div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="input-box">
+
+          <div class="input-box readonly">
             <div class="input-btn">＋</div>
-            <div class="input-model">@ 设备</div>
-            <div class="input-text">让设备帮你做点什么...</div>
+            <div class="input-text">仅支持查看设备之间的任务执行记录</div>
             <div class="send-btn">↑</div>
           </div>
         </main>
       </div>
     </div>
-    <div style="margin-top: 12px; font-size: 12px; color: var(--text-3); max-width: 820px;">
-      👆 常态:跨端执行永久置顶于最近对话顶部,不会掉下去。<strong style="color:var(--text);">AI 跨天跨会话累积设备使用记忆</strong>——注意到 AI 开始主动提示"上周那批发票""每次回家都开扩展"这类上下文关联。
+    <div style="margin-top: 12px; font-size: 12px; color: var(--text-3); max-width: 1200px;">
+      👆 协作中:用户在主对话 @ 设备发起任务后,这里渲染"设备之间的对话"。
+      <strong style="color:var(--text);">这不是真实的对话,是 AI 调度设备的执行记录被可视化成群聊形态</strong>——让用户一眼看懂"设备们在协作"。输入框禁用,任何操作都要回到"新对话"里 @。
     </div>
   </div>
 </div>
@@ -2075,21 +2181,29 @@
         <div class="topbar-icon" title="设备互联" style="background: rgba(0,0,0,.06)">📱<span class="badge">3</span></div>
       </div>
       <div class="app">
-        <aside class="sidebar">
-          <div class="nav-item primary active" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
-          <div class="section-label">最近对话</div>
-          <div class="pinned-session" data-pinned><span class="pin-icon">📌</span>跨端执行</div>
-          <div class="history-item">北京今明天气与出行建议</div>
-          <div class="history-item">周报草稿 · 第 19 周</div>
-          <div class="history-item">跳动爱心网页生成</div>
-          <div class="history-item">推荐一本关于认知科学的书</div>
-          <div class="sidebar-divider"></div>
-        <div class="nav-item" data-nav="inspire"><span class="emoji">💡</span>发现</div>
+              <aside class="sidebar">
+        <div class="nav-item primary active" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+        <div class="nav-item" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
         <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
-          <div class="sidebar-spacer"></div>
-          <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
-        </aside>
+        <div class="nav-item" data-nav="discover"><span class="emoji">💡</span>发现</div>
+        <div class="sidebar-divider"></div>
+        <div class="nav-expandable" data-nav="cloud">
+          <div class="nav-item"><span class="emoji">☁️</span>云服务<span class="chevron">▸</span></div>
+          <div class="nav-subitems">
+            <div class="nav-subitem" data-cloud="photo">📷 云相册</div>
+            <div class="nav-subitem" data-cloud="note">📝 云笔记</div>
+            <div class="nav-subitem" data-cloud="find">📍 查找设备</div>
+          </div>
+        </div>
+        <div class="sidebar-divider"></div>
+        <div class="section-label">最近对话</div>
+        <div class="history-item">北京今明天气与出行建议</div>
+        <div class="history-item">周报草稿 · 第 19 周</div>
+        <div class="history-item">跳动爱心网页生成</div>
+        <div class="history-item">推荐一本关于认知科学的书</div>
+        <div class="sidebar-spacer"></div>
+        <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
+      </aside>
         <main class="main">
           <div class="welcome">
             <div class="logo">✦</div>
@@ -2205,17 +2319,26 @@
       <div class="topbar-icon" title="设备互联">📱<span class="badge">3</span></div>
     </div>
     <div class="app">
-      <aside class="sidebar">
+            <aside class="sidebar">
         <div class="nav-item primary" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+        <div class="nav-item" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
+        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
+        <div class="nav-item" data-nav="discover"><span class="emoji">💡</span>发现</div>
+        <div class="sidebar-divider"></div>
+        <div class="nav-expandable" data-nav="cloud">
+          <div class="nav-item"><span class="emoji">☁️</span>云服务<span class="chevron">▸</span></div>
+          <div class="nav-subitems">
+            <div class="nav-subitem" data-cloud="photo">📷 云相册</div>
+            <div class="nav-subitem" data-cloud="note">📝 云笔记</div>
+            <div class="nav-subitem" data-cloud="find">📍 查找设备</div>
+          </div>
+        </div>
+        <div class="sidebar-divider"></div>
         <div class="section-label">最近对话</div>
-        <div class="pinned-session" data-pinned><span class="pin-icon">📌</span>跨端执行</div>
         <div class="history-item">北京今明天气与出行建议</div>
         <div class="history-item">周报草稿 · 第 19 周</div>
         <div class="history-item">跳动爱心网页生成</div>
-        <div class="sidebar-divider"></div>
-        <div class="nav-item" data-nav="inspire"><span class="emoji">💡</span>发现</div>
-        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
+        <div class="history-item">推荐一本关于认知科学的书</div>
         <div class="sidebar-spacer"></div>
         <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
       </aside>
@@ -2277,17 +2400,26 @@
       <div class="topbar-icon" title="互联快捷面板">📱<span class="badge">3</span></div>
     </div>
     <div class="app">
-      <aside class="sidebar">
+            <aside class="sidebar">
         <div class="nav-item primary" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+        <div class="nav-item" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
+        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
+        <div class="nav-item" data-nav="discover"><span class="emoji">💡</span>发现</div>
+        <div class="sidebar-divider"></div>
+        <div class="nav-expandable" data-nav="cloud">
+          <div class="nav-item"><span class="emoji">☁️</span>云服务<span class="chevron">▸</span></div>
+          <div class="nav-subitems">
+            <div class="nav-subitem" data-cloud="photo">📷 云相册</div>
+            <div class="nav-subitem" data-cloud="note">📝 云笔记</div>
+            <div class="nav-subitem" data-cloud="find">📍 查找设备</div>
+          </div>
+        </div>
+        <div class="sidebar-divider"></div>
         <div class="section-label">最近对话</div>
-        <div class="pinned-session" data-pinned><span class="pin-icon">📌</span>跨端执行</div>
         <div class="history-item">北京今明天气与出行建议</div>
         <div class="history-item">周报草稿 · 第 19 周</div>
         <div class="history-item">跳动爱心网页生成</div>
-        <div class="sidebar-divider"></div>
-        <div class="nav-item" data-nav="inspire"><span class="emoji">💡</span>发现</div>
-        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
+        <div class="history-item">推荐一本关于认知科学的书</div>
         <div class="sidebar-spacer"></div>
         <div class="nav-item active" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
       </aside>
@@ -2410,17 +2542,26 @@
       <div class="topbar-icon" title="互联快捷面板">📱<span class="badge">3</span></div>
     </div>
     <div class="app">
-      <aside class="sidebar">
+            <aside class="sidebar">
         <div class="nav-item primary" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+        <div class="nav-item" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
+        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
+        <div class="nav-item active" data-nav="discover"><span class="emoji">💡</span>发现</div>
+        <div class="sidebar-divider"></div>
+        <div class="nav-expandable" data-nav="cloud">
+          <div class="nav-item"><span class="emoji">☁️</span>云服务<span class="chevron">▸</span></div>
+          <div class="nav-subitems">
+            <div class="nav-subitem" data-cloud="photo">📷 云相册</div>
+            <div class="nav-subitem" data-cloud="note">📝 云笔记</div>
+            <div class="nav-subitem" data-cloud="find">📍 查找设备</div>
+          </div>
+        </div>
+        <div class="sidebar-divider"></div>
         <div class="section-label">最近对话</div>
-        <div class="pinned-session" data-pinned><span class="pin-icon">📌</span>跨端执行</div>
         <div class="history-item">北京今明天气与出行建议</div>
         <div class="history-item">周报草稿 · 第 19 周</div>
         <div class="history-item">跳动爱心网页生成</div>
-        <div class="sidebar-divider"></div>
-        <div class="nav-item active" data-nav="inspire"><span class="emoji">💡</span>发现</div>
-        <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
+        <div class="history-item">推荐一本关于认知科学的书</div>
         <div class="sidebar-spacer"></div>
         <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
       </aside>
@@ -2563,17 +2704,26 @@
       <div class="topbar-icon" title="互联快捷面板">📱<span class="badge">3</span></div>
     </div>
     <div class="app">
-      <aside class="sidebar">
+            <aside class="sidebar">
         <div class="nav-item primary" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+        <div class="nav-item" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
+        <div class="nav-item active" data-nav="files"><span class="emoji">🗂️</span>文件</div>
+        <div class="nav-item" data-nav="discover"><span class="emoji">💡</span>发现</div>
+        <div class="sidebar-divider"></div>
+        <div class="nav-expandable" data-nav="cloud">
+          <div class="nav-item"><span class="emoji">☁️</span>云服务<span class="chevron">▸</span></div>
+          <div class="nav-subitems">
+            <div class="nav-subitem" data-cloud="photo">📷 云相册</div>
+            <div class="nav-subitem" data-cloud="note">📝 云笔记</div>
+            <div class="nav-subitem" data-cloud="find">📍 查找设备</div>
+          </div>
+        </div>
+        <div class="sidebar-divider"></div>
         <div class="section-label">最近对话</div>
-        <div class="pinned-session" data-pinned><span class="pin-icon">📌</span>跨端执行</div>
         <div class="history-item">北京今明天气与出行建议</div>
         <div class="history-item">周报草稿 · 第 19 周</div>
         <div class="history-item">跳动爱心网页生成</div>
-        <div class="sidebar-divider"></div>
-        <div class="nav-item" data-nav="inspire"><span class="emoji">💡</span>发现</div>
-        <div class="nav-item active" data-nav="files"><span class="emoji">🗂️</span>文件</div>
-        <div class="nav-item" data-nav="cloud"><span class="emoji">☁️</span>云服务</div>
+        <div class="history-item">推荐一本关于认知科学的书</div>
         <div class="sidebar-spacer"></div>
         <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
       </aside>
@@ -2775,10 +2925,11 @@
 </div>
 
 <div class="legend">
-  <b>左栏</b> ＋新对话为主按钮 · <b>📌 跨端执行</b>是唯一置顶会话(one session,第一次 @ 设备时自动创建) · 板块入口按"先发现能力、再看产物、最后查云数据"排列 · 设置沉底 ·
+  <b>左栏</b> ＋新对话 + <b>📶 跨端执行</b>(只读观察窗) + 文件 + 发现,一条分隔,云服务可展开(云相册/云笔记/查找),再分隔后是最近对话,设置沉底 ·
+  <b>跨端执行</b> 是"设备协作的可视化",不是对话——@设备 真实发起点是<b>新对话</b>,这里只同步展示执行过程 ·
   <b>融合设备中心(顶栏)</b> 点击右侧贴出设备互联面板 ·
   <b>设备状态</b> 在线 / 离线二态,离线设备按钮保持正常,点击时弹窗问"是否开启热点" ·
-  <b>☁️ 云服务</b> 独立 Web 窗口,含云相册/云笔记/查找设备 ·
+  <b>☁️ 云服务</b> 独立 Web 窗口,含云相册 / 云笔记 / 查找设备 ·
   <b>🗂️ 文件</b> 只装 AI 产物,💬 可跳回生成它的对话 ·
   <b>💡 发现</b> Skill + MCP 合并,按场景分类
 </div>
@@ -2910,15 +3061,15 @@
 
   const navMap = {
     'new-chat': 's1',
+    'cross': 's3',
     'files': 's9',
-    'cloud': 's7',
-    'inspire': 's8',
+    'discover': 's8',
     'settings': 's6',
   };
   document.querySelectorAll('.screen').forEach(screen => {
     // 主侧栏导航
     screen.querySelectorAll('.sidebar .nav-item').forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
         const action = item.dataset.action;
         const nav = item.dataset.nav;
         const key = action || nav;
@@ -2927,16 +3078,29 @@
         }
       });
     });
+    // 云服务展开/收起
+    screen.querySelectorAll('.nav-expandable > .nav-item').forEach(head => {
+      head.addEventListener('click', (e) => {
+        e.stopPropagation();
+        head.parentElement.classList.toggle('open');
+      });
+    });
+    // 云服务子项点击
+    screen.querySelectorAll('.nav-subitem').forEach(sub => {
+      sub.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cloudKey = sub.dataset.cloud;
+        if (cloudKey === 'find') {
+          document.querySelector('.tab[data-screen="s10"]').click();
+        } else {
+          document.querySelector('.tab[data-screen="s7"]').click();
+        }
+      });
+    });
     // 历史项点击 = 进入对话屏(s2)
     screen.querySelectorAll('.sidebar .history-item').forEach(item => {
       item.addEventListener('click', () => {
         document.querySelector('.tab[data-screen="s2"]').click();
-      });
-    });
-    // 置顶的跨端执行会话 = 进入 s3
-    screen.querySelectorAll('.pinned-session').forEach(item => {
-      item.addEventListener('click', () => {
-        document.querySelector('.tab[data-screen="s3"]').click();
       });
     });
   });
