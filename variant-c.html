@@ -90,49 +90,10 @@
     text-align: center;
   }
 
-  /* 顶栏右侧:设备互联快捷入口 */
-  .topbar-right {
-    display: flex; align-items: center; gap: 6px;
-    flex-shrink: 0; position: relative;
-  }
-  .topbar-icon {
-    width: 30px; height: 28px;
-    border-radius: var(--radius-sm);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-2);
-    cursor: pointer;
-    position: relative;
-    transition: background .1s;
-  }
-  .topbar-icon:hover { background: rgba(0,0,0,.05); color: var(--text); }
-  .topbar-icon.active {
-    background: rgba(0,0,0,.06);
-    color: var(--text);
-  }
-  .topbar-icon svg { width: 18px; height: 18px; display: block; }
-
-  /* tooltip for topbar icon */
-  .topbar-icon[data-tip]::after {
-    content: attr(data-tip);
-    position: absolute;
-    top: calc(100% + 6px); right: 0;
-    background: var(--text); color: white;
-    font-size: 11px; padding: 4px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
-    opacity: 0; pointer-events: none;
-    transform: translateY(-4px);
-    transition: all .12s;
-    z-index: 40;
-  }
-  .topbar-icon[data-tip]:hover::after { opacity: 1; transform: translateY(0); }
-  .topbar-icon[data-tip].menu-open::after,
-  .topbar-icon[data-tip].active::after { opacity: 0; }
-
-  /* 模式选择小菜单 */
+  /* 模式选择小菜单(从左栏 nav-item 右侧弹出) */
   .mode-menu {
     position: absolute;
-    top: calc(100% + 6px); right: 0;
+    top: 0; left: calc(100% + 4px);
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -140,24 +101,35 @@
     padding: 4px;
     z-index: 50;
     display: none;
-    min-width: 180px;
+    min-width: 220px;
   }
   .mode-menu.show { display: block; }
   .mode-menu .mode-item {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: flex-start; gap: 10px;
     padding: 8px 10px; border-radius: 6px;
     cursor: pointer; font-size: 13px;
     color: var(--text);
   }
   .mode-menu .mode-item:hover { background: var(--surface-2); }
   .mode-menu .mode-item .mode-icon {
-    font-size: 15px; width: 18px; text-align: center; color: var(--text-2);
+    font-size: 15px; width: 18px; text-align: center;
+    color: var(--text-2);
+    flex-shrink: 0;
+    padding-top: 1px;
   }
   .mode-menu .mode-item .mode-desc {
-    display: block; font-size: 11px; color: var(--text-3); margin-top: 1px;
+    display: block; font-size: 11px; color: var(--text-3); margin-top: 2px;
   }
   .mode-menu .menu-divider {
     height: 1px; background: var(--border); margin: 4px 2px;
+  }
+
+  /* hub 入口当前激活态(面板开启时) */
+  #hubEntryNav.active { background: rgba(0,0,0,.06); color: var(--text); font-weight: 500; }
+  #hubEntryNav .nav-chevron-sm {
+    margin-left: auto;
+    color: var(--text-3);
+    font-size: 10px;
   }
 
   /* 主体:docked-wrap (主窗口 + 可能的右侧贴边) */
@@ -750,7 +722,7 @@
 
   <div class="highlight">
     <b>架构意图</b>:日常内容(新对话 / 跨端执行 / 文件 / 发现 / 云服务)在主窗口里切换,保持最简单的上下文。
-    <b>设备互联</b>是唯一需要"同时看见"的辅助面板 —— 点顶栏图标,弹出 <span class="kbd">贴边</span> 或 <span class="kbd">浮窗</span> 选项。
+    <b>设备互联</b>是左栏里唯一不"切主区"的入口 —— 点它,弹出 <span class="kbd">贴边</span> 或 <span class="kbd">浮窗</span> 选项,其他板块都没有这个特权。
     <br>
     <b>为什么只有它特殊</b>:用户在对话里 @ 设备、跨端执行协作时,常常需要眼角余光随时看到设备状态 / 扔文件过去,其他板块则是"进去做完就出来",不需要并排。
   </div>
@@ -764,36 +736,6 @@
         <div class="dot green"></div>
       </div>
       <div class="topbar-title">小米互联服务</div>
-      <div class="topbar-right">
-        <div class="topbar-icon" id="hubEntryIcon" data-tip="设备互联">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="5" width="11" height="14" rx="2"/>
-            <rect x="15" y="8" width="6" height="11" rx="1.5"/>
-            <line x1="7" y1="16" x2="10" y2="16"/>
-          </svg>
-        </div>
-        <div class="mode-menu" id="modeMenu">
-          <div class="mode-item" data-mode="docked">
-            <div class="mode-icon">▐</div>
-            <div>
-              贴边面板
-              <span class="mode-desc">固定在主窗口右侧 · 主区跟着缩窄</span>
-            </div>
-          </div>
-          <div class="mode-item" data-mode="floating">
-            <div class="mode-icon">◱</div>
-            <div>
-              浮动窗口
-              <span class="mode-desc">独立可拖动的小窗 · 主区不受影响</span>
-            </div>
-          </div>
-          <div class="menu-divider" id="modeDividerClose" style="display: none;"></div>
-          <div class="mode-item" id="modeClose" data-mode="close" style="display: none;">
-            <div class="mode-icon">✕</div>
-            <div>关闭设备互联</div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- 主体:docked-wrap -->
@@ -803,6 +745,33 @@
         <aside class="sidebar">
           <div class="nav-item primary active" data-screen="new-chat">
             <span class="emoji">✚</span>新对话
+          </div>
+          <div class="nav-item-wrap" style="position: relative;">
+            <div class="nav-item" id="hubEntryNav" data-hub-entry>
+              <span class="emoji">🔗</span>设备互联
+              <span class="nav-chevron-sm" aria-hidden="true">▸</span>
+            </div>
+            <div class="mode-menu" id="modeMenu">
+              <div class="mode-item" data-mode="docked">
+                <div class="mode-icon">▐</div>
+                <div>
+                  贴边面板
+                  <span class="mode-desc">固定在主窗口右侧 · 主区跟着缩窄</span>
+                </div>
+              </div>
+              <div class="mode-item" data-mode="floating">
+                <div class="mode-icon">◱</div>
+                <div>
+                  浮动窗口
+                  <span class="mode-desc">独立可拖动的小窗 · 主区不受影响</span>
+                </div>
+              </div>
+              <div class="menu-divider" id="modeDividerClose" style="display: none;"></div>
+              <div class="mode-item" id="modeClose" data-mode="close" style="display: none;">
+                <div class="mode-icon">✕</div>
+                <div>关闭设备互联</div>
+              </div>
+            </div>
           </div>
           <div class="nav-item" data-screen="cross">
             <span class="emoji">📶</span>跨端执行
@@ -1010,9 +979,9 @@
   <div class="demo-note">
     <b>关键特征</b><br>
     · 主框架沿用 v1:左栏导航,主区直接切换内容,关闭即关闭<br>
-    · 顶栏右侧只有 <b>设备互联</b> 一个图标(其他板块不具备浮窗/贴边特权)<br>
-    · 点图标 → 弹出小菜单:<span class="kbd">贴边面板</span> / <span class="kbd">浮动窗口</span> 二选一<br>
-    · 已打开状态下,再次点图标菜单里追加"关闭设备互联"选项,也能在两种形态间切换<br>
+    · 左栏里只有 <b>设备互联</b> 一个入口不切主区,而是弹出模式选择菜单<br>
+    · 菜单里选 <span class="kbd">贴边面板</span> / <span class="kbd">浮动窗口</span> 二选一<br>
+    · 已打开状态下,再次点入口菜单里追加"关闭设备互联"选项,也能在两种形态间切换<br>
     · 贴边:主区按 360px 让出,设备卡自动进入紧凑态;浮窗:主区不变,窗口可拖动、可 <span class="kbd">贴到侧边</span><br>
     · 只有"设备互联"的所有交互容器都带 container query,无论贴边窄到多少、浮窗缩多小,卡片都保留所有功能
   </div>
@@ -1168,18 +1137,17 @@
     activeScreen: 'new-chat',
   };
 
-  const hubIcon = document.getElementById('hubEntryIcon');
+  const hubIcon = document.getElementById('hubEntryNav');
   const modeMenu = document.getElementById('modeMenu');
   const modeClose = document.getElementById('modeClose');
   const modeDividerClose = document.getElementById('modeDividerClose');
   const dockedWrap = document.getElementById('dockedWrap');
 
-  // ======== 顶栏 · 设备互联入口菜单 ========
+  // ======== 左栏 · 设备互联入口菜单 ========
   function toggleModeMenu(forceOpen) {
     const isOpen = modeMenu.classList.contains('show');
     if (forceOpen === true || (forceOpen !== false && !isOpen)) {
       modeMenu.classList.add('show');
-      hubIcon.classList.add('menu-open');
       // 已打开时,菜单里增加"关闭"选项
       if (state.hubMode) {
         modeClose.style.display = 'flex';
@@ -1190,7 +1158,6 @@
       }
     } else {
       modeMenu.classList.remove('show');
-      hubIcon.classList.remove('menu-open');
     }
   }
 
