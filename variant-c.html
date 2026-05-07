@@ -334,6 +334,14 @@
     font-size: 13px;
   }
   .hub-panel-head .head-btn:hover { background: rgba(0,0,0,.05); color: var(--text); }
+  /* 嵌入式主区里,窗口模式按钮带文字,宽度自适应 */
+  .hub-panel-head .head-btn.text-btn {
+    width: auto; padding: 4px 10px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    gap: 4px;
+  }
+  .hub-panel-head .head-btn.text-btn:hover { color: var(--text); }
 
   .hub-panel-body {
     flex: 1; overflow-y: auto;
@@ -717,11 +725,11 @@
 
 <div class="page">
   <h1>变体 C · 设备互联双模态</h1>
-  <p class="subtitle">像 v1 那样嵌入式的主框架 · 只有设备互联享有"全屏态下的独立入口" · 支持 贴边 / 浮窗 二态</p>
+  <p class="subtitle">设备互联默认是主区 tab · 它的页面右上角有"窗口模式"按钮,可脱出为贴边 / 浮窗</p>
 
   <div class="highlight">
-    <b>架构意图</b>:日常内容(新对话 / 跨端执行 / 文件 / 发现 / 云服务)在主窗口里切换,保持最简单的上下文。
-    <b>设备互联</b>是左栏里唯一不"切主区"的入口 —— 点它,弹出 <span class="kbd">贴边</span> 或 <span class="kbd">浮窗</span> 选项,其他板块都没有这个特权。
+    <b>架构意图</b>:日常内容(新对话 / 设备互联 / 跨端执行 / 文件 / 发现 / 云服务)都在主窗口里切换,和其他板块一视同仁。
+    <b>但只有设备互联</b>在它的 tab 页面右上角多一个 <span class="kbd">⧉ 窗口模式</span> 按钮 —— 可以让它脱离主区,变成贴边面板或浮动窗口,便于一边对话一边监控设备 / 拖文件。
     <br>
     <b>为什么只有它特殊</b>:用户在对话里 @ 设备、跨端执行协作时,常常需要眼角余光随时看到设备状态 / 扔文件过去,其他板块则是"进去做完就出来",不需要并排。
   </div>
@@ -745,11 +753,8 @@
           <div class="nav-item primary active" data-screen="new-chat">
             <span class="emoji">✚</span>新对话
           </div>
-          <div class="nav-item-wrap" style="position: relative;">
-            <div class="nav-item" id="hubEntryNav" data-hub-entry>
-              <span class="emoji">🔗</span>设备互联
-              <span class="nav-chevron-sm" aria-hidden="true">▸</span>
-            </div>
+          <div class="nav-item" id="hubEntryNav" data-screen="hub">
+            <span class="emoji">🔗</span>设备互联
           </div>
           <div class="nav-item" data-screen="cross">
             <span class="emoji">📶</span>跨端执行
@@ -809,6 +814,19 @@
                 <div class="input-model">快速 ▾</div>
                 <div class="input-text">发消息或 @ 设备帮你做事</div>
                 <div class="send-btn">↑</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 设备互联(嵌入式主区) -->
+          <div class="screen-pane" data-screen="hub">
+            <div class="hub-panel" data-hub-host="main">
+              <div class="hub-panel-head">
+                <div class="title">设备互联</div>
+                <div class="head-btn text-btn" id="hubPopoutBtn" title="切换为窗口模式">⧉ 窗口模式</div>
+              </div>
+              <div class="hub-panel-body" id="hubMainBody">
+                <!-- 面板内容由 JS 渲染 -->
               </div>
             </div>
           </div>
@@ -960,31 +978,26 @@
       <div class="mode-icon">▐</div>
       <div>
         贴边面板
-        <span class="mode-desc">固定在主窗口右侧 · 主区跟着缩窄</span>
+        <span class="mode-desc">脱离主区,固定在窗口右侧</span>
       </div>
     </div>
     <div class="mode-item" data-mode="floating">
       <div class="mode-icon">◱</div>
       <div>
         浮动窗口
-        <span class="mode-desc">独立可拖动的小窗 · 主区不受影响</span>
+        <span class="mode-desc">独立可拖动的小窗</span>
       </div>
-    </div>
-    <div class="menu-divider" id="modeDividerClose" style="display: none;"></div>
-    <div class="mode-item" id="modeClose" data-mode="close" style="display: none;">
-      <div class="mode-icon">✕</div>
-      <div>关闭设备互联</div>
     </div>
   </div>
 
   <div class="demo-note">
     <b>关键特征</b><br>
-    · 主框架沿用 v1:左栏导航,主区直接切换内容,关闭即关闭<br>
-    · 左栏里只有 <b>设备互联</b> 一个入口不切主区,而是弹出模式选择菜单<br>
-    · 菜单里选 <span class="kbd">贴边面板</span> / <span class="kbd">浮动窗口</span> 二选一<br>
-    · 已打开状态下,再次点入口菜单里追加"关闭设备互联"选项,也能在两种形态间切换<br>
-    · 贴边:主区按 360px 让出,设备卡自动进入紧凑态;浮窗:主区不变,窗口可拖动、可 <span class="kbd">贴到侧边</span><br>
-    · 只有"设备互联"的所有交互容器都带 container query,无论贴边窄到多少、浮窗缩多小,卡片都保留所有功能
+    · 主框架沿用 v1:左栏导航,主区直接切换内容<br>
+    · <b>设备互联</b>默认是嵌入式主区,和其他板块地位一致<br>
+    · 设备互联页面右上角有 <span class="kbd">⧉ 窗口模式</span> 按钮,点击弹出 <span class="kbd">贴边面板</span> / <span class="kbd">浮动窗口</span> 菜单<br>
+    · 选择后主区会跳回上一个屏,设备互联以贴边 / 浮窗独立展示<br>
+    · 贴边 / 浮窗里点 ✕ 收回主区嵌入形态,点 ⇆ 在两形态间互换<br>
+    · 无论嵌入 / 贴边 / 浮窗,设备卡都用 container query 自适应宽度,功能始终完整
   </div>
 
 </div>
@@ -1136,20 +1149,41 @@
   const state = {
     hubMode: null, // null | 'docked' | 'floating'
     activeScreen: 'new-chat',
+    prevScreen: 'new-chat', // 在 hub tab 打开前的上一个屏
   };
 
-  const hubIcon = document.getElementById('hubEntryNav');
+  const hubIcon = null;
   const modeMenu = document.getElementById('modeMenu');
-  const modeClose = document.getElementById('modeClose');
-  const modeDividerClose = document.getElementById('modeDividerClose');
   const dockedWrap = document.getElementById('dockedWrap');
 
-  // ======== 左栏 · 设备互联入口菜单 ========
+  // ======== 设备互联 · 面板内容生成 ========
+  function buildHubBody() {
+    // 只取 template 中的 .hub-panel-body 内部(工具条 + 各 variant)
+    const tpl = document.getElementById('hubPanelTemplate');
+    const frag = tpl.content.cloneNode(true);
+    const body = frag.querySelector('.hub-panel-body');
+    bindHubInteractions(body);
+    return body;
+  }
+
+  // 把嵌入式主区的 hub-panel-body 填满
+  function renderEmbeddedHub() {
+    const host = document.getElementById('hubMainBody');
+    if (host.dataset.rendered) return;
+    const body = buildHubBody();
+    // 把 body 内部所有子节点搬过去(保留 host 本身作为 .hub-panel-body)
+    while (body.firstChild) host.appendChild(body.firstChild);
+    host.dataset.rendered = '1';
+  }
+
+  // ======== 切窗模式菜单:从 hub-panel-head 的"窗口模式"按钮弹出 ========
+  const popoutBtn = document.getElementById('hubPopoutBtn');
   function positionMenu() {
-    const rect = hubIcon.getBoundingClientRect();
-    // 弹在 nav-item 右边,顶部对齐
-    modeMenu.style.top = rect.top + 'px';
-    modeMenu.style.left = (rect.right + 6) + 'px';
+    // 优先对齐到当前可见的触发按钮:主区 popout / 贴边 / 浮窗切窗按钮
+    const trigger = document.querySelector('[data-mode-trigger].active-trigger') || popoutBtn;
+    const rect = trigger.getBoundingClientRect();
+    modeMenu.style.top = (rect.bottom + 6) + 'px';
+    modeMenu.style.left = (rect.right - 220) + 'px';
   }
 
   function toggleModeMenu(forceOpen) {
@@ -1157,20 +1191,20 @@
     if (forceOpen === true || (forceOpen !== false && !isOpen)) {
       positionMenu();
       modeMenu.classList.add('show');
-      // 已打开时,菜单里增加"关闭"选项
-      if (state.hubMode) {
-        modeClose.style.display = 'flex';
-        modeDividerClose.style.display = 'block';
-      } else {
-        modeClose.style.display = 'none';
-        modeDividerClose.style.display = 'none';
-      }
     } else {
       modeMenu.classList.remove('show');
     }
   }
 
-  // 窗口滚动/缩放时重定位
+  popoutBtn.dataset.modeTrigger = '1';
+  popoutBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // 嵌入式主区点击 → 菜单,供选贴边 or 浮窗
+    document.querySelectorAll('[data-mode-trigger]').forEach(el => el.classList.remove('active-trigger'));
+    popoutBtn.classList.add('active-trigger');
+    toggleModeMenu();
+  });
+
   window.addEventListener('resize', () => {
     if (modeMenu.classList.contains('show')) positionMenu();
   });
@@ -1178,16 +1212,8 @@
     if (modeMenu.classList.contains('show')) positionMenu();
   }, true);
 
-  hubIcon.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleModeMenu();
-  });
-
   document.addEventListener('click', (e) => {
-    // 点菜单外 → 关闭
-    if (!modeMenu.contains(e.target) && !hubIcon.contains(e.target)) {
-      toggleModeMenu(false);
-    }
+    if (!modeMenu.contains(e.target)) toggleModeMenu(false);
   });
 
   modeMenu.addEventListener('click', (e) => {
@@ -1195,11 +1221,7 @@
     if (!item) return;
     e.stopPropagation();
     const mode = item.dataset.mode;
-    if (mode === 'close') {
-      closeHub();
-    } else {
-      openHub(mode);
-    }
+    openHub(mode);
     toggleModeMenu(false);
   });
 
@@ -1283,11 +1305,14 @@
       });
     });
 
-    // 关闭
+    // 关闭(在贴边/浮窗中点 ✕) → 回到嵌入式主区
     root.querySelectorAll('[data-hub-close]').forEach(btn => {
-      btn.addEventListener('click', () => closeHub());
+      btn.addEventListener('click', () => {
+        closeHub();
+        switchScreen('hub');
+      });
     });
-    // 切换形态
+    // 切换形态(⇆)
     root.querySelectorAll('[data-mode-swap]').forEach(btn => {
       btn.addEventListener('click', () => {
         const next = state.hubMode === 'docked' ? 'floating' : 'docked';
@@ -1300,6 +1325,10 @@
   function openHub(mode) {
     // 如果已经是同一形态,就什么都不做
     if (state.hubMode === mode) return;
+    // 如果当前在 hub tab,先切回上一个屏(避免主区留一个空 hub)
+    if (state.activeScreen === 'hub') {
+      switchScreen(state.prevScreen);
+    }
     // 先清掉旧的
     removeHubPanels();
     state.hubMode = mode;
@@ -1375,25 +1404,32 @@
   }
 
   function updateHubIconState() {
-    if (state.hubMode) {
-      hubIcon.classList.add('active');
-    } else {
-      hubIcon.classList.remove('active');
-    }
+    // 嵌入式始终是 hub-main nav 激活(跟 activeScreen 一起走)
   }
 
   // ======== 左栏 · 主区切屏 ========
   function switchScreen(screenId) {
+    if (state.activeScreen !== screenId && state.activeScreen !== 'hub') {
+      state.prevScreen = state.activeScreen;
+    }
     state.activeScreen = screenId;
     document.querySelectorAll('.screen-pane').forEach(p => {
       p.classList.toggle('active', p.dataset.screen === screenId);
     });
-    document.querySelectorAll('[data-screen]').forEach(nav => {
+    document.querySelectorAll('.sidebar [data-screen]').forEach(nav => {
       nav.classList.toggle('active', nav.dataset.screen === screenId);
     });
+    // 第一次打开设备互联,渲染内容;同时把已弹出的贴边/浮窗收回主区
+    if (screenId === 'hub') {
+      renderEmbeddedHub();
+      if (state.hubMode) {
+        removeHubPanels();
+        state.hubMode = null;
+      }
+    }
   }
 
-  document.querySelectorAll('[data-screen]').forEach(item => {
+  document.querySelectorAll('.sidebar [data-screen]').forEach(item => {
     item.addEventListener('click', (e) => {
       e.stopPropagation();
       switchScreen(item.dataset.screen);
