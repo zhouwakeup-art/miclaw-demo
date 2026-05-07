@@ -714,12 +714,12 @@
 <body>
 
 <div class="page">
-  <h1>变体 C · 设备互联独立窗口</h1>
-  <p class="subtitle">设备互联默认是主区 tab · 它的页面右上角有"独立窗口"按钮,可脱出为浮窗</p>
+  <h1>变体 C · 设备互联浮窗</h1>
+  <p class="subtitle">设备互联默认是主区 tab · 它的页面右上角有"浮窗"按钮,可脱出为独立可拖动小窗</p>
 
   <div class="highlight">
     <b>架构意图</b>:日常内容(新对话 / 设备互联 / 跨端执行 / 文件 / 发现 / 云服务)都在主窗口里切换,和其他板块一视同仁。
-    <b>但只有设备互联</b>在它的 tab 页面右上角多一个 <span class="kbd">⧉ 独立窗口</span> 按钮 —— 可以让它脱离主区变成浮窗,便于一边对话一边监控设备 / 拖文件。
+    <b>但只有设备互联</b>在它的 tab 页面右上角多一个 <span class="kbd">⧉ 浮窗</span> 按钮 —— 可以让它脱离主区变成浮窗,便于一边对话一边监控设备 / 拖文件。
     <br>
     <b>为什么只有它特殊</b>:用户在对话里 @ 设备、跨端执行协作时,常常需要眼角余光随时看到设备状态 / 扔文件过去,其他板块则是"进去做完就出来",不需要并排。
   </div>
@@ -813,7 +813,7 @@
             <div class="hub-panel" data-hub-host="main">
               <div class="hub-panel-head">
                 <div class="title">设备互联</div>
-                <div class="head-btn text-btn" id="hubPopoutBtn" title="脱出为独立窗口">⧉ 独立窗口</div>
+                <div class="head-btn text-btn" id="hubPopoutBtn" title="脱出为浮窗">⧉ 浮窗</div>
               </div>
               <div class="hub-panel-body" id="hubMainBody">
                 <!-- 面板内容由 JS 渲染 -->
@@ -969,7 +969,7 @@
     <b>关键特征</b><br>
     · 主框架沿用 v1:左栏导航,主区直接切换内容<br>
     · <b>设备互联</b>默认是嵌入式主区,和其他板块地位一致<br>
-    · 设备互联页面右上角有 <span class="kbd">⧉ 独立窗口</span> 按钮,点击直接把面板脱出为可拖动浮窗<br>
+    · 设备互联页面右上角有 <span class="kbd">⧉ 浮窗</span> 按钮,点击直接把面板脱出为可拖动浮窗<br>
     · 脱出后主区跳回上一个屏,浮窗内点 <span class="kbd">↩ 回到主区</span> 或红点关闭<br>
     · 浮窗再窄也用 container query 保留所有功能
   </div>
