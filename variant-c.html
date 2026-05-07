@@ -90,16 +90,15 @@
     text-align: center;
   }
 
-  /* 模式选择小菜单(从左栏 nav-item 右侧弹出) */
+  /* 模式选择小菜单(position: fixed,由 JS 定位) */
   .mode-menu {
-    position: absolute;
-    top: 0; left: calc(100% + 4px);
+    position: fixed;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: var(--shadow-lg);
     padding: 4px;
-    z-index: 50;
+    z-index: 2000;
     display: none;
     min-width: 220px;
   }
@@ -751,27 +750,6 @@
               <span class="emoji">🔗</span>设备互联
               <span class="nav-chevron-sm" aria-hidden="true">▸</span>
             </div>
-            <div class="mode-menu" id="modeMenu">
-              <div class="mode-item" data-mode="docked">
-                <div class="mode-icon">▐</div>
-                <div>
-                  贴边面板
-                  <span class="mode-desc">固定在主窗口右侧 · 主区跟着缩窄</span>
-                </div>
-              </div>
-              <div class="mode-item" data-mode="floating">
-                <div class="mode-icon">◱</div>
-                <div>
-                  浮动窗口
-                  <span class="mode-desc">独立可拖动的小窗 · 主区不受影响</span>
-                </div>
-              </div>
-              <div class="menu-divider" id="modeDividerClose" style="display: none;"></div>
-              <div class="mode-item" id="modeClose" data-mode="close" style="display: none;">
-                <div class="mode-icon">✕</div>
-                <div>关闭设备互联</div>
-              </div>
-            </div>
           </div>
           <div class="nav-item" data-screen="cross">
             <span class="emoji">📶</span>跨端执行
@@ -976,6 +954,29 @@
     </div>
   </div>
 
+  <!-- 设备互联模式选择菜单(放在 app-shell 外,避免被 sidebar 裁切) -->
+  <div class="mode-menu" id="modeMenu">
+    <div class="mode-item" data-mode="docked">
+      <div class="mode-icon">▐</div>
+      <div>
+        贴边面板
+        <span class="mode-desc">固定在主窗口右侧 · 主区跟着缩窄</span>
+      </div>
+    </div>
+    <div class="mode-item" data-mode="floating">
+      <div class="mode-icon">◱</div>
+      <div>
+        浮动窗口
+        <span class="mode-desc">独立可拖动的小窗 · 主区不受影响</span>
+      </div>
+    </div>
+    <div class="menu-divider" id="modeDividerClose" style="display: none;"></div>
+    <div class="mode-item" id="modeClose" data-mode="close" style="display: none;">
+      <div class="mode-icon">✕</div>
+      <div>关闭设备互联</div>
+    </div>
+  </div>
+
   <div class="demo-note">
     <b>关键特征</b><br>
     · 主框架沿用 v1:左栏导航,主区直接切换内容,关闭即关闭<br>
@@ -1144,9 +1145,17 @@
   const dockedWrap = document.getElementById('dockedWrap');
 
   // ======== 左栏 · 设备互联入口菜单 ========
+  function positionMenu() {
+    const rect = hubIcon.getBoundingClientRect();
+    // 弹在 nav-item 右边,顶部对齐
+    modeMenu.style.top = rect.top + 'px';
+    modeMenu.style.left = (rect.right + 6) + 'px';
+  }
+
   function toggleModeMenu(forceOpen) {
     const isOpen = modeMenu.classList.contains('show');
     if (forceOpen === true || (forceOpen !== false && !isOpen)) {
+      positionMenu();
       modeMenu.classList.add('show');
       // 已打开时,菜单里增加"关闭"选项
       if (state.hubMode) {
@@ -1161,12 +1170,25 @@
     }
   }
 
+  // 窗口滚动/缩放时重定位
+  window.addEventListener('resize', () => {
+    if (modeMenu.classList.contains('show')) positionMenu();
+  });
+  window.addEventListener('scroll', () => {
+    if (modeMenu.classList.contains('show')) positionMenu();
+  }, true);
+
   hubIcon.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleModeMenu();
   });
 
-  document.addEventListener('click', () => toggleModeMenu(false));
+  document.addEventListener('click', (e) => {
+    // 点菜单外 → 关闭
+    if (!modeMenu.contains(e.target) && !hubIcon.contains(e.target)) {
+      toggleModeMenu(false);
+    }
+  });
 
   modeMenu.addEventListener('click', (e) => {
     const item = e.target.closest('.mode-item');
