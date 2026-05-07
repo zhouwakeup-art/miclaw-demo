@@ -595,7 +595,87 @@
     margin-top: 24px; line-height: 1.6; max-width: 320px;
   }
 
-  /* ===== 浮窗形态 ===== */
+  /* ===== 小米互传区块 ===== */
+  .mi-transfer {
+    margin: 4px 16px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    padding: 14px 16px;
+    position: relative;
+    transition: all .15s;
+  }
+  .mi-transfer-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .mi-transfer-head .title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .mi-transfer-head .sub {
+    font-size: 11.5px;
+    color: var(--text-3);
+    flex: 1;
+  }
+  .mi-transfer-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .mt-send-btn {
+    flex-shrink: 0;
+    background: var(--text);
+    color: white;
+    border: 1px solid var(--text);
+    border-radius: var(--radius);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    transition: all .15s;
+  }
+  .mt-send-btn:hover { background: #000; border-color: #000; }
+  .mt-hint {
+    font-size: 11.5px;
+    color: var(--text-3);
+    line-height: 1.5;
+  }
+  /* 拖拽 · 整块高亮 */
+  .mi-transfer.drop-hover {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    border-style: solid;
+  }
+  .mi-transfer.drop-hover .mt-send-btn {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .mi-transfer.drop-hover .mt-hint {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .mi-transfer.sending,
+  .mi-transfer.sent {
+    background: rgba(58,154,92,.06);
+    border-color: var(--ok);
+  }
+  .mi-transfer.sending .mt-send-btn,
+  .mi-transfer.sent .mt-send-btn {
+    background: var(--ok); border-color: var(--ok);
+  }
+  .mi-transfer.sending .mt-hint,
+  .mi-transfer.sent .mt-hint {
+    color: var(--ok);
+    font-weight: 500;
+  }
   .floating-window {
     position: fixed;
     background: var(--surface);
@@ -1094,7 +1174,22 @@
             </div>
           </div>
         </div>
-        <div class="drop-toast" data-drop-toast>💡 拖到目标设备卡上发送</div>
+
+        <!-- 小米互传:发文件入口(点按钮 → 文件选择器;也可把文件拖到这里或任一设备卡发送) -->
+        <div class="mi-transfer">
+          <div class="mi-transfer-head">
+            <div class="title">小米互传</div>
+            <div class="sub">发文件到任意附近小米设备 · 不需要同账号</div>
+          </div>
+          <div class="mi-transfer-row">
+            <div class="mt-send-btn" data-mt-send>
+              <span>📎</span><span>发文件</span>
+            </div>
+            <div class="mt-hint">或把文件直接拖到这里 / 任一设备卡</div>
+          </div>
+        </div>
+
+        <div class="drop-toast" data-drop-toast>💡 拖到目标设备卡或互传区发送</div>
       </div>
 
       <!-- 只有手机 -->
@@ -1133,7 +1228,22 @@
             </div>
           </div>
         </div>
-        <div class="drop-toast" data-drop-toast>💡 拖到目标设备卡上发送</div>
+
+        <!-- 小米互传 -->
+        <div class="mi-transfer">
+          <div class="mi-transfer-head">
+            <div class="title">小米互传</div>
+            <div class="sub">发文件到任意附近小米设备 · 不需要同账号</div>
+          </div>
+          <div class="mi-transfer-row">
+            <div class="mt-send-btn" data-mt-send>
+              <span>📎</span><span>发文件</span>
+            </div>
+            <div class="mt-hint">或把文件直接拖到这里 / 任一设备卡</div>
+          </div>
+        </div>
+
+        <div class="drop-toast" data-drop-toast>💡 拖到目标设备卡或互传区发送</div>
       </div>
 
       <!-- 空态 -->
@@ -1224,15 +1334,19 @@
       });
     });
 
-    // 文件拖拽到设备卡
+    // 文件拖拽到设备卡 / 互传区块
     root.querySelectorAll('[data-hub-variant]').forEach(variant => {
       const cards = variant.querySelectorAll('.device-card-v');
-      if (cards.length === 0) return;
+      const transfers = variant.querySelectorAll('.mi-transfer');
+      if (cards.length === 0 && transfers.length === 0) return;
       const toast = variant.querySelector('[data-drop-toast]');
 
       const showToast = () => toast && toast.classList.add('show');
       const hideToast = () => toast && toast.classList.remove('show');
-      const clearHover = () => cards.forEach(c => c.classList.remove('drop-hover'));
+      const clearHover = () => {
+        cards.forEach(c => c.classList.remove('drop-hover'));
+        transfers.forEach(t => t.classList.remove('drop-hover'));
+      };
 
       variant.addEventListener('dragenter', (e) => { e.preventDefault(); showToast(); });
       variant.addEventListener('dragover', (e) => { e.preventDefault(); });
@@ -1240,6 +1354,7 @@
         if (e.target === variant) { hideToast(); clearHover(); }
       });
 
+      // 设备卡片(我的设备)
       cards.forEach(card => {
         card.addEventListener('dragenter', (e) => {
           e.preventDefault(); e.stopPropagation();
@@ -1272,6 +1387,63 @@
             }, 1600);
           }, 1100);
         });
+      });
+
+      // 互传区块(拖到这里 → 打开选人 picker 发起互传)
+      transfers.forEach(block => {
+        block.addEventListener('dragenter', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          clearHover();
+          block.classList.add('drop-hover');
+        });
+        block.addEventListener('dragover', (e) => e.preventDefault());
+        block.addEventListener('dragleave', (e) => {
+          if (!block.contains(e.relatedTarget)) block.classList.remove('drop-hover');
+        });
+        block.addEventListener('drop', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          const files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
+          const fileCount = files ? files.length : 1;
+          hideToast();
+          block.classList.remove('drop-hover');
+          block.classList.add('sending');
+          const hint = block.querySelector('.mt-hint');
+          const origHintText = hint ? hint.textContent : '';
+          if (hint) hint.textContent = `⏳ 发起互传 · ${fileCount} 个文件,请在下一步选择接收设备...`;
+
+          setTimeout(() => {
+            block.classList.remove('sending');
+            block.classList.add('sent');
+            if (hint) hint.textContent = '✓ 已打开设备选择';
+            setTimeout(() => {
+              block.classList.remove('sent');
+              if (hint) hint.textContent = origHintText || '或把文件直接拖到这里 / 任一设备卡';
+            }, 1600);
+          }, 900);
+        });
+      });
+    });
+
+    // 小米互传 · 发文件按钮(点击模拟弹系统文件选择器)
+    root.querySelectorAll('[data-mt-send]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const block = btn.closest('.mi-transfer');
+        const hint = block && block.querySelector('.mt-hint');
+        block && block.classList.add('sending');
+        if (hint) {
+          const orig = hint.textContent;
+          hint.dataset.origText = orig;
+          hint.textContent = '已打开系统文件选择器...';
+        }
+        setTimeout(() => {
+          block && block.classList.remove('sending');
+          block && block.classList.add('sent');
+          if (hint) hint.textContent = '✓ 已选择文件,选目标设备继续';
+          setTimeout(() => {
+            block && block.classList.remove('sent');
+            if (hint) hint.textContent = hint.dataset.origText || '或把文件直接拖到这里 / 任一设备卡';
+          }, 1600);
+        }, 800);
       });
     });
 
