@@ -513,8 +513,8 @@
     padding: 20px 20px 20px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: stretch;
+    text-align: left;
     position: relative;
     transition: border-color .15s, background .15s;
   }
@@ -531,6 +531,7 @@
     justify-content: center;
     font-size: 60px;
     position: relative;
+    flex-shrink: 0;
   }
   .device-illustration::after {
     content: '';
@@ -540,11 +541,24 @@
     pointer-events: none;
     border-radius: 14px;
   }
+
+  /* 设备名 + 连接状态 + 胶囊按钮 横向一行 */
+  .device-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .device-meta {
+    min-width: 0;
+    flex: 1;
+  }
   .device-model-name {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     color: var(--text);
-    margin: 0 0 4px;
+    margin: 0 0 2px;
     letter-spacing: -0.01em;
     display: inline-flex;
     align-items: center;
@@ -558,15 +572,14 @@
   .device-conn {
     font-size: 12px;
     color: var(--text-3);
-    margin-bottom: 16px;
   }
 
   .pill-actions {
     display: flex;
-    justify-content: center;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 16px;
+    flex-shrink: 0;
+    justify-content: flex-end;
   }
   .pill-btn {
     background: var(--surface-2);
@@ -707,7 +720,7 @@
     }
   }
 
-  /* 中等容器(<560) · 保留所有功能 · 插画缩小、按钮变小、但结构不变 */
+  /* 中等容器(<560) · 插画缩小、字体缩小、header 行仍横排 */
   @container hub (max-width: 560px) {
     .device-grid { padding: 14px 16px 20px; gap: 12px; }
     .device-card-v { padding: 16px 16px 16px; }
@@ -715,13 +728,14 @@
       width: 96px !important;
       height: 76px !important;
       font-size: 42px !important;
-      margin: 0 auto 10px !important;
+      margin: 0 auto 12px !important;
       border-radius: 12px !important;
     }
-    .device-model-name { font-size: 16px !important; }
-    .device-conn { margin-bottom: 12px !important; font-size: 11.5px !important; }
-    .pill-actions { margin-bottom: 12px !important; gap: 6px !important; }
-    .pill-btn { padding: 6px 12px !important; font-size: 12px !important; }
+    .device-model-name { font-size: 15.5px !important; }
+    .device-conn { font-size: 11.5px !important; }
+    .device-header-row { margin-bottom: 12px !important; gap: 8px !important; }
+    .pill-actions { gap: 6px !important; }
+    .pill-btn { padding: 5px 10px !important; font-size: 11.5px !important; }
     .feature-card { padding: 12px 14px !important; }
     .feature-card h4 { font-size: 13.5px !important; }
     .feature-card .fc-desc { font-size: 11.5px !important; }
@@ -734,55 +748,38 @@
     }
   }
 
-  /* 紧凑容器(<440) · 所有功能保留,仅换为"紧凑竖排":
-     - 头部:小图标 + 设备名 + ▾
-     - 连接状态行
-     - 主功能整行按钮(妙享桌面/屏幕扩展 开启)
-     - 手机最近应用 4 图标(副屏投屏)
-     - 底部:启用热点 / 响铃查找
-  */
+  /* 紧凑容器(<440) · header 行拆为上下两行;插画隐藏;所有功能保留 */
   @container hub (max-width: 440px) {
     .device-grid {
       padding: 10px 12px 16px !important;
       gap: 10px !important;
     }
     .device-card-v {
-      padding: 12px 14px !important;
-      align-items: stretch !important;
-      text-align: left !important;
+      padding: 14px 14px !important;
     }
-    /* 紧凑态:把插画变成左上角小图标,让 model-name 与之并排 */
     .device-card-v .device-illustration {
-      width: 36px !important;
-      height: 36px !important;
-      font-size: 20px !important;
-      margin: 0 !important;
-      border-radius: 8px !important;
-      position: absolute !important;
-      top: 12px !important;
-      left: 14px !important;
+      display: none !important;
     }
-    .device-card-v .device-illustration::after { display: none !important; }
-    .device-card-v .device-model-name {
-      font-size: 14.5px !important;
-      padding-left: 46px !important;
-      min-height: 36px !important;
-      display: flex !important;
-      align-items: center !important;
-      margin: 0 0 2px !important;
-      text-align: left !important;
+    .device-card-v .device-header-row {
+      flex-wrap: wrap !important;
+      gap: 10px !important;
+      margin-bottom: 10px !important;
+    }
+    .device-card-v .device-meta {
+      width: 100% !important;
+    }
+    .device-card-v .device-model-name { font-size: 14.5px !important; }
+    .device-card-v .device-conn { font-size: 11px !important; }
+    .device-card-v .pill-actions {
+      width: 100% !important;
       justify-content: flex-start !important;
     }
-    .device-card-v .device-conn {
-      padding-left: 46px !important;
-      margin-bottom: 10px !important;
+    .device-card-v .pill-btn {
+      padding: 5px 10px !important;
       font-size: 11.5px !important;
-      text-align: left !important;
     }
-    /* 主功能卡:整行按钮形态,去掉大插画块,保留标题/描述/开启/最近应用 */
     .device-card-v .feature-card {
       padding: 10px 12px !important;
-      margin-bottom: 8px !important;
     }
     .device-card-v .feature-card h4 { font-size: 13px !important; margin: 0 !important; }
     .device-card-v .feature-card .fc-desc { font-size: 11px !important; line-height: 1.4 !important; }
@@ -791,7 +788,6 @@
       padding: 5px 12px !important;
       font-size: 11.5px !important;
     }
-    /* 最近应用图标缩小,保留 4 个 */
     .device-card-v .feature-card .fc-apps {
       gap: 6px !important;
       margin-top: 2px !important;
@@ -807,17 +803,6 @@
       padding: 0 2px !important;
       top: -3px !important;
       right: -4px !important;
-    }
-    /* 胶囊按钮行(启用热点 / 响铃查找)放到底部 */
-    .device-card-v .pill-actions {
-      justify-content: flex-start !important;
-      margin-bottom: 0 !important;
-      gap: 6px !important;
-      flex-wrap: wrap !important;
-    }
-    .device-card-v .pill-btn {
-      padding: 5px 10px !important;
-      font-size: 11.5px !important;
     }
   }
 
@@ -1637,12 +1622,15 @@
             </div>
 
             <div class="device-illustration">📱</div>
-            <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
-            <div class="device-conn">局域网连接</div>
-
-            <div class="pill-actions">
-              <div class="pill-btn">🔗 启用热点</div>
-              <div class="pill-btn">▶️ 响铃查找</div>
+            <div class="device-header-row">
+              <div class="device-meta">
+                <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
+                <div class="device-conn">局域网连接</div>
+              </div>
+              <div class="pill-actions">
+                <div class="pill-btn">🔗 启用热点</div>
+                <div class="pill-btn">▶️ 响铃查找</div>
+              </div>
             </div>
 
             <div class="feature-card">
@@ -1670,11 +1658,14 @@
             </div>
 
             <div class="device-illustration">📲</div>
-            <h3 class="device-model-name">Xiaomi Pad 6S Pro 12.4 <span class="chev">▾</span></h3>
-            <div class="device-conn">局域网连接</div>
-
-            <div class="pill-actions">
-              <div class="pill-btn">▶️ 响铃查找</div>
+            <div class="device-header-row">
+              <div class="device-meta">
+                <h3 class="device-model-name">Xiaomi Pad 6S Pro 12.4 <span class="chev">▾</span></h3>
+                <div class="device-conn">局域网连接</div>
+              </div>
+              <div class="pill-actions">
+                <div class="pill-btn">▶️ 响铃查找</div>
+              </div>
             </div>
 
             <div class="feature-card">
@@ -1704,12 +1695,15 @@
             </div>
 
             <div class="device-illustration">📱</div>
-            <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
-            <div class="device-conn">局域网连接</div>
-
-            <div class="pill-actions">
-              <div class="pill-btn">🔗 启用热点</div>
-              <div class="pill-btn">▶️ 响铃查找</div>
+            <div class="device-header-row">
+              <div class="device-meta">
+                <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
+                <div class="device-conn">局域网连接</div>
+              </div>
+              <div class="pill-actions">
+                <div class="pill-btn">🔗 启用热点</div>
+                <div class="pill-btn">▶️ 响铃查找</div>
+              </div>
             </div>
 
             <div class="feature-card">
