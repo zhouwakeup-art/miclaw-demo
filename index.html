@@ -1856,7 +1856,7 @@
 <!-- ========== 屏 1：对话板块 欢迎屏 ========== -->
 <div class="screen active" id="s1">
   <div class="screen-title">对话板块 · 新对话欢迎屏</div>
-  <div class="screen-note">点击左上 "＋ 新对话" = 新建对话;底部无头像常驻(账号已并入设置);顶栏只有融合设备中心图标</div>
+  <div class="screen-note">点击左上 "＋ 新对话" = 新建对话;底部无头像常驻(账号已并入设置);顶栏只有设备互联图标</div>
 
   <div class="window">
     <div class="topbar">
@@ -1998,7 +1998,7 @@
       <div class="topbar">
         <div class="traffic"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
         <div class="topbar-title">小米互联服务</div>
-        <div class="topbar-icon" title="融合设备中心">📱<span class="badge">3</span></div>
+        <div class="topbar-icon" title="设备互联">📱<span class="badge">3</span></div>
       </div>
       <div class="app">
         <aside class="sidebar">
@@ -2051,7 +2051,7 @@
       <div class="topbar">
         <div class="traffic"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
         <div class="topbar-title">小米互联服务</div>
-        <div class="topbar-icon" title="融合设备中心">📱<span class="badge">3</span></div>
+        <div class="topbar-icon" title="设备互联">📱<span class="badge">3</span></div>
       </div>
       <div class="app">
         <aside class="sidebar">
@@ -2159,7 +2159,7 @@
 
 <!-- ========== 屏 4：设备互联面板(右侧贴边子窗口) ========== -->
 <div class="screen" id="s4">
-  <div class="screen-title">融合设备中心 · 默认打开 (所有主窗口屏默认挂贴边面板)</div>
+  <div class="screen-title">设备互联面板 · 默认打开 (所有主窗口屏默认挂贴边面板)</div>
   <div class="screen-note">默认状态:用户打开小米互联服务立刻看到设备列表 · 点面板右上 ✕ 可收起 · 顶栏图标再次唤起</div>
 
   <div class="docked-wrap">
@@ -2366,7 +2366,7 @@
               <ol class="step-list">
                 <li>在设备上登录相同的小米账号</li>
                 <li>打开小米互联服务并允许账号同步</li>
-                <li>此设备将自动出现在你的融合设备中心</li>
+                <li>此设备将自动出现在你的设备互联面板</li>
               </ol>
               <div class="primary-btn">前往账号管理</div>
             </div>
@@ -2916,7 +2916,7 @@
 <div class="legend">
   <b>左栏</b> ＋新对话 + <b>📶 跨端执行</b>(只读观察窗) + 文件 + 发现,一条分隔,云服务可展开(云相册/云笔记/查找),再分隔后是最近对话,设置沉底 ·
   <b>跨端执行</b> 是"设备协作的可视化",不是对话——@设备 真实发起点是<b>新对话</b>,这里只同步展示执行过程 ·
-  <b>融合设备中心(顶栏)</b> 点击右侧贴出设备互联面板 ·
+  <b>设备互联(顶栏)</b> 点击右侧贴出设备互联面板 ·
   <b>设备状态</b> 在线 / 离线二态,离线设备按钮保持正常,点击时弹窗问"是否开启热点" ·
   <b>☁️ 云服务</b> 独立 Web 窗口,含云相册 / 云笔记 / 查找设备 ·
   <b>🗂️ 文件</b> 只装 AI 产物,💬 可跳回生成它的对话 ·
@@ -2930,7 +2930,7 @@
   const DOCKED_PANEL_HTML = `
     <div class="docked-panel" data-default-docked>
       <div class="docked-head">
-        <div class="title">融合设备中心</div>
+        <div class="title">设备互联</div>
         <div class="close" title="收起">✕</div>
       </div>
       <div class="docked-body">
@@ -3039,13 +3039,13 @@
     </svg>`;
   document.querySelectorAll('.topbar-icon').forEach(icon => {
     icon.innerHTML = HUB_ICON_SVG;
-    icon.setAttribute('data-tip', '融合设备中心');
+    icon.setAttribute('data-tip', '设备互联');
     icon.removeAttribute('title');
   });
 
   // 贴边面板头部文案统一
   document.querySelectorAll('.docked-head .title').forEach(el => {
-    el.textContent = '融合设备中心';
+    el.textContent = '设备互联';
   });
 
   const navMap = {
