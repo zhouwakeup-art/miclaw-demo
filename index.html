@@ -2997,9 +2997,8 @@
   document.querySelectorAll('.topbar-icon').forEach(icon => {
     icon.addEventListener('click', (e) => {
       e.stopPropagation();
-      const activeScreen = document.querySelector('.screen.active');
-      if (!activeScreen) return;
-      const wrap = activeScreen.querySelector(':scope > .docked-wrap') || activeScreen.querySelector('.docked-wrap');
+      // 优先从点击位置向上找到最近的 docked-wrap(适用于 s3 子阶段等多 wrap 情形)
+      const wrap = icon.closest('.docked-wrap');
       if (!wrap) return;
       const existing = wrap.querySelector('[data-default-docked]');
       if (existing) {
@@ -3105,16 +3104,26 @@
     });
   });
 
-  // 默认给"主窗口"类型的屏追加贴边设备面板(s3/s4 已经有自己的结构,s7/s10 是独立 Web 窗口,都跳过)
-  // 规则:s1/s2/s5/s6/s8/s9 是主窗口,默认挂贴边面板
+  // 默认给"主窗口"类型的屏追加贴边设备面板(s4 是独立贴边态示例,s7/s10 是独立 Web 窗口,都跳过)
+  // 规则:s1/s2/s3/s5/s6/s8/s9 都是主窗口,默认挂贴边面板
+  // 其中 s3(跨端执行)有两个子阶段 window,每个都要挂
 
-  // 把 s1/s2/s5/s6/s8/s9 的 .window 包到 .docked-wrap 里,并追加贴边面板
-  // (s3 有自己的子阶段容器,s4 已经是贴边态,s7/s10 是独立 Web 窗口,都跳过)
   const WRAP_SCREENS = ['s1', 's2', 's5', 's6', 's8', 's9'];
   WRAP_SCREENS.forEach(id => {
     const screen = document.getElementById(id);
     if (!screen) return;
     const win = screen.querySelector(':scope > .window');
+    if (!win) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'docked-wrap';
+    win.parentNode.insertBefore(wrap, win);
+    wrap.appendChild(win);
+    wrap.insertAdjacentHTML('beforeend', DOCKED_PANEL_HTML);
+  });
+
+  // s3(跨端执行) 的每个子阶段 pane 里都有一个 .window,挨个包
+  document.querySelectorAll('#s3 .substage-pane').forEach(pane => {
+    const win = pane.querySelector(':scope > .window');
     if (!win) return;
     const wrap = document.createElement('div');
     wrap.className = 'docked-wrap';
