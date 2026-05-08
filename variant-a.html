@@ -498,6 +498,7 @@
     grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
     gap: 16px;
     align-content: start;
+    align-items: start; /* 卡片高度按内容自然伸展,不相互拉齐 */
     justify-content: center;
     position: relative;
   }
@@ -750,7 +751,7 @@
     }
   }
 
-  /* 紧凑容器(<440) · header 仍横排:设备名在左,胶囊按钮在右;插画隐藏 */
+  /* 紧凑容器(<440) · 隐藏大插画,胶囊保留完整文字,允许换行,全部功能可见 */
   @container hub (max-width: 440px) {
     .device-grid {
       padding: 10px 12px 16px !important;
@@ -759,17 +760,20 @@
     .device-card-v {
       padding: 14px 14px !important;
     }
+    /* 大插画隐藏,靠设备名+小图标传达设备身份 */
     .device-card-v .device-illustration {
       display: none !important;
     }
+    /* header 行:name/状态在左,胶囊允许换到第二行 */
     .device-card-v .device-header-row {
-      flex-wrap: nowrap !important;
+      flex-wrap: wrap !important;
       gap: 8px !important;
-      margin-bottom: 10px !important;
+      margin-bottom: 12px !important;
       align-items: center !important;
     }
     .device-card-v .device-meta {
       min-width: 0 !important;
+      flex: 1 1 auto !important;
     }
     .device-card-v .device-model-name {
       font-size: 14.5px !important;
@@ -780,26 +784,28 @@
       max-width: 100%;
     }
     .device-card-v .device-conn { font-size: 11px !important; }
+    /* 胶囊保留文字,允许换行 */
     .device-card-v .pill-actions {
-      flex-wrap: nowrap !important;
+      flex-wrap: wrap !important;
       gap: 6px !important;
       flex-shrink: 0 !important;
+      justify-content: flex-end !important;
     }
-    /* 紧凑胶囊:仅保留图标,移除文字 */
     .device-card-v .pill-btn {
-      padding: 6px 8px !important;
-      font-size: 13px !important;
-      gap: 0 !important;
+      padding: 5px 10px !important;
+      font-size: 11.5px !important;
+      gap: 4px !important;
     }
     .device-card-v .pill-btn-label {
-      display: none !important;
+      display: inline !important;
     }
+    /* feature 卡 */
     .device-card-v .feature-card {
       padding: 10px 12px !important;
     }
     .device-card-v .feature-card h4 { font-size: 13px !important; margin: 0 !important; }
     .device-card-v .feature-card .fc-desc { font-size: 11px !important; line-height: 1.4 !important; }
-    .device-card-v .feature-card .fc-row { margin-bottom: 8px !important; }
+    .device-card-v .feature-card .fc-row { margin-bottom: 8px !important; gap: 8px !important; }
     .device-card-v .feature-card .fc-action {
       padding: 5px 12px !important;
       font-size: 11.5px !important;
@@ -2248,8 +2254,8 @@
     win.style.top = '120px';
     // 设备互联 tab 脱出后默认用偏窄尺寸,演示响应式压缩
     if (id === 'hub') {
-      win.style.width = '420px';
-      win.style.height = '600px';
+      win.style.width = '480px';
+      win.style.height = '640px';
     } else {
       win.style.width = '520px';
       win.style.height = '440px';
