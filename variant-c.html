@@ -611,7 +611,7 @@
     grid-template-columns: minmax(0, 1fr) 260px;
     gap: 16px;
     padding: 14px 16px 20px;
-    align-items: start;
+    align-items: stretch;
     position: relative;
   }
   .hub-main-col {
@@ -624,19 +624,37 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-height: 0;
+  }
+  .hub-side-col > * {
+    flex-shrink: 0;
+  }
+  /* 让互传卡吸收剩余高度,和左侧设备卡对齐 */
+  .hub-side-col > .mi-transfer {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* 设备 tab(主列顶部 · 手机/平板) */
+  /* 设备 tab(嵌入卡片顶部,右侧带添加设备按钮) */
   .device-tabs {
     display: flex;
-    gap: 24px;
-    padding: 2px 4px 6px;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
     border-bottom: 1px solid var(--border);
+    margin: -4px -4px 14px;
+    padding: 4px 14px 0;
+  }
+  .device-tab-group {
+    display: flex;
+    gap: 24px;
+    align-items: flex-end;
   }
   .device-tab {
     position: relative;
-    padding: 4px 2px 10px;
-    font-size: 14px;
+    padding: 6px 2px 10px;
+    font-size: 13.5px;
     color: var(--text-3);
     cursor: pointer;
     display: inline-flex;
@@ -655,7 +673,34 @@
     background: var(--text);
     border-radius: 2px;
   }
-  .device-tab .dt-icon { font-size: 15px; }
+  .device-tab .dt-icon { font-size: 14px; }
+
+  /* 卡片内 + 添加设备 */
+  .device-tab-add {
+    font-size: 12.5px;
+    color: var(--text-3);
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-bottom: 6px;
+    border-radius: var(--radius-sm);
+    transition: all .15s;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .device-tab-add:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  /* 卡片内的 pane(每个设备一个) */
+  .device-pane {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
 
   /* 右列:统一工具卡样式 */
   .side-tool-card {
@@ -753,9 +798,8 @@
     flex-shrink: 0;
   }
 
-  /* 小米互传 · 作为 side-tool-card 的一种,复用基础样式,按钮突出 */
+  /* 小米互传 · 作为 side-tool-card 的一种,复用基础样式 */
   .mi-transfer {
-    /* 继承 side-tool-card */
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
@@ -764,7 +808,7 @@
     transition: all .15s;
   }
   .mi-transfer-head {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
   .mi-transfer-head .title {
     font-size: 14px;
@@ -778,55 +822,94 @@
     color: var(--text-3);
     line-height: 1.45;
   }
-  .mi-transfer-row {
-    margin-bottom: 8px;
-  }
-  .mt-send-btn {
-    background: var(--text);
-    color: white;
-    border: 1px solid var(--text);
+
+  /* 拖放区:填充互传卡剩余高度 */
+  .mt-dropzone {
+    flex: 1;
+    min-height: 140px;
+    border: 1.5px dashed var(--border-strong);
     border-radius: var(--radius);
-    padding: 8px 14px;
-    font-size: 12.5px;
-    cursor: pointer;
+    background: var(--surface-2);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 16px 12px;
     gap: 6px;
-    font-weight: 500;
     transition: all .15s;
-    width: 100%;
+    margin-bottom: 10px;
   }
-  .mt-send-btn:hover { background: #000; border-color: #000; }
+  .mt-dropzone:hover {
+    border-color: var(--text-3);
+    background: var(--surface-3);
+  }
+  .mt-dz-icon {
+    font-size: 26px;
+    opacity: .6;
+    margin-bottom: 2px;
+  }
+  .mt-dz-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .mt-dz-sub {
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .mt-dz-link {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: rgba(201,100,66,.3);
+    text-underline-offset: 2px;
+  }
+  .mt-dz-link:hover {
+    text-decoration-color: var(--accent);
+  }
   .mt-hint {
     font-size: 11px;
     color: var(--text-3);
     line-height: 1.4;
     text-align: center;
   }
-  /* 拖拽 · 整块高亮 */
-  .mi-transfer.drop-hover {
-    background: var(--accent-bg);
+
+  /* 旧样式兼容(若仍有旧引用) */
+  .mt-send-btn {
+    display: none;
+  }
+  /* 拖拽 · dropzone 高亮 */
+  .mi-transfer.drop-hover .mt-dropzone {
     border-color: var(--accent);
+    background: var(--accent-bg);
     border-style: solid;
   }
-  .mi-transfer.drop-hover .mt-send-btn {
-    background: var(--accent);
-    border-color: var(--accent);
+  .mi-transfer.drop-hover .mt-dz-icon,
+  .mi-transfer.drop-hover .mt-dz-text,
+  .mi-transfer.drop-hover .mt-dz-sub {
+    color: var(--accent);
   }
+  .mi-transfer.drop-hover .mt-dz-icon { opacity: 1; }
   .mi-transfer.drop-hover .mt-hint {
     color: var(--accent);
     font-weight: 500;
   }
-  .mi-transfer.sending,
-  .mi-transfer.sent {
-    background: rgba(58,154,92,.06);
+  .mi-transfer.sending .mt-dropzone,
+  .mi-transfer.sent .mt-dropzone {
     border-color: var(--ok);
+    background: rgba(58,154,92,.08);
+    border-style: solid;
   }
-  .mi-transfer.sending .mt-send-btn,
-  .mi-transfer.sent .mt-send-btn {
-    background: var(--ok); border-color: var(--ok);
+  .mi-transfer.sending .mt-dz-icon,
+  .mi-transfer.sending .mt-dz-text,
+  .mi-transfer.sending .mt-dz-sub,
+  .mi-transfer.sent .mt-dz-icon,
+  .mi-transfer.sent .mt-dz-text,
+  .mi-transfer.sent .mt-dz-sub {
+    color: var(--ok);
   }
+  .mi-transfer.sending .mt-dz-icon,
+  .mi-transfer.sent .mt-dz-icon { opacity: 1; }
   .mi-transfer.sending .mt-hint,
   .mi-transfer.sent .mt-hint {
     color: var(--ok);
@@ -1288,80 +1371,85 @@
           <div class="state-btn" data-hub-state="phone-only">只有手机</div>
           <div class="state-btn" data-hub-state="empty">空态</div>
         </div>
-        <div class="hub-add-btn" data-hub-add>＋ 添加设备</div>
       </div>
 
       <!-- 手机 + 平板 -->
       <div data-hub-variant="phone-pad" class="hub-layout">
-        <!-- 左列:设备区(带内部 tab 切手机/平板) -->
+        <!-- 左列:设备卡(tab 内嵌卡片顶部) -->
         <div class="hub-main-col">
-          <div class="device-tabs">
-            <div class="device-tab active" data-device-tab="phone">
-              <span class="dt-icon">📱</span>手机
-            </div>
-            <div class="device-tab" data-device-tab="pad">
-              <span class="dt-icon">📲</span>平板
-            </div>
-          </div>
-
-          <!-- 手机卡 -->
-          <div class="device-card-v" data-device="Xiaomi MIX Flip 2" data-device-pane="phone">
-            <div class="drop-hint-v">
-              <div class="icon">📤</div>
-              <div>松开鼠标发送到<br>Xiaomi MIX Flip 2</div>
-            </div>
-            <div class="device-illustration">📱</div>
-            <div class="device-header-row">
-              <div class="device-meta">
-                <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
-                <div class="device-conn">局域网连接</div>
-              </div>
-              <div class="pill-actions">
-                <div class="pill-btn" title="启用热点"><span class="pill-icon">🔗</span><span class="pill-btn-label">启用热点</span></div>
-                <div class="pill-btn" title="响铃查找"><span class="pill-icon">▶️</span><span class="pill-btn-label">响铃查找</span></div>
-              </div>
-            </div>
-            <div class="feature-card">
-              <div class="fc-row">
-                <div>
-                  <h4>妙享桌面</h4>
-                  <div class="fc-desc">在 Mac 上使用小米手机</div>
+          <div class="device-card-v" data-device-card>
+            <!-- tab 放卡片内顶部 -->
+            <div class="device-tabs">
+              <div class="device-tab-group">
+                <div class="device-tab active" data-device-tab="phone">
+                  <span class="dt-icon">📱</span>手机
                 </div>
-                <div class="fc-action">开启</div>
+                <div class="device-tab" data-device-tab="pad">
+                  <span class="dt-icon">📲</span>平板
+                </div>
               </div>
-              <div class="fc-apps">
-                <div class="fc-app-icon wechat">💬</div>
-                <div class="fc-app-icon red">📕</div>
-                <div class="fc-app-icon oa">OA</div>
-                <div class="fc-app-icon files">📁</div>
-              </div>
+              <div class="device-tab-add" data-hub-add>＋ 添加设备</div>
             </div>
-          </div>
 
-          <!-- 平板卡(默认隐藏,tab 切换时显示) -->
-          <div class="device-card-v" data-device="Xiaomi Pad 6S Pro" data-device-pane="pad" style="display: none;">
-            <div class="drop-hint-v">
-              <div class="icon">📤</div>
-              <div>松开鼠标发送到<br>Xiaomi Pad 6S Pro</div>
-            </div>
-            <div class="device-illustration">📲</div>
-            <div class="device-header-row">
-              <div class="device-meta">
-                <h3 class="device-model-name">Xiaomi Pad 6S Pro 12.4 <span class="chev">▾</span></h3>
-                <div class="device-conn">局域网连接</div>
+            <!-- 手机 pane -->
+            <div class="device-pane active" data-device-pane="phone" data-device="Xiaomi MIX Flip 2">
+              <div class="drop-hint-v">
+                <div class="icon">📤</div>
+                <div>松开鼠标发送到<br>Xiaomi MIX Flip 2</div>
               </div>
-              <div class="pill-actions">
-                <div class="pill-btn" title="响铃查找"><span class="pill-icon">▶️</span><span class="pill-btn-label">响铃查找</span></div>
+              <div class="device-illustration">📱</div>
+              <div class="device-header-row">
+                <div class="device-meta">
+                  <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
+                  <div class="device-conn">局域网连接</div>
+                </div>
+                <div class="pill-actions">
+                  <div class="pill-btn" title="启用热点"><span class="pill-icon">🔗</span><span class="pill-btn-label">启用热点</span></div>
+                  <div class="pill-btn" title="响铃查找"><span class="pill-icon">▶️</span><span class="pill-btn-label">响铃查找</span></div>
+                </div>
               </div>
-            </div>
-            <div class="card-center-slot">
               <div class="feature-card">
-                <div class="fc-row" style="margin-bottom: 0;">
+                <div class="fc-row">
                   <div>
-                    <h4>屏幕扩展</h4>
-                    <div class="fc-desc">把小米平板当作 Mac 的扩展显示器</div>
+                    <h4>妙享桌面</h4>
+                    <div class="fc-desc">在 Mac 上使用小米手机</div>
                   </div>
                   <div class="fc-action">开启</div>
+                </div>
+                <div class="fc-apps">
+                  <div class="fc-app-icon wechat">💬</div>
+                  <div class="fc-app-icon red">📕</div>
+                  <div class="fc-app-icon oa">OA</div>
+                  <div class="fc-app-icon files">📁</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 平板 pane -->
+            <div class="device-pane" data-device-pane="pad" data-device="Xiaomi Pad 6S Pro" style="display: none;">
+              <div class="drop-hint-v">
+                <div class="icon">📤</div>
+                <div>松开鼠标发送到<br>Xiaomi Pad 6S Pro</div>
+              </div>
+              <div class="device-illustration">📲</div>
+              <div class="device-header-row">
+                <div class="device-meta">
+                  <h3 class="device-model-name">Xiaomi Pad 6S Pro 12.4 <span class="chev">▾</span></h3>
+                  <div class="device-conn">局域网连接</div>
+                </div>
+                <div class="pill-actions">
+                  <div class="pill-btn" title="响铃查找"><span class="pill-icon">▶️</span><span class="pill-btn-label">响铃查找</span></div>
+                </div>
+              </div>
+              <div class="card-center-slot">
+                <div class="feature-card">
+                  <div class="fc-row" style="margin-bottom: 0;">
+                    <div>
+                      <h4>屏幕扩展</h4>
+                      <div class="fc-desc">把小米平板当作 Mac 的扩展显示器</div>
+                    </div>
+                    <div class="fc-action">开启</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1376,12 +1464,12 @@
               <div class="title">小米互传</div>
               <div class="sub">发文件到任意附近小米设备</div>
             </div>
-            <div class="mi-transfer-row">
-              <div class="mt-send-btn" data-mt-send>
-                <span>📎</span><span>发文件</span>
-              </div>
+            <div class="mt-dropzone">
+              <div class="mt-dz-icon">📎</div>
+              <div class="mt-dz-text">拖拽文件到这里</div>
+              <div class="mt-dz-sub">或 <span class="mt-dz-link" data-mt-send>点击选择文件</span></div>
             </div>
-            <div class="mt-hint">或把文件直接拖到这里 / 任一设备</div>
+            <div class="mt-hint">也可直接把文件拖到左侧任一设备</div>
           </div>
         </div>
 
@@ -1391,41 +1479,46 @@
       <!-- 只有手机 -->
       <div data-hub-variant="phone-only" class="hub-layout" style="display: none;">
         <div class="hub-main-col">
-          <div class="device-tabs">
-            <div class="device-tab active" data-device-tab="phone">
-              <span class="dt-icon">📱</span>手机
-            </div>
-          </div>
-
-          <div class="device-card-v" data-device="Xiaomi MIX Flip 2" data-device-pane="phone">
-            <div class="drop-hint-v">
-              <div class="icon">📤</div>
-              <div>松开鼠标发送到<br>Xiaomi MIX Flip 2</div>
-            </div>
-            <div class="device-illustration">📱</div>
-            <div class="device-header-row">
-              <div class="device-meta">
-                <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
-                <div class="device-conn">局域网连接</div>
-              </div>
-              <div class="pill-actions">
-                <div class="pill-btn" title="启用热点"><span class="pill-icon">🔗</span><span class="pill-btn-label">启用热点</span></div>
-                <div class="pill-btn" title="响铃查找"><span class="pill-icon">▶️</span><span class="pill-btn-label">响铃查找</span></div>
-              </div>
-            </div>
-            <div class="feature-card">
-              <div class="fc-row">
-                <div>
-                  <h4>妙享桌面</h4>
-                  <div class="fc-desc">在 Mac 上使用小米手机</div>
+          <div class="device-card-v" data-device-card>
+            <div class="device-tabs">
+              <div class="device-tab-group">
+                <div class="device-tab active" data-device-tab="phone">
+                  <span class="dt-icon">📱</span>手机
                 </div>
-                <div class="fc-action">开启</div>
               </div>
-              <div class="fc-apps">
-                <div class="fc-app-icon wechat">💬</div>
-                <div class="fc-app-icon red">📕</div>
-                <div class="fc-app-icon oa">OA</div>
-                <div class="fc-app-icon files">📁</div>
+              <div class="device-tab-add" data-hub-add>＋ 添加设备</div>
+            </div>
+
+            <div class="device-pane active" data-device-pane="phone" data-device="Xiaomi MIX Flip 2">
+              <div class="drop-hint-v">
+                <div class="icon">📤</div>
+                <div>松开鼠标发送到<br>Xiaomi MIX Flip 2</div>
+              </div>
+              <div class="device-illustration">📱</div>
+              <div class="device-header-row">
+                <div class="device-meta">
+                  <h3 class="device-model-name">Xiaomi MIX Flip 2 <span class="chev">▾</span></h3>
+                  <div class="device-conn">局域网连接</div>
+                </div>
+                <div class="pill-actions">
+                  <div class="pill-btn" title="启用热点"><span class="pill-icon">🔗</span><span class="pill-btn-label">启用热点</span></div>
+                  <div class="pill-btn" title="响铃查找"><span class="pill-icon">▶️</span><span class="pill-btn-label">响铃查找</span></div>
+                </div>
+              </div>
+              <div class="feature-card">
+                <div class="fc-row">
+                  <div>
+                    <h4>妙享桌面</h4>
+                    <div class="fc-desc">在 Mac 上使用小米手机</div>
+                  </div>
+                  <div class="fc-action">开启</div>
+                </div>
+                <div class="fc-apps">
+                  <div class="fc-app-icon wechat">💬</div>
+                  <div class="fc-app-icon red">📕</div>
+                  <div class="fc-app-icon oa">OA</div>
+                  <div class="fc-app-icon files">📁</div>
+                </div>
               </div>
             </div>
           </div>
@@ -1437,12 +1530,12 @@
               <div class="title">小米互传</div>
               <div class="sub">发文件到任意附近小米设备</div>
             </div>
-            <div class="mi-transfer-row">
-              <div class="mt-send-btn" data-mt-send>
-                <span>📎</span><span>发文件</span>
-              </div>
+            <div class="mt-dropzone">
+              <div class="mt-dz-icon">📎</div>
+              <div class="mt-dz-text">拖拽文件到这里</div>
+              <div class="mt-dz-sub">或 <span class="mt-dz-link" data-mt-send>点击选择文件</span></div>
             </div>
-            <div class="mt-hint">或把文件直接拖到这里 / 任一设备</div>
+            <div class="mt-hint">也可直接把文件拖到左侧任一设备</div>
           </div>
         </div>
 
@@ -1640,7 +1733,7 @@
             if (hint) hint.textContent = '✓ 已打开设备选择';
             setTimeout(() => {
               block.classList.remove('sent');
-              if (hint) hint.textContent = origHintText || '或把文件直接拖到这里 / 任一设备卡';
+              if (hint) hint.textContent = origHintText || '也可直接把文件拖到左侧任一设备';
             }, 1600);
           }, 900);
         });
