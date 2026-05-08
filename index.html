@@ -378,19 +378,19 @@
     overflow: hidden;
   }
 
-  /* ===== Welcome ===== */
+  /* ===== Welcome(三态共享基础) ===== */
   .welcome {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding-bottom: 32px;
+    align-items: stretch;
+    padding: 28px 24px 24px;
+    overflow-y: auto;
   }
-  .welcome .logo {
-    font-size: 40px;
-    margin-bottom: 16px;
-  }
+  .welcome-state { gap: 20px; }
+
+  /* 旧的 logo/h2/p 保留,仅态 D 登录引导才用居中 */
+  .welcome .logo { font-size: 40px; margin-bottom: 16px; }
   .welcome h2 {
     font-size: 24px;
     font-weight: 600;
@@ -405,17 +405,135 @@
     font-size: 14px;
   }
 
+  /* 问候语 */
+  .w-greeting {
+    text-align: left;
+  }
+  .w-hi {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .w-sub {
+    font-size: 14px;
+    color: var(--text-2);
+    margin-top: 4px;
+  }
+
+  .w-section-label {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 8px;
+  }
+
+  .w-divider-line {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0 4px;
+  }
+
+  /* ===== 态 A · 设备预览卡片网格 ===== */
+  .device-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .dp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all .15s;
+    min-width: 0;
+  }
+  .dp-card:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-2);
+  }
+  .dp-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .dp-icon.phone { background: linear-gradient(135deg, #f7ede7, #e5c7b8); }
+  .dp-icon.pad { background: linear-gradient(135deg, #e8f0ff, #c9d7f5); }
+  .dp-icon.pc { background: linear-gradient(135deg, #eef3ec, #c6dec1); }
+  .dp-card > .dp-name, .dp-card .dp-meta { min-width: 0; flex: 1; }
+  .dp-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dp-tip {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 1px;
+  }
+
+  /* 最近一起做过 */
+  .recent-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .recent-task {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all .15s;
+    font-size: 13px;
+  }
+  .recent-task:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-2);
+  }
+  .rt-path {
+    font-size: 14px;
+    color: var(--text-3);
+    flex-shrink: 0;
+    letter-spacing: -1px;
+  }
+  .rt-text {
+    flex: 1;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rt-time {
+    font-size: 11px;
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+
   .scene-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     width: 100%;
-    max-width: 480px;
   }
   .scene-card {
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 12px 14px;
+    padding: 10px 14px;
     background: var(--surface);
     cursor: pointer;
     font-size: 13px;
@@ -426,6 +544,143 @@
     border-color: var(--border-strong);
     background: var(--surface-2);
     color: var(--text);
+  }
+
+  /* ===== 态 C · 无设备引导 ===== */
+  .empty-devices-cta {
+    background: var(--surface-2);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .ed-illustration {
+    font-size: 32px;
+    letter-spacing: 4px;
+    opacity: .7;
+    margin-bottom: 12px;
+  }
+  .ed-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .ed-desc {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .ed-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .ed-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .ed-btn:hover {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+  }
+  .ed-btn.primary {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+  .ed-btn.primary:hover {
+    background: #000;
+  }
+
+  /* ===== 态 D · 未登录引导 ===== */
+  .guest-hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px 24px;
+    gap: 0;
+  }
+  .gh-logo {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  .gh-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .gh-sub {
+    font-size: 14px;
+    color: var(--text-2);
+    margin: 4px 0 24px;
+  }
+  .gh-features {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+    max-width: 380px;
+    width: 100%;
+  }
+  .gh-feat {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-align: left;
+  }
+  .gh-feat-icon {
+    font-size: 20px;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .gh-feat-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .gh-feat-desc {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+  .gh-login {
+    padding: 12px 32px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .gh-terms {
+    font-size: 11.5px;
+    color: var(--text-3);
+    margin-top: 14px;
+  }
+  .gh-terms a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .gh-terms a:hover {
+    text-decoration: underline;
   }
 
   /* ===== Input ===== */
@@ -1860,10 +2115,20 @@
   <button class="tab" data-screen="s10">查找设备</button>
 </div>
 
-<!-- ========== 屏 1：对话板块 欢迎屏 ========== -->
+<!-- ========== 屏 1：对话板块 欢迎屏(按用户态分) ========== -->
 <div class="screen active" id="s1">
-  <div class="screen-title">对话板块 · 新对话欢迎屏</div>
-  <div class="screen-note">点击左上 "＋ 新对话" = 新建对话;底部无头像常驻(账号已并入设置);顶栏只有设备互联图标</div>
+  <div class="screen-title">首屏欢迎 · 按用户态分三种形态</div>
+  <div class="screen-note">
+    老小米互联服务用户打开 App 期待看到设备;新 AI 叙事希望强调对话 ·
+    解法:<b>态分首屏,输入框始终常驻</b>——有设备态先呈设备看板,无设备引导配对,未登录引导登录
+  </div>
+
+  <!-- 态切换器(demo 用,方便同事理解) -->
+  <div class="substage-bar" style="max-width: 640px;">
+    <div class="substage active" data-welcome-state="has-devices"><span class="stage-num">A</span>有设备(老用户)</div>
+    <div class="substage" data-welcome-state="no-devices"><span class="stage-num">C</span>无配对设备</div>
+    <div class="substage" data-welcome-state="guest"><span class="stage-num">D</span>未登录</div>
+  </div>
 
   <div class="window">
     <div class="topbar">
@@ -1896,10 +2161,52 @@
         <div class="nav-item" data-nav="settings"><span class="emoji">⚙️</span>设置</div>
       </aside>
       <main class="main">
-        <div class="welcome">
-          <div class="logo">✦</div>
-          <h2>Hi, 我是超级小爱</h2>
-          <p>你的全生态 AI 助手,能问、能做、能记住,有什么事情尽管交给我吧</p>
+        <!-- 态 A:有设备(老用户) -->
+        <div class="welcome welcome-state active" data-welcome-pane="has-devices">
+          <div class="w-greeting">
+            <div class="w-hi">你好 Yaki</div>
+            <div class="w-sub">今天要和哪台设备一起做事?</div>
+          </div>
+
+          <div class="device-preview-grid">
+            <div class="dp-card">
+              <div class="dp-icon phone">📱</div>
+              <div class="dp-meta">
+                <div class="dp-name">Xiaomi MIX Flip 2</div>
+                <div class="dp-tip">局域网就绪</div>
+              </div>
+            </div>
+            <div class="dp-card">
+              <div class="dp-icon pad">📲</div>
+              <div class="dp-meta">
+                <div class="dp-name">Xiaomi Pad 6S Pro</div>
+                <div class="dp-tip">局域网就绪</div>
+              </div>
+            </div>
+            <div class="dp-card">
+              <div class="dp-icon pc">💻</div>
+              <div class="dp-meta">
+                <div class="dp-name">本机 Xiaomi Book</div>
+                <div class="dp-tip">当前设备</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="w-section-label">最近一起做过</div>
+          <div class="recent-tasks">
+            <div class="recent-task">
+              <span class="rt-path">📱 → 💻</span>
+              <span class="rt-text">把手机上小猫的照片传过来并整理到桌面</span>
+              <span class="rt-time">3 天前</span>
+            </div>
+            <div class="recent-task">
+              <span class="rt-path">💻 → 📲</span>
+              <span class="rt-text">把这份文档同步到平板,一会儿出门看</span>
+              <span class="rt-time">上周五</span>
+            </div>
+          </div>
+
+          <div class="w-section-label">也可以让 AI 直接做</div>
           <div class="scene-grid">
             <div class="scene-card">💬  打开手机微信</div>
             <div class="scene-card">📲  把手机上的照片传过来</div>
@@ -1907,6 +2214,74 @@
             <div class="scene-card">🎨  生成网页</div>
           </div>
         </div>
+
+        <!-- 态 C:有账号但没配对设备 -->
+        <div class="welcome welcome-state" data-welcome-pane="no-devices" style="display: none;">
+          <div class="w-greeting">
+            <div class="w-hi">你好 Yaki</div>
+            <div class="w-sub">还没找到已连接的小米设备,先添加一台?</div>
+          </div>
+
+          <div class="empty-devices-cta">
+            <div class="ed-illustration">📱📲💻</div>
+            <div class="ed-title">添加你的第一台设备</div>
+            <div class="ed-desc">
+              在手机/平板上登录相同小米账号并打开小米互联服务,<br>
+              连接相同 Wi-Fi 后会自动出现在这里
+            </div>
+            <div class="ed-actions">
+              <div class="ed-btn primary">＋ 搜索附近设备</div>
+              <div class="ed-btn">📱 用另一台设备扫码</div>
+            </div>
+          </div>
+
+          <div class="w-divider-line"></div>
+
+          <div class="w-section-label">没设备也能先跟 AI 试试</div>
+          <div class="scene-grid">
+            <div class="scene-card">📝  帮我写一份周报</div>
+            <div class="scene-card">🎨  生成一个跳动爱心网页</div>
+            <div class="scene-card">💡  解释下今天这条科技新闻</div>
+            <div class="scene-card">📊  整理这批数据成表格</div>
+          </div>
+        </div>
+
+        <!-- 态 D:未登录 -->
+        <div class="welcome welcome-state" data-welcome-pane="guest" style="display: none;">
+          <div class="guest-hero">
+            <div class="gh-logo">🔗</div>
+            <div class="gh-title">小米互联服务</div>
+            <div class="gh-sub">让你的小米设备一起做事</div>
+
+            <div class="gh-features">
+              <div class="gh-feat">
+                <span class="gh-feat-icon">🤖</span>
+                <div>
+                  <div class="gh-feat-name">AI 调度设备</div>
+                  <div class="gh-feat-desc">一句话让手机、平板、PC 协作</div>
+                </div>
+              </div>
+              <div class="gh-feat">
+                <span class="gh-feat-icon">🔗</span>
+                <div>
+                  <div class="gh-feat-name">近场无缝互联</div>
+                  <div class="gh-feat-desc">妙享桌面 / 屏幕扩展 / 发文件</div>
+                </div>
+              </div>
+              <div class="gh-feat">
+                <span class="gh-feat-icon">☁️</span>
+                <div>
+                  <div class="gh-feat-name">多端数据同步</div>
+                  <div class="gh-feat-desc">相册 / 笔记 / 查找一次管齐</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ed-btn primary gh-login">使用小米账号登录</div>
+            <div class="gh-terms">登录即表示同意 <a href="#">服务协议</a> 与 <a href="#">隐私政策</a></div>
+          </div>
+        </div>
+
         <div class="input-box">
           <div class="input-btn">＋</div>
           <div class="input-model">快速 ▾</div>
@@ -3104,7 +3479,21 @@
   document.querySelectorAll('.substage').forEach(btn => {
     btn.addEventListener('click', () => {
       const stage = btn.dataset.stage;
-      document.querySelectorAll('.substage').forEach(b => b.classList.remove('active'));
+      // 如果是欢迎屏态切换
+      if (btn.dataset.welcomeState) {
+        const state = btn.dataset.welcomeState;
+        const bar = btn.parentElement;
+        bar.querySelectorAll('.substage').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const screen = btn.closest('.screen');
+        screen.querySelectorAll('.welcome-state').forEach(p => {
+          p.style.display = p.dataset.welcomePane === state ? 'flex' : 'none';
+          p.classList.toggle('active', p.dataset.welcomePane === state);
+        });
+        return;
+      }
+      // 否则走 s3 子阶段切换
+      document.querySelectorAll('.substage[data-stage]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       document.querySelectorAll('.substage-pane').forEach(p => p.classList.remove('active'));
       document.querySelector(`.substage-pane[data-pane="${stage}"]`).classList.add('active');
