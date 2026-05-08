@@ -605,50 +605,55 @@
     margin-top: 24px; line-height: 1.6; max-width: 320px;
   }
 
-  /* ===== 小米互传区块 ===== */
+  /* ===== 小米互传区块(紧凑工具条) ===== */
   .mi-transfer {
     margin: 4px 16px 20px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: 999px;
     background: var(--surface);
-    padding: 14px 16px;
+    padding: 6px 6px 6px 14px;
     position: relative;
     transition: all .15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    width: fit-content;
+    max-width: calc(100% - 32px);
   }
   .mi-transfer-head {
     display: flex;
     align-items: baseline;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 6px;
+    margin-bottom: 0;
+    flex-shrink: 0;
   }
   .mi-transfer-head .title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text);
     letter-spacing: -0.01em;
   }
   .mi-transfer-head .sub {
-    font-size: 11.5px;
-    color: var(--text-3);
-    flex: 1;
+    display: none;
   }
   .mi-transfer-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    flex-shrink: 0;
   }
   .mt-send-btn {
     flex-shrink: 0;
     background: var(--text);
     color: white;
     border: 1px solid var(--text);
-    border-radius: var(--radius);
-    padding: 8px 16px;
-    font-size: 13px;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12.5px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     font-weight: 500;
     transition: all .15s;
   }
@@ -656,7 +661,10 @@
   .mt-hint {
     font-size: 11.5px;
     color: var(--text-3);
-    line-height: 1.5;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   /* 拖拽 · 整块高亮 */
   .mi-transfer.drop-hover {
