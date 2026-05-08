@@ -429,6 +429,16 @@
   }
   .device-card-v:hover { border-color: var(--border-strong); }
 
+  /* 平板卡专用:让 feature-card 居中占据剩余空间,避免单功能卡贴顶留白 */
+  .card-center-slot {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .card-center-slot > .feature-card {
+    width: 100%;
+  }
+
   .device-illustration {
     width: 120px; height: 90px;
     margin: 2px auto 12px;
@@ -1163,13 +1173,15 @@
                 <div class="pill-btn" title="响铃查找"><span class="pill-icon">▶️</span><span class="pill-btn-label">响铃查找</span></div>
               </div>
             </div>
-            <div class="feature-card">
-              <div class="fc-row" style="margin-bottom: 0;">
-                <div>
-                  <h4>屏幕扩展</h4>
-                  <div class="fc-desc">把小米平板当作 Mac 的扩展显示器</div>
+            <div class="card-center-slot">
+              <div class="feature-card">
+                <div class="fc-row" style="margin-bottom: 0;">
+                  <div>
+                    <h4>屏幕扩展</h4>
+                    <div class="fc-desc">把小米平板当作 Mac 的扩展显示器</div>
+                  </div>
+                  <div class="fc-action">开启</div>
                 </div>
-                <div class="fc-action">开启</div>
               </div>
             </div>
           </div>
