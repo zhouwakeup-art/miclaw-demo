@@ -675,23 +675,19 @@
   }
   .device-tab .dt-icon { font-size: 14px; }
 
-  /* 卡片内 + 添加设备 */
-  .device-tab-add {
-    font-size: 12.5px;
-    color: var(--text-3);
-    cursor: pointer;
-    padding: 5px 10px;
-    margin-bottom: 6px;
-    border-radius: var(--radius-sm);
-    transition: all .15s;
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
+  /* 虚位 tab · 缺少的设备类型显示为"＋ 添加 XX" */
+  .device-tab-ghost {
+    color: var(--text-3) !important;
+    font-weight: 500 !important;
   }
-  .device-tab-add:hover {
-    background: var(--surface-2);
-    color: var(--text);
+  .device-tab-ghost:hover {
+    color: var(--text) !important;
+  }
+  .device-tab-ghost::after {
+    display: none !important;
+  }
+  .device-tab-ghost .dt-icon {
+    font-weight: 400;
   }
 
   /* 卡片内的 pane(每个设备一个) */
@@ -1388,7 +1384,6 @@
                   <span class="dt-icon">📲</span>平板
                 </div>
               </div>
-              <div class="device-tab-add" data-hub-add>＋ 添加设备</div>
             </div>
 
             <!-- 手机 pane -->
@@ -1485,8 +1480,10 @@
                 <div class="device-tab active" data-device-tab="phone">
                   <span class="dt-icon">📱</span>手机
                 </div>
+                <div class="device-tab device-tab-ghost" data-hub-add>
+                  <span class="dt-icon">＋</span>添加平板
+                </div>
               </div>
-              <div class="device-tab-add" data-hub-add>＋ 添加设备</div>
             </div>
 
             <div class="device-pane active" data-device-pane="phone" data-device="Xiaomi MIX Flip 2">
