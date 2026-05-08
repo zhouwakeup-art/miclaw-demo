@@ -141,57 +141,46 @@
     font-size: 12px;
   }
 
+  /* 顶栏设备互联入口:按钮式,图标+文字,视觉权重足够被一眼看见 */
   .topbar-icon {
-    width: 32px; height: 30px;
+    height: 26px;
+    padding: 0 10px 0 8px;
     border-radius: var(--radius-sm);
-    display: flex;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     cursor: pointer;
     position: relative;
-    transition: background .15s;
+    transition: all .15s;
     color: var(--text);
+    font-size: 12.5px;
+    font-weight: 500;
+    white-space: nowrap;
   }
-  .topbar-icon:hover { background: rgba(0,0,0,.05); }
-  .topbar-icon svg {
-    width: 22px; height: 22px;
-    display: block;
-  }
-  .topbar-icon .badge {
-    position: absolute;
-    top: 0; right: 0;
-    background: var(--accent);
-    color: white;
-    font-size: 9px;
-    font-weight: 600;
-    padding: 0 4px;
-    line-height: 12px;
-    border-radius: 6px;
-    min-width: 12px;
-    text-align: center;
-    border: 1.5px solid var(--surface-2);
-  }
-  /* 自定义 tooltip */
-  .topbar-icon[data-tip]::after {
-    content: attr(data-tip);
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
+  .topbar-icon:hover {
     background: var(--text);
     color: white;
-    font-size: 11px;
-    padding: 5px 8px;
-    border-radius: var(--radius-sm);
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-2px);
-    transition: all .15s;
-    z-index: 10;
+    border-color: var(--text);
   }
-  .topbar-icon[data-tip]:hover::after {
-    opacity: 1;
-    transform: translateY(0);
+  .topbar-icon svg {
+    width: 16px; height: 16px;
+    display: block;
+    order: 0;
+  }
+  /* 按钮里的"设备互联"文字(位于 svg 之后,badge 之前) */
+  .topbar-icon::after {
+    content: '设备互联';
+    order: 1;
+  }
+  .topbar-icon .badge {
+    display: none; /* 按早期决策,不显示设备数 */
+  }
+  /* 去掉外部 tooltip(文字已明摆按钮里) */
+  .topbar-icon[data-tip]::before {
+    display: none;
   }
 
   .app {
