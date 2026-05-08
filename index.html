@@ -2192,8 +2192,9 @@
 <div class="screen active" id="s1">
   <div class="screen-title">首屏欢迎 · 按用户态分三种形态</div>
   <div class="screen-note">
-    老小米互联服务用户打开 App 期待看到设备;新 AI 叙事希望强调对话 ·
-    解法:<b>态分首屏,输入框始终常驻</b>——有设备态先呈设备看板,无设备引导配对,未登录引导登录
+    首屏 = 欢迎屏(非对话态),侧栏"＋ 新对话"<b>不 active</b>,因为用户还没进任何对话 · 
+    态 A(老用户)优先展示设备看板缓解心智突兀,态 C(无配对)以 AI 对话为主、连接设备降为 banner,态 D(未登录)引导登录 · 
+    输入框常驻 · 点"＋ 新对话"在已欢迎屏时会高亮输入框,跨页时会切回欢迎屏
   </div>
 
   <!-- 态切换器(demo 用,方便同事理解) -->
@@ -2210,8 +2211,8 @@
       <div class="topbar-icon" title="互联快捷面板">📱<span class="badge">3</span></div>
     </div>
     <div class="app">
-            <aside class="sidebar">
-        <div class="nav-item primary active" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
+      <aside class="sidebar">
+        <div class="nav-item primary" data-action="new-chat"><span class="emoji">✚</span>新对话</div>
         <div class="nav-item" data-nav="cross"><span class="emoji">📶</span>跨端执行</div>
         <div class="nav-item" data-nav="files"><span class="emoji">🗂️</span>文件</div>
         <div class="nav-item" data-nav="discover"><span class="emoji">💡</span>发现</div>
@@ -3480,6 +3481,26 @@
     'discover': 's8',
     'settings': 's6',
   };
+
+  // 高亮欢迎屏输入框(演示"＋ 新对话"点了的反馈)
+  function focusWelcomeInput(screen) {
+    // 优先找当前显示的欢迎态里的 input-box
+    const activePane = screen.querySelector('.welcome-state.active, .welcome-state[style*="flex"]');
+    const inputBox = (activePane && activePane.nextElementSibling && activePane.nextElementSibling.classList.contains('input-box'))
+      ? activePane.nextElementSibling
+      : screen.querySelector('.input-box');
+    if (!inputBox) return;
+    // 清掉 @chip 恢复引导文案
+    const inputText = inputBox.querySelector('.input-text');
+    if (inputText) {
+      inputText.innerHTML = '发消息或 @ 设备帮你做事';
+      inputText.style.color = '';
+    }
+    inputBox.classList.add('focused');
+    inputBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => inputBox.classList.remove('focused'), 1800);
+  }
+
   document.querySelectorAll('.screen').forEach(screen => {
     // 主侧栏导航
     screen.querySelectorAll('.sidebar .nav-item').forEach(item => {
@@ -3487,6 +3508,19 @@
         const action = item.dataset.action;
         const nav = item.dataset.nav;
         const key = action || nav;
+        // "＋ 新对话"特殊处理:如果已经在欢迎屏(s1)且是 new-chat,聚焦输入框;
+        // 否则切到 s1(组合了"切 tab"和"回欢迎屏"的语义)
+        if (key === 'new-chat') {
+          const onS1 = document.querySelector('.tab[data-screen="s1"]').classList.contains('active');
+          if (onS1) {
+            focusWelcomeInput(document.getElementById('s1'));
+          } else {
+            document.querySelector('.tab[data-screen="s1"]').click();
+            // 切过去后也高亮一下输入框,提醒用户"可以开始了"
+            setTimeout(() => focusWelcomeInput(document.getElementById('s1')), 80);
+          }
+          return;
+        }
         if (key && navMap[key]) {
           document.querySelector(`.tab[data-screen="${navMap[key]}"]`).click();
         }
