@@ -698,7 +698,56 @@
     text-decoration: underline;
   }
 
-  /* ===== Input ===== */
+  /* ===== 输入框上方快捷入口条 ===== */
+  .input-quickbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 2px 4px;
+    margin-top: auto;
+  }
+  .qb-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .qb-chip:hover {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+  .qb-chip.device {
+    color: var(--accent);
+    background: var(--accent-bg);
+    border-color: rgba(201,100,66,.2);
+  }
+  .qb-chip.device:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .qb-chip .qb-icon {
+    font-size: 12.5px;
+    line-height: 1;
+  }
+  .qb-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  /* ===== 输入框 ===== */
   .input-box {
     border: 1px solid var(--border-strong);
     border-radius: var(--radius);
@@ -2199,29 +2248,12 @@
         <div class="welcome welcome-state active" data-welcome-pane="has-devices">
           <div class="w-greeting">
             <div class="w-hi">你好 Yaki</div>
-            <div class="w-sub">今天要和哪台设备一起做事?</div>
+            <div class="w-sub">今天想做点什么?</div>
           </div>
 
-          <div class="device-preview-grid">
-            <div class="dp-card" data-prefill-device="Xiaomi MIX Flip 2">
-              <div class="dp-icon phone">📱</div>
-              <div class="dp-meta">
-                <div class="dp-name">Xiaomi MIX Flip 2</div>
-                <div class="dp-tip">局域网就绪 · 点击 @ 到对话</div>
-              </div>
-            </div>
-            <div class="dp-card" data-prefill-device="Xiaomi Pad 6S Pro">
-              <div class="dp-icon pad">📲</div>
-              <div class="dp-meta">
-                <div class="dp-name">Xiaomi Pad 6S Pro</div>
-                <div class="dp-tip">局域网就绪 · 点击 @ 到对话</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="w-section-label">也可以让 AI 直接做</div>
+          <div class="w-section-label">让 AI 帮你</div>
           <div class="scene-grid">
-            <div class="scene-card">💬  打开手机微信</div>
+            <div class="scene-card">�  打开手机微信</div>
             <div class="scene-card">📲  把手机上的照片传过来</div>
             <div class="scene-card">🗂️  整理桌面</div>
             <div class="scene-card">🎨  生成网页</div>
@@ -2286,6 +2318,26 @@
 
             <div class="ed-btn primary gh-login">使用小米账号登录</div>
             <div class="gh-terms">登录即表示同意 <a href="#">服务协议</a> 与 <a href="#">隐私政策</a></div>
+          </div>
+        </div>
+
+        <!-- 输入框正上方的快捷入口条 · 态 A/C 共用 -->
+        <div class="input-quickbar">
+          <div class="qb-chip device" data-prefill-device="Xiaomi MIX Flip 2">
+            <span class="qb-icon">📱</span>@手机
+          </div>
+          <div class="qb-chip device" data-prefill-device="Xiaomi Pad 6S Pro">
+            <span class="qb-icon">📲</span>@平板
+          </div>
+          <div class="qb-sep"></div>
+          <div class="qb-chip" data-prefill-text="整理桌面文件">
+            <span class="qb-icon">🗂️</span>整理桌面
+          </div>
+          <div class="qb-chip" data-prefill-text="把手机相册最新 5 张照片传到这台电脑">
+            <span class="qb-icon">📤</span>传照片过来
+          </div>
+          <div class="qb-chip" data-prefill-text="帮我总结本周的 git 提交写一份周报">
+            <span class="qb-icon">📝</span>本周周报
           </div>
         </div>
 
@@ -3540,6 +3592,22 @@
       setTimeout(() => {
         inputBox.classList.remove('focused');
       }, 1800);
+    });
+  });
+
+  // 快捷入口条的场景 chip:点击后填入完整 prompt
+  document.querySelectorAll('[data-prefill-text]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const text = chip.dataset.prefillText;
+      const screen = chip.closest('.screen');
+      if (!screen) return;
+      const inputBox = screen.querySelector('.input-box');
+      const inputText = inputBox && inputBox.querySelector('.input-text');
+      if (!inputText) return;
+      inputText.textContent = text;
+      inputText.style.color = 'var(--text)';
+      inputBox.classList.add('focused');
+      setTimeout(() => inputBox.classList.remove('focused'), 1800);
     });
   });
 
