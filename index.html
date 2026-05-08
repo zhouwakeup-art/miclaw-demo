@@ -694,6 +694,24 @@
     gap: 10px;
     margin-top: 8px;
     box-shadow: var(--shadow-sm);
+    transition: all .2s;
+  }
+  .input-box.focused {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(201,100,66,.12);
+  }
+  /* @设备 chip */
+  .at-chip {
+    display: inline-flex;
+    align-items: center;
+    background: var(--accent-bg);
+    color: var(--accent);
+    border: 1px solid rgba(201,100,66,.22);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    margin-right: 2px;
   }
   .input-btn {
     width: 26px; height: 26px;
@@ -2169,25 +2187,18 @@
           </div>
 
           <div class="device-preview-grid">
-            <div class="dp-card">
+            <div class="dp-card" data-prefill-device="Xiaomi MIX Flip 2">
               <div class="dp-icon phone">📱</div>
               <div class="dp-meta">
                 <div class="dp-name">Xiaomi MIX Flip 2</div>
-                <div class="dp-tip">局域网就绪</div>
+                <div class="dp-tip">局域网就绪 · 点击 @ 到对话</div>
               </div>
             </div>
-            <div class="dp-card">
+            <div class="dp-card" data-prefill-device="Xiaomi Pad 6S Pro">
               <div class="dp-icon pad">📲</div>
               <div class="dp-meta">
                 <div class="dp-name">Xiaomi Pad 6S Pro</div>
-                <div class="dp-tip">局域网就绪</div>
-              </div>
-            </div>
-            <div class="dp-card">
-              <div class="dp-icon pc">💻</div>
-              <div class="dp-meta">
-                <div class="dp-name">本机 Xiaomi Book</div>
-                <div class="dp-tip">当前设备</div>
+                <div class="dp-tip">局域网就绪 · 点击 @ 到对话</div>
               </div>
             </div>
           </div>
@@ -2646,15 +2657,6 @@
             <span class="chip" data-needs-hotspot>发文件</span>
             <span class="chip" data-needs-hotspot>响铃查找</span>
           </div>
-        </div>
-
-        <div class="device-card">
-          <div class="device-row">
-            <span>💻</span>
-            <span class="device-name">本机 MacBook</span>
-            <span class="device-menu">⋯</span>
-          </div>
-          <div class="device-status"><span class="status-dot online"></span>本机</div>
         </div>
 
         <div class="more-devices">更多设备 (2) ▾</div>
@@ -3352,13 +3354,6 @@
             <span class="chip" data-needs-hotspot>响铃查找</span>
           </div>
         </div>
-        <div class="device-card">
-          <div class="device-row">
-            <span>💻</span>
-            <span class="device-name">本机 MacBook</span>
-            <span class="device-menu">⋯</span>
-          </div>
-        </div>
         <div class="more-devices">更多设备 (2) ▾</div>
         <div class="add-device">＋ 添加设备</div>
       </div>
@@ -3497,6 +3492,25 @@
       btn.classList.add('active');
       document.querySelectorAll('.substage-pane').forEach(p => p.classList.remove('active'));
       document.querySelector(`.substage-pane[data-pane="${stage}"]`).classList.add('active');
+    });
+  });
+
+  // 点击欢迎屏的设备卡 → 把 @设备名 预填到输入框(演示跳转到对话态)
+  document.querySelectorAll('[data-prefill-device]').forEach(card => {
+    card.addEventListener('click', () => {
+      const name = card.dataset.prefillDevice;
+      const screen = card.closest('.screen');
+      if (!screen) return;
+      const inputBox = screen.querySelector('.input-box');
+      const inputText = inputBox && inputBox.querySelector('.input-text');
+      if (!inputText) return;
+      inputText.innerHTML = `<span class="at-chip">@${name}</span> &nbsp; 帮我做点什么...`;
+      inputText.style.color = 'var(--text-2)';
+      inputBox.classList.add('focused');
+      // 短暂高亮后恢复提示文案
+      setTimeout(() => {
+        inputBox.classList.remove('focused');
+      }, 1800);
     });
   });
 
