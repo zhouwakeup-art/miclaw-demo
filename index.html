@@ -601,6 +601,61 @@
     background: #000;
   }
 
+  /* 态 C · 底部"解锁更多"Banner(降级的添加设备入口) */
+  .unlock-banner {
+    margin-top: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .ub-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .ub-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .ub-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .ub-desc {
+    font-size: 11.5px;
+    color: var(--text-3);
+    line-height: 1.5;
+    margin-top: 2px;
+  }
+  .ub-btn {
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all .15s;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .ub-btn:hover {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+
   /* ===== 态 D · 未登录引导 ===== */
   .guest-hero {
     flex: 1;
@@ -2230,30 +2285,24 @@
         <div class="welcome welcome-state" data-welcome-pane="no-devices" style="display: none;">
           <div class="w-greeting">
             <div class="w-hi">你好 Yaki</div>
-            <div class="w-sub">还没找到已连接的小米设备,先添加一台?</div>
+            <div class="w-sub">先跟我聊点什么吧</div>
           </div>
 
-          <div class="empty-devices-cta">
-            <div class="ed-illustration">📱📲💻</div>
-            <div class="ed-title">添加你的第一台设备</div>
-            <div class="ed-desc">
-              在手机/平板上登录相同小米账号并打开小米互联服务,<br>
-              连接相同 Wi-Fi 后会自动出现在这里
-            </div>
-            <div class="ed-actions">
-              <div class="ed-btn primary">＋ 搜索附近设备</div>
-              <div class="ed-btn">📱 用另一台设备扫码</div>
-            </div>
-          </div>
-
-          <div class="w-divider-line"></div>
-
-          <div class="w-section-label">没设备也能先跟 AI 试试</div>
+          <div class="w-section-label">试试这些</div>
           <div class="scene-grid">
-            <div class="scene-card">📝  帮我写一份周报</div>
+            <div class="scene-card">�  帮我写一份周报</div>
             <div class="scene-card">🎨  生成一个跳动爱心网页</div>
             <div class="scene-card">💡  解释下今天这条科技新闻</div>
             <div class="scene-card">📊  整理这批数据成表格</div>
+          </div>
+
+          <div class="unlock-banner">
+            <div class="ub-icon">🔗</div>
+            <div class="ub-text">
+              <div class="ub-title">让我也能帮你调度手机、平板</div>
+              <div class="ub-desc">连上其他小米设备后,你可以说"把手机照片传过来""让平板上的文档同步"这类跨端指令</div>
+            </div>
+            <div class="ub-btn">＋ 连接设备</div>
           </div>
         </div>
 
