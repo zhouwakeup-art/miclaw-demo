@@ -483,47 +483,7 @@
     margin-top: 1px;
   }
 
-  /* 最近一起做过 */
-  .recent-tasks {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .recent-task {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: all .15s;
-    font-size: 13px;
-  }
-  .recent-task:hover {
-    border-color: var(--border-strong);
-    background: var(--surface-2);
-  }
-  .rt-path {
-    font-size: 14px;
-    color: var(--text-3);
-    flex-shrink: 0;
-    letter-spacing: -1px;
-  }
-  .rt-text {
-    flex: 1;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .rt-time {
-    font-size: 11px;
-    color: var(--text-3);
-    flex-shrink: 0;
-  }
-
+  /* 态 A 场景卡网格(复用态 C) */
   .scene-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -2256,20 +2216,6 @@
                 <div class="dp-name">Xiaomi Pad 6S Pro</div>
                 <div class="dp-tip">局域网就绪 · 点击 @ 到对话</div>
               </div>
-            </div>
-          </div>
-
-          <div class="w-section-label">最近一起做过</div>
-          <div class="recent-tasks">
-            <div class="recent-task">
-              <span class="rt-path">📱 → 💻</span>
-              <span class="rt-text">把手机上小猫的照片传过来并整理到桌面</span>
-              <span class="rt-time">3 天前</span>
-            </div>
-            <div class="recent-task">
-              <span class="rt-path">💻 → 📲</span>
-              <span class="rt-text">把这份文档同步到平板,一会儿出门看</span>
-              <span class="rt-time">上周五</span>
             </div>
           </div>
 
