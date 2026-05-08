@@ -361,6 +361,13 @@
   .substage.active .stage-num { background: var(--accent); }
   .substage-pane { display: none; }
   .substage-pane.active { display: flex; flex-direction: column; flex: 1; }
+  /* 确保 s3 子阶段内的 docked-wrap 和 s1/s2 等外层 wrap 等宽等高 */
+  .substage-pane .docked-wrap {
+    width: 100%;
+  }
+  .substage-pane .docked-wrap .window {
+    min-height: 560px;
+  }
 
   /* ===== Main ===== */
   .main {
