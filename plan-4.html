@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>方案 4 · 工具主 + AI 副驾 · 小米互联服务</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface-2: #fafaf9;
+    --surface-3: #f2f1ec;
+    --border: #e7e5e0;
+    --border-strong: #d4d2cc;
+    --text: #1a1a1a;
+    --text-2: #5f5e5b;
+    --text-3: #8a8983;
+    --accent: #4a6cf7;
+    --accent-bg: #eef2ff;
+    --accent-light: #dbe4ff;
+    --ok: #3a9a5c;
+    --warn: #c89b2b;
+    --off: #c1c0bc;
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+    --shadow: 0 4px 12px rgba(0,0,0,.06);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,.1);
+    --sidebar-w: 200px;
+    --copilot-w: 300px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+                 "Helvetica Neue", "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--text-2); font-size: 14px; margin-bottom: 12px; }
+  .highlight {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 24px;
+    line-height: 1.7;
+  }
+  .highlight b { color: var(--text); }
+  .kbd { background: var(--surface-2); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; font-size: 12px; color: var(--text); }
+
+  .app-shell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 680px;
+    position: relative;
+  }
+  .topbar {
+    position: relative;
+    height: 42px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    flex-shrink: 0;
+  }
+  .traffic { display: flex; gap: 6px; position: relative; z-index: 1; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.red { background: #ff5f57; }
+  .dot.yellow { background: #febc2e; }
+  .dot.green { background: #28c940; }
+  .topbar-title {
+    position: absolute; left: 0; right: 0;
+    text-align: center;
+    font-size: 13px; font-weight: 500; color: var(--text);
+    pointer-events: none;
+  }
+
+  .main-layout { display: flex; flex: 1; min-height: 0; }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface-2);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sidebar-scroll {
+    flex: 1; min-height: 0;
+    overflow-y: auto;
+    padding: 10px 8px;
+  }
+  .sidebar-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--border);
+    padding: 6px 8px;
+    background: var(--surface-2);
+  }
+  .nav-group-label {
+    font-size: 11px; font-weight: 600; color: var(--text-3);
+    padding: 8px 10px 4px; letter-spacing: 0.03em;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 7px 10px; border-radius: var(--radius-sm);
+    cursor: pointer; font-size: 13px; color: var(--text-2);
+    transition: all .1s; margin-bottom: 1px;
+  }
+  .nav-item:hover { background: rgba(0,0,0,.04); color: var(--text); }
+  .nav-item.active { background: rgba(0,0,0,.06); color: var(--text); font-weight: 500; }
+  .nav-item .emoji { font-size: 14px; width: 18px; text-align: center; }
+  .nav-item .badge {
+    margin-left: auto; background: var(--accent); color: white;
+    font-size: 10px; padding: 1px 6px; border-radius: 99px; font-weight: 600;
+  }
+  .nav-divider { height: 1px; background: var(--border); margin: 8px 6px; }
+  .sidebar-spacer { flex: 1; }
+
+  /* Workspace */
+  .workspace {
+    flex: 1; display: flex; flex-direction: column;
+    min-width: 0; background: var(--surface);
+  }
+  .ws-header {
+    height: 54px; padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
+  .ws-header h2 { font-size: 17px; font-weight: 600; flex: 1; }
+  .ws-header .hdr-btn {
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 5px 12px; font-size: 12px; color: var(--text);
+    background: var(--surface); cursor: pointer; transition: all .15s;
+  }
+  .ws-header .hdr-btn:hover { background: var(--text); color: white; border-color: var(--text); }
+  .ws-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .panel { display: none; flex-direction: column; height: 100%; }
+  .panel.active { display: flex; }
+
+  /* Copilot 面板 */
+  .copilot {
+    width: var(--copilot-w);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    flex-shrink: 0; transition: width .2s ease, opacity .15s;
+    overflow: hidden;
+  }
+  .copilot.collapsed { width: 0; border-left: none; opacity: 0; pointer-events: none; }
+  .copilot-head {
+    height: 54px; padding: 0 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface-2);
+    flex-shrink: 0;
+  }
+  .copilot-head .avatar {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: white;
+  }
+  .copilot-head .name { font-size: 13px; font-weight: 500; flex: 1; }
+  .copilot-head .close-btn {
+    width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-3); font-size: 13px;
+  }
+  .copilot-head .close-btn:hover { background: rgba(0,0,0,.05); }
+
+  /* 固定四个引导入口:欢迎屏风格 */
+  .copilot-welcome {
+    flex: 1; overflow-y: auto;
+    padding: 28px 16px 16px;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 6px;
+  }
+  .cp-logo {
+    font-size: 36px; margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cp-title {
+    font-size: 18px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .cp-sub {
+    font-size: 12.5px; color: var(--text-2);
+    text-align: center; max-width: 260px;
+    line-height: 1.55; margin-bottom: 20px;
+  }
+  .cp-prompts {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    width: 100%;
+  }
+  .cp-prompt {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 10px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 12.5px;
+    color: var(--text-2);
+    line-height: 1.45;
+    transition: all .15s;
+    text-align: left;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .cp-prompt:hover {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    color: var(--text);
+  }
+  .cp-prompt .p-emoji { font-size: 16px; }
+  .cp-prompt .p-text { font-size: 12px; color: var(--text-2); line-height: 1.4; }
+  .cp-prompt:hover .p-text { color: var(--text); }
+
+  .copilot-footer {
+    padding: 10px 14px; border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .copilot-input {
+    border: 1px solid var(--border-strong); border-radius: var(--radius);
+    padding: 9px 12px; display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-3);
+  }
+  .copilot-input .txt { flex: 1; }
+  .copilot-input .send {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; cursor: pointer;
+  }
+
+  /* 设备卡片 */
+  .device-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .device-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px;
+    display: flex; flex-direction: column; gap: 14px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .card-stats {
+    display: flex; gap: 18px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .card-stats .stat { display: flex; flex-direction: column; gap: 2px; }
+  .card-stats .s-label { font-size: 11px; color: var(--text-3); }
+  .card-stats .s-value { font-size: 13px; font-weight: 500; color: var(--text); }
+  .device-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+  .card-top { display: flex; align-items: center; gap: 12px; }
+  .device-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--surface-2); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .device-info { flex: 1; min-width: 0; }
+  .device-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .device-status { font-size: 12px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
+  .device-status .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .card-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .action-chip {
+    border: 1px solid var(--border); border-radius: 99px;
+    padding: 5px 12px; font-size: 12px; color: var(--text-2);
+    background: var(--surface); cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all .15s;
+  }
+  .action-chip:hover { background: var(--text); color: white; border-color: var(--text); }
+  .action-chip.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .action-chip.primary:hover { background: #3b5de7; }
+
+  /* Tools */
+  .tool-section-title {
+    font-size: 12px; font-weight: 500; color: var(--text-3);
+    margin-bottom: 10px;
+  }
+  .tool-card {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; transition: all .15s;
+  }
+  .tool-card:hover { border-color: var(--border-strong); background: var(--surface); }
+  .tool-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #4a6cf7, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: white; flex-shrink: 0;
+  }
+  .tool-info { flex: 1; }
+  .tool-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .tool-desc { font-size: 12px; color: var(--text-3); }
+  .tool-arrow { color: var(--text-3); font-size: 14px; }
+
+  .drop-zone {
+    border: 2px dashed var(--border-strong); border-radius: var(--radius);
+    padding: 24px; text-align: center; color: var(--text-3);
+    font-size: 13px; margin-top: 14px; transition: all .2s;
+  }
+  .drop-zone .dz-icon { font-size: 28px; margin-bottom: 6px; }
+
+  .file-list { display: flex; flex-direction: column; gap: 2px; }
+  .file-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: var(--radius-sm);
+    cursor: pointer; transition: background .1s;
+  }
+  .file-row:hover { background: var(--surface-2); }
+  .file-row .f-icon { font-size: 18px; flex-shrink: 0; }
+  .file-row .f-name { flex: 1; font-size: 13px; color: var(--text); }
+  .file-row .f-meta { font-size: 12px; color: var(--text-3); }
+  .file-row .f-link { font-size: 12px; color: var(--accent); opacity: 0; transition: opacity .1s; }
+  .file-row:hover .f-link { opacity: 1; }
+
+  .discover-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;
+  }
+  .discover-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px; cursor: pointer; transition: all .15s;
+  }
+  .discover-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+  .dc-icon { font-size: 22px; margin-bottom: 6px; }
+  .dc-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .dc-desc { font-size: 12px; color: var(--text-3); }
+  .dc-tag { font-size: 11px; color: var(--accent); margin-top: 5px; }
+
+  .demo-note {
+    margin-top: 18px; padding: 14px 18px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); font-size: 13px;
+    color: var(--text-2); line-height: 1.8;
+  }
+  .demo-note b { color: var(--text); }
+
+  /* 新建对话入口 */
+  .nav-newchat {
+    background: var(--accent-bg); color: var(--accent); font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .nav-newchat:hover { background: var(--accent-light); color: var(--accent); }
+  .nav-newchat .emoji { color: var(--accent); font-weight: 600; }
+
+  /* 历史对话条目 */
+  .nav-history {
+    padding-left: 14px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    display: block;
+    word-break: break-all;
+  }
+
+  /* 全屏对话模式 */
+  .fullscreen-chat {
+    display: none; flex: 1; flex-direction: column;
+    background: var(--surface); min-width: 0;
+    position: relative;
+  }
+  .main-layout.chat-mode .workspace,
+  .main-layout.chat-mode .copilot { display: none; }
+  .main-layout.chat-mode .fullscreen-chat { display: flex; }
+  .main-layout.chat-mode .nav-item.active { background: transparent; color: var(--text-2); font-weight: 400; }
+  .main-layout.chat-mode .nav-newchat { background: var(--accent); color: #fff; }
+  .main-layout.chat-mode .nav-newchat .emoji { color: #fff; }
+  .main-layout.chat-mode .nav-newchat:hover { background: var(--accent); }
+
+  .fsc-body {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px 40px; gap: 6px; min-height: 0;
+  }
+  .fsc-logo {
+    font-size: 46px;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 14px;
+  }
+  .fsc-title {
+    font-size: 24px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .fsc-sub {
+    font-size: 13.5px; color: var(--text-2);
+    text-align: center; margin-bottom: 24px;
+  }
+  .fsc-prompts {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    width: 100%; max-width: 480px;
+  }
+  .fsc-prompt {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 14px; background: var(--surface);
+    cursor: pointer; font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+    transition: all .15s;
+  }
+  .fsc-prompt:hover { border-color: var(--accent); background: var(--accent-bg); }
+  .fsc-prompt .p-emoji { font-size: 16px; }
+
+  .fsc-footer {
+    padding: 16px 24px 24px; flex-shrink: 0;
+    display: flex; justify-content: center;
+  }
+  .fsc-input {
+    width: 100%; max-width: 700px;
+    border: 1px solid var(--border-strong); border-radius: 12px;
+    padding: 10px 10px 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+  }
+  .fsc-input .plus {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-2); font-size: 16px; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .fsc-input .plus:hover { background: var(--surface-2); }
+  .fsc-input .quick {
+    font-size: 12.5px; color: var(--text-2); cursor: pointer;
+    padding: 4px 6px; flex-shrink: 0;
+  }
+  .fsc-input .txt { flex: 1; font-size: 13px; color: var(--text-3); }
+  .fsc-input .send {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; cursor: pointer; flex-shrink: 0;
+  }
+
+  /* 全屏对话 · 顶栏(含收起按钮) */
+  .fsc-topbar {
+    display: flex; justify-content: flex-end;
+    padding: 12px 20px 0; flex-shrink: 0;
+  }
+  .fsc-collapse {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 5px 10px; font-size: 12px; color: var(--text-2);
+    background: var(--surface); cursor: pointer;
+    transition: all .15s;
+  }
+  .fsc-collapse:hover {
+    border-color: var(--border-strong); background: var(--surface-2);
+    color: var(--text);
+  }
+
+  /* 全屏对话 · 历史会话视图 */
+  .fsc-conversation {
+    display: none; flex: 1; flex-direction: column;
+    width: 100%; max-width: 760px;
+    margin: 0 auto; padding: 0 40px 4px;
+    overflow: hidden; min-height: 0;
+  }
+  .fullscreen-chat[data-mode="conv"] .fsc-body { display: none; }
+  .fullscreen-chat[data-mode="conv"] .fsc-conversation { display: flex; }
+  .fsc-conv-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0 14px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .fsc-conv-title {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .fsc-conv-meta {
+    font-size: 12px; color: var(--text-3); flex-shrink: 0;
+  }
+  .fsc-messages {
+    flex: 1; overflow-y: auto; padding: 20px 4px;
+    display: flex; flex-direction: column; gap: 18px;
+    min-height: 0;
+  }
+  .msg { display: flex; gap: 10px; max-width: 80%; }
+  .msg-user { align-self: flex-end; }
+  .msg-ai { align-self: flex-start; }
+  .msg-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0; font-weight: 600;
+  }
+  .msg-ai .msg-avatar {
+    background: linear-gradient(135deg, var(--accent), #7c3aed); color: white;
+  }
+  .msg-user .msg-avatar { display: none; }
+  .msg-bubble {
+    border-radius: 12px;
+    padding: 10px 14px; font-size: 13.5px; line-height: 1.65;
+    white-space: pre-wrap;
+    box-shadow: var(--shadow-sm);
+  }
+  .msg-user .msg-bubble {
+    background: var(--accent); color: white;
+    border-bottom-right-radius: 4px;
+  }
+  .msg-ai .msg-bubble {
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>方案 4 · 工具主 + AI 副驾</h1>
+<p class="subtitle">工具/设备/云服务为主界面,AI 作为右侧可收起的副驾面板 · 改造幅度最小</p>
+
+<div class="highlight">
+  <b>核心理念</b>:主界面就是工具(设备互联 / 云服务 / 文件),和现有互联服务保持一致;
+  AI 作为右侧常驻但可收起的"副驾"面板,提供<b>4 个固定引导入口</b>,让用户随时切到 AI 对话,不强关联当前主页面。
+  <br><br>
+  <b>试试</b>:点左栏 <b>＋ 新建对话</b> 或任一历史对话进入全屏对话 · 点副驾右上角 <b>⛶ 展开</b> 切换到全屏对话 · 点左栏任意 tab 退出全屏回到工具页
+</div>
+
+<div class="app-shell">
+  <div class="topbar">
+    <div class="traffic">
+      <div class="dot red"></div>
+      <div class="dot yellow"></div>
+      <div class="dot green"></div>
+    </div>
+    <div class="topbar-title">小米互联服务</div>
+  </div>
+
+  <div class="main-layout">
+    <!-- 左侧工具导航 -->
+    <aside class="sidebar">
+      <div class="sidebar-scroll">
+        <div class="nav-group-label">设备互联</div>
+        <div class="nav-item active" data-page="hub"><span class="emoji">🔗</span>我的设备</div>
+        <div class="nav-item" data-page="transfer"><span class="emoji">📤</span>小米互传</div>
+
+        <div class="nav-divider"></div>
+
+        <div class="nav-group-label">云服务</div>
+        <div class="nav-item" data-page="cloud-photo"><span class="emoji">📷</span>云相册</div>
+        <div class="nav-item" data-page="cloud-note"><span class="emoji">📝</span>云笔记</div>
+        <div class="nav-item" data-page="find-device"><span class="emoji">📍</span>查找设备</div>
+
+        <div class="nav-divider"></div>
+
+        <div class="nav-group-label">超级小爱</div>
+        <div class="nav-item nav-newchat" data-action="new-chat"><span class="emoji">＋</span>新建对话</div>
+        <div class="nav-item" data-page="discover"><span class="emoji">💡</span>发现<span class="badge">NEW</span></div>
+        <div class="nav-item" data-page="files"><span class="emoji">🗂️</span>文件</div>
+        <div class="nav-item" data-page="cross"><span class="emoji">🔄</span>跨端执行</div>
+
+        <div class="nav-divider"></div>
+
+        <div class="nav-group-label">历史对话</div>
+        <div class="nav-item nav-history" data-action="open-chat" data-conv="desktop">整理我的桌面文件</div>
+        <div class="nav-item nav-history" data-action="open-chat" data-conv="heart">生成一个爱心网页</div>
+        <div class="nav-item nav-history" data-action="open-chat" data-conv="weekly">周报数据分析</div>
+        <div class="nav-item nav-history" data-action="open-chat" data-conv="express">查快递到哪了</div>
+        <div class="nav-item nav-history" data-action="open-chat" data-conv="hotpot">推荐好吃的火锅店</div>
+        <div class="nav-item nav-history" data-action="open-chat">今日新闻摘要</div>
+        <div class="nav-item nav-history" data-action="open-chat">翻译这段英文</div>
+        <div class="nav-item nav-history" data-action="open-chat">北京明天天气</div>
+        <div class="nav-item nav-history" data-action="open-chat">给女朋友的生日祝福</div>
+        <div class="nav-item nav-history" data-action="open-chat">帮我写一份请假条</div>
+        <div class="nav-item nav-history" data-action="open-chat">Python 列表去重的写法</div>
+      </div>
+      <div class="sidebar-footer">
+        <div class="nav-item" data-page="settings"><span class="emoji">⚙️</span>设置</div>
+      </div>
+    </aside>
+
+    <!-- 中间主工作区 -->
+    <div class="workspace">
+      <!-- 我的设备 -->
+      <div class="panel active" id="page-hub">
+        <div class="ws-header">
+          <h2>我的设备</h2>
+          <div class="hdr-btn">＋ 添加设备</div>
+        </div>
+        <div class="ws-body">
+          <div class="device-grid">
+            <div class="device-card">
+              <div class="card-top">
+                <div class="device-icon">📱</div>
+                <div class="device-info">
+                  <div class="device-name">Xiaomi MIX Flip 2</div>
+                  <div class="device-status"><span class="status-dot"></span>局域网已连接</div>
+                </div>
+              </div>
+              <div class="card-stats">
+                <div class="stat"><span class="s-label">电量</span><span class="s-value">82%</span></div>
+                <div class="stat"><span class="s-label">存储</span><span class="s-value">148/256 GB</span></div>
+                <div class="stat"><span class="s-label">最近</span><span class="s-value">刚刚</span></div>
+              </div>
+              <div class="card-actions">
+                <div class="action-chip primary">🖥️ 妙享桌面</div>
+                <div class="action-chip">🔗 启用热点</div>
+                <div class="action-chip">🔔 响铃查找</div>
+              </div>
+            </div>
+            <div class="device-card">
+              <div class="card-top">
+                <div class="device-icon">📲</div>
+                <div class="device-info">
+                  <div class="device-name">Xiaomi Pad 6S Pro 12.4</div>
+                  <div class="device-status"><span class="status-dot"></span>局域网已连接</div>
+                </div>
+              </div>
+              <div class="card-stats">
+                <div class="stat"><span class="s-label">电量</span><span class="s-value">23%</span></div>
+                <div class="stat"><span class="s-label">存储</span><span class="s-value">96/512 GB</span></div>
+                <div class="stat"><span class="s-label">最近</span><span class="s-value">2 小时前</span></div>
+              </div>
+              <div class="card-actions">
+                <div class="action-chip primary">🖥️ 屏幕扩展</div>
+                <div class="action-chip">🔔 响铃查找</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 互传 -->
+      <div class="panel" id="page-transfer">
+        <div class="ws-header"><h2>小米互传</h2></div>
+        <div class="ws-body">
+          <div class="drop-zone" style="padding: 48px; border-color: var(--accent); background: var(--accent-bg); color: var(--accent);">
+            <div class="dz-icon" style="font-size: 40px;">📤</div>
+            <div style="font-size: 15px; font-weight: 500;">拖拽文件到此处发送</div>
+            <div style="margin-top: 4px; font-size: 12px;">或点击选择文件</div>
+          </div>
+          <div style="margin-top: 20px;">
+            <div class="tool-section-title">最近发送</div>
+            <div class="file-list">
+              <div class="file-row"><span class="f-icon">📄</span><span class="f-name">产品方案_v3.pdf</span><span class="f-meta">→ Xiaomi MIX Flip 2 · 2 分钟前</span></div>
+              <div class="file-row"><span class="f-icon">🖼️</span><span class="f-name">截图_20260511.png</span><span class="f-meta">→ Xiaomi Pad 6S Pro · 1 小时前</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 云相册 -->
+      <div class="panel" id="page-cloud-photo">
+        <div class="ws-header"><h2>云相册</h2><div class="hdr-btn">上传</div></div>
+        <div class="ws-body">
+          <div style="color: var(--text-2); font-size: 13px; margin-bottom: 16px;">464 张照片 · 24 个视频 · 同步自 Xiaomi MIX Flip 2</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <div style="aspect-ratio: 1; background: var(--surface-3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🌅</div>
+            <div style="aspect-ratio: 1; background: var(--surface-3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🐱</div>
+            <div style="aspect-ratio: 1; background: var(--surface-3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🏙️</div>
+            <div style="aspect-ratio: 1; background: var(--surface-3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🌸</div>
+            <div style="aspect-ratio: 1; background: var(--surface-3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">📸</div>
+            <div style="aspect-ratio: 1; background: var(--surface-3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎂</div>
+            <div style="aspect-ratio: 1; background: var(--surface-3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🌊</div>
+            <div style="aspect-ratio: 1; background: var(--surface-3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎆</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 云笔记 -->
+      <div class="panel" id="page-cloud-note">
+        <div class="ws-header"><h2>云笔记</h2><div class="hdr-btn">＋ 新建</div></div>
+        <div class="ws-body">
+          <div class="file-list">
+            <div class="file-row"><span class="f-icon">📝</span><span class="f-name">会议纪要 - 产品评审 0509</span><span class="f-meta">昨天 16:30</span></div>
+            <div class="file-row"><span class="f-icon">📝</span><span class="f-name">读书笔记 - 系统之美</span><span class="f-meta">5月8日</span></div>
+            <div class="file-row"><span class="f-icon">📝</span><span class="f-name">旅行清单 - 端午出行</span><span class="f-meta">5月6日</span></div>
+            <div class="file-row"><span class="f-icon">📝</span><span class="f-name">周报模板</span><span class="f-meta">5月5日</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 查找设备 -->
+      <div class="panel" id="page-find-device">
+        <div class="ws-header"><h2>查找设备</h2></div>
+        <div class="ws-body">
+          <div style="background: var(--surface-3); border-radius: var(--radius-lg); height: 220px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 40px;">🗺️</div>
+          <div class="file-list">
+            <div class="file-row"><span class="f-icon">📱</span><span class="f-name">Xiaomi MIX Flip 2</span><span class="f-meta">北京市海淀区 · 刚刚</span></div>
+            <div class="file-row"><span class="f-icon">📲</span><span class="f-name">Xiaomi Pad 6S Pro</span><span class="f-meta">北京市朝阳区 · 2小时前</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 发现 -->
+      <div class="panel" id="page-discover">
+        <div class="ws-header"><h2>发现</h2><div class="hdr-btn">管理已安装</div></div>
+        <div class="ws-body">
+          <div style="font-size: 12px; color: var(--text-3); margin-bottom: 14px;">MCP + Skill 能力市场 · 扩展 AI 副驾的能力边界</div>
+          <div class="discover-grid">
+            <div class="discover-card"><div class="dc-icon">🗺️</div><div class="dc-name">高德地图</div><div class="dc-desc">路线规划、POI、实时路况</div><div class="dc-tag">15 tools</div></div>
+            <div class="discover-card"><div class="dc-icon">📦</div><div class="dc-name">快递 100</div><div class="dc-desc">快递查询、寄件下单</div><div class="dc-tag">5 tools</div></div>
+            <div class="discover-card"><div class="dc-icon">🎨</div><div class="dc-name">画布设计</div><div class="dc-desc">AI 生成海报、封面、卡片</div><div class="dc-tag">内置</div></div>
+            <div class="discover-card"><div class="dc-icon">📊</div><div class="dc-name">数据分析</div><div class="dc-desc">表格处理、图表生成</div><div class="dc-tag">8 tools</div></div>
+            <div class="discover-card"><div class="dc-icon">✈️</div><div class="dc-name">差旅助手</div><div class="dc-desc">机票酒店、行程规划</div><div class="dc-tag">12 tools</div></div>
+            <div class="discover-card"><div class="dc-icon">🛠️</div><div class="dc-name">本地工具</div><div class="dc-desc">截图、录屏、OCR、翻译</div><div class="dc-tag">8 tools</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 文件 -->
+      <div class="panel" id="page-files">
+        <div class="ws-header"><h2>文件</h2><div class="hdr-btn">按时间</div></div>
+        <div class="ws-body">
+          <div style="font-size: 12px; color: var(--text-3); margin-bottom: 14px;">AI 产物归档 · 对话中生成的所有文件</div>
+          <div class="file-list">
+            <div class="file-row"><span class="f-icon">🌐</span><span class="f-name">heart.html</span><span class="f-meta">今天 17:30 · 2.3 KB</span><span class="f-link">💬 查看对话</span></div>
+            <div class="file-row"><span class="f-icon">📊</span><span class="f-name">周报_w19.xlsx</span><span class="f-meta">今天 14:22 · 18.4 KB</span><span class="f-link">💬 查看对话</span></div>
+            <div class="file-row"><span class="f-icon">📄</span><span class="f-name">会议纪要_0511.pdf</span><span class="f-meta">今天 10:05 · 45 KB</span><span class="f-link">💬 查看对话</span></div>
+            <div class="file-row"><span class="f-icon">📑</span><span class="f-name">产品方案_v2.docx</span><span class="f-meta">昨天 20:41 · 32 KB</span><span class="f-link">💬 查看对话</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 跨端执行 -->
+      <div class="panel" id="page-cross">
+        <div class="ws-header"><h2>跨端执行</h2></div>
+        <div class="ws-body">
+          <div style="font-size: 12px; color: var(--text-3); margin-bottom: 16px;">设备协作的只读观察窗 · 操作请在 AI 副驾中 @ 设备发起</div>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; gap: 8px; align-items: flex-start;">
+              <div style="width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, #eef3ec, #c6dec1); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">💻</div>
+              <div><div style="font-size: 11px; color: var(--text-3); margin-bottom: 2px;">Xiaomi Book Pro 14</div><div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 13px;">@Xiaomi MIX Flip 2 帮我找一下昨天拍的小猫照片传过来</div></div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;">
+              <div style="width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, #f7ede7, #e5c7b8); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">📱</div>
+              <div><div style="font-size: 11px; color: var(--text-3); margin-bottom: 2px;">Xiaomi MIX Flip 2</div><div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 13px;">收到,正在翻找相册...</div></div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;">
+              <div style="width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, #f7ede7, #e5c7b8); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">📱</div>
+              <div><div style="font-size: 11px; color: var(--text-3); margin-bottom: 2px;">Xiaomi MIX Flip 2</div><div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 13px;">找到了! 已发送 3 张小猫照片到 Xiaomi Book Pro 14 ✓</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 设置 -->
+      <div class="panel" id="page-settings">
+        <div class="ws-header"><h2>设置</h2></div>
+        <div class="ws-body">
+          <div style="font-size: 13px; color: var(--text-2); line-height: 2.2;">
+            <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">账号</div>
+            <div>Yaki · 小米 ID: 2389984542</div>
+            <div style="font-weight: 600; color: var(--text); margin-top: 16px; margin-bottom: 4px;">通用</div>
+            <div>· 清除缓存</div>
+            <div>· 系统权限管理</div>
+            <div>· 隐私与安全</div>
+            <div style="font-weight: 600; color: var(--text); margin-top: 16px; margin-bottom: 4px;">AI 副驾</div>
+            <div>· 默认展开副驾面板: 开</div>
+            <div>· 快捷键唤起: ⌘K</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧 AI 副驾面板(固定 4 个引导入口,不随左侧变化) -->
+    <aside class="copilot" id="copilot">
+      <div class="copilot-head">
+        <div class="avatar">✦</div>
+        <div class="name">超级小爱</div>
+        <div class="close-btn" id="closeCopilot" title="展开为全屏对话">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3,6.5 3,3 6.5,3"/>
+            <polyline points="9.5,3 13,3 13,6.5"/>
+            <polyline points="13,9.5 13,13 9.5,13"/>
+            <polyline points="6.5,13 3,13 3,9.5"/>
+          </svg>
+        </div>
+      </div>
+      <div class="copilot-welcome">
+        <div class="cp-logo">✦</div>
+        <div class="cp-title">Hi, 我是超级小爱</div>
+        <div class="cp-sub">你的全生态 AI 助手,能问、能做、能记住,有什么事情尽管交给我吧</div>
+        <div class="cp-prompts">
+          <div class="cp-prompt" id="cpPrompt1">
+            <div class="p-emoji">💬</div>
+            <div class="p-text">打开手机微信</div>
+          </div>
+          <div class="cp-prompt" id="cpPrompt2">
+            <div class="p-emoji">📲</div>
+            <div class="p-text">把手机上的照片传过来</div>
+          </div>
+          <div class="cp-prompt">
+            <div class="p-emoji">🗂️</div>
+            <div class="p-text">整理桌面</div>
+          </div>
+          <div class="cp-prompt">
+            <div class="p-emoji">🎨</div>
+            <div class="p-text">生成网页</div>
+          </div>
+        </div>
+      </div>
+      <div class="copilot-footer">
+        <div class="copilot-input">
+          <span class="txt">问我任何事,或 @ 设备执行...</span>
+          <div class="send">↑</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 全屏对话模式 -->
+    <div class="fullscreen-chat" id="fullscreenChat" data-mode="welcome">
+      <div class="fsc-topbar">
+        <div class="fsc-collapse" id="collapseBtn" title="收起到侧栏并回到设备互联">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="12" height="10" rx="1.5"/>
+            <line x1="10.5" y1="3" x2="10.5" y2="13"/>
+          </svg>
+          <span>收起到侧栏</span>
+        </div>
+      </div>
+      <div class="fsc-body">
+        <div class="fsc-logo">✦</div>
+        <div class="fsc-title">Hi, 我是超级小爱</div>
+        <div class="fsc-sub">你的全生态 AI 助手,能问、能做、能记住,有什么事情尽管交给我吧</div>
+        <div class="fsc-prompts">
+          <div class="fsc-prompt"><span class="p-emoji">💬</span><span>打开手机微信</span></div>
+          <div class="fsc-prompt"><span class="p-emoji">📲</span><span>把手机上的照片传过来</span></div>
+          <div class="fsc-prompt"><span class="p-emoji">🗂️</span><span>整理桌面</span></div>
+          <div class="fsc-prompt"><span class="p-emoji">🎨</span><span>生成网页</span></div>
+        </div>
+      </div>
+      <div class="fsc-conversation">
+        <div class="fsc-conv-header">
+          <div class="fsc-conv-title" id="fscConvTitle"></div>
+          <div class="fsc-conv-meta" id="fscConvMeta">超级小爱 · 历史对话</div>
+        </div>
+        <div class="fsc-messages" id="fscMessages"></div>
+      </div>
+      <div class="fsc-footer">
+        <div class="fsc-input">
+          <div class="plus">＋</div>
+          <div class="quick">快速 ▾</div>
+          <span class="txt">发消息或 @ 设备帮你做事</span>
+          <div class="send">↑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="demo-note">
+  <b>方案 4 · 工具主 + AI 副驾 · 关键特征</b><br><br>
+  · <b>主界面是工具</b>:设备互联、云服务、文件等占据主工作区,用户直接操作,和现有互联服务一致<br>
+  · <b>AI 是独立副驾</b>:右侧常驻面板,<b>4 个固定引导入口</b>(打开手机微信 / 传照片 / 整理桌面 / 生成网页),不随左侧页面变化<br>
+  · <b>不强关联</b>:不硬凑"云相册页 AI 建议整理重复照片"这种虚假联动 —— 因为很多模块本身就是纯工具,没有对应 AI 能力<br>
+  · <b>可收起</b>:点顶栏 ✦ 或面板 ✕ 收起,主工作区获得全部宽度<br>
+  · <b>@ 设备</b>:副驾输入框 @ 设备名,可发起跨端任务,结果归档到"跨端执行"页<br><br>
+  <b>vs 其他方案</b>:方案 1/2/3 以 AI 对话为中心,设备是对话的"工具";方案 4 以设备/工具为中心,AI 是并列的入口,两者彼此独立,用户想用 AI 时主动切过去
+</div>
+
+</div>
+
+<script>
+(function(){
+  const mainLayout = document.querySelector('.main-layout');
+  const navItems = document.querySelectorAll('.nav-item[data-page]');
+  const newChatBtn = document.querySelector('.nav-item[data-action="new-chat"]');
+  const historyItems = document.querySelectorAll('.nav-item[data-action="open-chat"]');
+  const panels = document.querySelectorAll('.panel');
+  const fullscreenChat = document.getElementById('fullscreenChat');
+  const fscConvTitle = document.getElementById('fscConvTitle');
+  const fscMessages = document.getElementById('fscMessages');
+  const collapseBtn = document.getElementById('collapseBtn');
+
+  // 历史对话数据
+  const conversations = {
+    'desktop': {
+      title: '整理我的桌面文件',
+      messages: [
+        { role: 'user', text: '帮我整理一下桌面文件,太乱了' },
+        { role: 'ai', text: '好的,扫描完成。桌面有 48 个文件,我按类型分好了 4 类:\n📄 文档 12 个\n🖼️ 图片 18 个\n📦 安装包 6 个\n🗂️ 其他 12 个\n要我现在执行吗?' },
+        { role: 'user', text: '执行吧' },
+        { role: 'ai', text: '✅ 整理完成。桌面从 48 个文件归到 4 个文件夹,原文件都保留没删。需要的话可以在「文件」里查看。' },
+      ],
+    },
+    'heart': {
+      title: '生成一个爱心网页',
+      messages: [
+        { role: 'user', text: '帮我生成一个爱心动画网页,要粉色的' },
+        { role: 'ai', text: '好的,已经生成一个粉色爱心动画网页 ❤️\n• 爱心带呼吸感的脉动效果\n• 点击后会爆出小爱心\n• 文件:heart.html (2.3 KB)\n已保存到「文件」,要我直接打开预览吗?' },
+        { role: 'user', text: '打开看看' },
+        { role: 'ai', text: '已在浏览器打开 heart.html ✓' },
+      ],
+    },
+    'weekly': {
+      title: '周报数据分析',
+      messages: [
+        { role: 'user', text: '帮我分析一下这周的销售数据' },
+        { role: 'ai', text: '已读取 sales_w19.xlsx。本周关键指标:\n• 总额 ¥128,450,环比 +12.3%\n• 北京区增长最快 +21%\n• 上海区下滑 −5.2%,建议关注\n• 客单价 ¥268,同比 +4.1%\n已生成可视化图表,保存到「文件」:周报_w19.xlsx' },
+      ],
+    },
+    'express': {
+      title: '查快递到哪了',
+      messages: [
+        { role: 'user', text: '我昨天寄的快递到哪了' },
+        { role: 'ai', text: '帮你查了 3 个在途快递:\n📦 SF1234567890 · 顺丰\n   已到达深圳转运中心,预计今天下午送达\n📦 YT9876543210 · 圆通\n   派送中,司机电话 138****5678\n📦 ZT5555555555 · 中通\n   已签收,昨天 18:42' },
+      ],
+    },
+    'hotpot': {
+      title: '推荐好吃的火锅店',
+      messages: [
+        { role: 'user', text: '推荐几家成都好吃的火锅店' },
+        { role: 'ai', text: '根据大众点评近期数据,给你挑了 3 家:\n🍲 小龙坎(春熙路店)· 4.7 分\n   招牌三鲜锅,排队约 40 分钟\n🍲 蜀大侠(宽窄巷子店)· 4.6 分\n   牛油锅底很地道,环境偏古风\n🍲 大龙燚(太古里店)· 4.5 分\n   适合聚餐,人均 ¥128\n要帮你在美团上订位吗?' },
+      ],
+    },
+  };
+
+  function renderConversation(id) {
+    const conv = conversations[id];
+    if (!conv) { showWelcome(); return; }
+    fscConvTitle.textContent = conv.title;
+    fscMessages.innerHTML = conv.messages.map(m => {
+      const avatar = m.role === 'ai' ? '✦' : '我';
+      return `<div class="msg msg-${m.role}">
+        <div class="msg-avatar">${avatar}</div>
+        <div class="msg-bubble">${m.text.replace(/\n/g, '<br>')}</div>
+      </div>`;
+    }).join('');
+    fullscreenChat.setAttribute('data-mode', 'conv');
+  }
+  function showWelcome() { fullscreenChat.setAttribute('data-mode', 'welcome'); }
+
+  function enterChatMode() { mainLayout.classList.add('chat-mode'); }
+  function exitChatMode() { mainLayout.classList.remove('chat-mode'); }
+
+  if (newChatBtn) newChatBtn.addEventListener('click', () => {
+    showWelcome();
+    enterChatMode();
+  });
+  if (collapseBtn) collapseBtn.addEventListener('click', () => {
+    exitChatMode();
+    switchPage('hub');
+  });
+  historyItems.forEach(h => h.addEventListener('click', () => {
+    const id = h.dataset.conv;
+    if (id) renderConversation(id);
+    else showWelcome();
+    enterChatMode();
+  }));
+
+  // 副驾前两个引导入口:按左栏当前页切换(后两个 🗂️整理桌面 / 🎨生成网页 固定)
+  const promptsByPage = {
+    'hub':         [ { emoji: '💬', text: '打开手机微信' },         { emoji: '📲', text: '把手机上的照片传过来' } ],
+    'transfer':    [ { emoji: '📤', text: '发送文件给其他设备' },   { emoji: '🕘', text: '查看最近传输记录' } ],
+    'cloud-photo': [ { emoji: '📷', text: '下载云相册照片到本地' }, { emoji: '🧹', text: '帮我清理重复照片' } ],
+    'cloud-note':  [ { emoji: '📝', text: '把这篇笔记导出为 Word' },{ emoji: '🔍', text: '在笔记里搜索关键词' } ],
+    'find-device': [ { emoji: '🔔', text: '让我的手机响铃' },       { emoji: '📍', text: '查看设备最近位置' } ],
+    'discover':    [ { emoji: '🗺️', text: '推荐好用的 MCP' },       { emoji: '📦', text: '安装快递 100 插件' } ],
+    'files':       [ { emoji: '🌐', text: '打开最近生成的网页' },   { emoji: '🧺', text: '清理一个月前的旧文件' } ],
+    'cross':       [ { emoji: '🔁', text: '查看上次跨端任务' },     { emoji: '📱', text: '让手机执行一个操作' } ],
+    'settings':    [ { emoji: '⚙️', text: '关闭 AI 副驾默认展开' }, { emoji: '🔐', text: '检查账号与隐私设置' } ],
+  };
+  const defaultPrompts = promptsByPage['hub'];
+  const prompt1El = document.getElementById('cpPrompt1');
+  const prompt2El = document.getElementById('cpPrompt2');
+
+  function applyPrompt(el, p) {
+    if (!el || !p) return;
+    el.querySelector('.p-emoji').textContent = p.emoji;
+    el.querySelector('.p-text').textContent = p.text;
+  }
+
+  function updatePrompts(id) {
+    const list = promptsByPage[id] || defaultPrompts;
+    applyPrompt(prompt1El, list[0]);
+    applyPrompt(prompt2El, list[1]);
+  }
+
+  function switchPage(id) {
+    panels.forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + id);
+    if (target) target.classList.add('active');
+    navItems.forEach(n => n.classList.toggle('active', n.dataset.page === id));
+    updatePrompts(id);
+  }
+
+  navItems.forEach(n => n.addEventListener('click', () => {
+    exitChatMode();
+    switchPage(n.dataset.page);
+  }));
+
+  const closeBtn = document.getElementById('closeCopilot');
+  // 副驾 ✕:切换到全屏对话
+  closeBtn.addEventListener('click', enterChatMode);
+})();
+</script>
+</body>
+</html>
