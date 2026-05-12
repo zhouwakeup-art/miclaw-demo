@@ -341,6 +341,22 @@
   .app-item .a-name { font-size: 11px; color: var(--text-2); }
   .app-item:hover .a-name { color: var(--accent); }
 
+  /* 单主入口 (如 屏幕扩展):标题 + 描述 + 开启按钮 */
+  .ss-title {
+    font-size: 15px; font-weight: 600; color: var(--text);
+  }
+  .ss-desc {
+    font-size: 12.5px; color: var(--text-2);
+    margin-bottom: 10px;
+  }
+  .ss-btn {
+    padding: 9px 0; border-radius: 99px;
+    background: var(--surface-3); color: var(--text-3);
+    text-align: center; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .15s;
+  }
+  .ss-btn:hover { background: var(--accent); color: white; }
+
   /* Tools */
   .tool-section-title {
     font-size: 12px; font-weight: 500; color: var(--text-3);
@@ -699,29 +715,9 @@
                 <div class="action-chip">🔔 响铃查找</div>
               </div>
               <div class="card-subscreen">
-                <div class="subscreen-label">屏幕扩展</div>
-                <div class="app-grid app-grid-5">
-                  <div class="app-item" title="扩展为副显示器">
-                    <div class="a-icon">🖥️</div>
-                    <div class="a-name">扩展</div>
-                  </div>
-                  <div class="app-item" title="镜像主屏幕">
-                    <div class="a-icon">📲</div>
-                    <div class="a-name">镜像</div>
-                  </div>
-                  <div class="app-item" title="笔记书写板">
-                    <div class="a-icon">📝</div>
-                    <div class="a-name">笔记</div>
-                  </div>
-                  <div class="app-item" title="数位画板">
-                    <div class="a-icon">🎨</div>
-                    <div class="a-name">画板</div>
-                  </div>
-                  <div class="app-item" title="沉浸阅读">
-                    <div class="a-icon">📖</div>
-                    <div class="a-name">阅读</div>
-                  </div>
-                </div>
+                <div class="ss-title">屏幕扩展</div>
+                <div class="ss-desc">把小米平板当作 Mac 的扩展显示器</div>
+                <div class="ss-btn">开启</div>
               </div>
             </div>
           </div>
