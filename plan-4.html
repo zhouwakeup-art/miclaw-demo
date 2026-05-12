@@ -259,17 +259,58 @@
     flex-shrink: 0;
   }
   .copilot-input {
-    border: 1px solid var(--border-strong); border-radius: var(--radius);
-    padding: 9px 12px; display: flex; align-items: center; gap: 8px;
-    font-size: 13px; color: var(--text-3);
+    border: 1px solid var(--border-strong); border-radius: 12px;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    font-size: 13px; background: var(--surface);
   }
-  .copilot-input .txt { flex: 1; }
+  .copilot-input .ci-text { color: var(--text-3); font-size: 13px; }
+  .copilot-input .ci-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .copilot-input .ci-tools { display: flex; align-items: center; gap: 2px; }
   .copilot-input .send {
-    width: 22px; height: 22px; border-radius: 50%;
+    width: 24px; height: 24px; border-radius: 50%;
     background: var(--accent); color: white;
     display: flex; align-items: center; justify-content: center;
-    font-size: 10px; cursor: pointer;
+    font-size: 11px; cursor: pointer;
   }
+
+  /* 工具按钮:上传 / 模型选择 */
+  .ci-tool {
+    border: none; background: transparent;
+    width: 24px; height: 24px; border-radius: 5px;
+    font-size: 14px; cursor: pointer; color: var(--text-2);
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .ci-tool:hover { background: var(--surface-2); }
+
+  .model-picker {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 3px 7px; border-radius: 5px;
+    cursor: pointer; color: var(--text-2); font-size: 12px;
+    user-select: none;
+  }
+  .model-picker:hover { background: var(--surface-2); }
+  .mp-caret { font-size: 10px; color: var(--text-3); line-height: 1; }
+  .mp-menu {
+    position: absolute; bottom: calc(100% + 6px); left: 0;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 4px; min-width: 108px;
+    display: none;
+    z-index: 20;
+  }
+  .model-picker.open .mp-menu { display: block; }
+  .mp-opt {
+    padding: 6px 10px; font-size: 12.5px; border-radius: 4px;
+    color: var(--text); cursor: pointer; white-space: nowrap;
+  }
+  .mp-opt:hover { background: var(--surface-2); }
+  .mp-opt.active { color: var(--accent); font-weight: 500; }
 
   /* 设备卡片 */
   .device-grid {
@@ -503,23 +544,16 @@
   .fsc-input {
     width: 100%; max-width: 700px;
     border: 1px solid var(--border-strong); border-radius: 12px;
-    padding: 10px 10px 10px 14px;
-    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 10px;
     background: var(--surface);
     box-shadow: var(--shadow-sm);
   }
-  .fsc-input .plus {
-    width: 28px; height: 28px; border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-2); font-size: 16px; cursor: pointer;
-    flex-shrink: 0;
+  .fsc-text { font-size: 13.5px; color: var(--text-3); }
+  .fsc-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
   }
-  .fsc-input .plus:hover { background: var(--surface-2); }
-  .fsc-input .quick {
-    font-size: 12.5px; color: var(--text-2); cursor: pointer;
-    padding: 4px 6px; flex-shrink: 0;
-  }
-  .fsc-input .txt { flex: 1; font-size: 13px; color: var(--text-3); }
+  .fsc-tools { display: flex; align-items: center; gap: 4px; }
   .fsc-input .send {
     width: 28px; height: 28px; border-radius: 50%;
     background: var(--accent); color: white;
@@ -905,8 +939,27 @@
       </div>
       <div class="copilot-footer">
         <div class="copilot-input">
-          <span class="txt">问我任何事,或 @ 设备执行...</span>
-          <div class="send">↑</div>
+          <div class="ci-text">问我任何事,或 @ 设备执行...</div>
+          <div class="ci-toolbar">
+            <div class="ci-tools">
+              <button class="ci-tool" title="上传文件">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11.5 7L7 11.5a2.5 2.5 0 0 1-3.5-3.5L8 3.5a4 4 0 0 1 5.5 5.5L8.5 14"/>
+                </svg>
+              </button>
+              <div class="model-picker" data-picker>
+                <span class="mp-current">快速</span>
+                <span class="mp-caret">▾</span>
+                <div class="mp-menu">
+                  <div class="mp-opt active">快速</div>
+                  <div class="mp-opt">深度思考</div>
+                  <div class="mp-opt">专家</div>
+                  <div class="mp-opt">智能</div>
+                </div>
+              </div>
+            </div>
+            <div class="send">↑</div>
+          </div>
         </div>
       </div>
     </aside>
@@ -942,10 +995,27 @@
       </div>
       <div class="fsc-footer">
         <div class="fsc-input">
-          <div class="plus">＋</div>
-          <div class="quick">快速 ▾</div>
-          <span class="txt">发消息或 @ 设备帮你做事</span>
-          <div class="send">↑</div>
+          <div class="fsc-text">发消息或 @ 设备帮你做事</div>
+          <div class="fsc-toolbar">
+            <div class="fsc-tools">
+              <button class="ci-tool" title="上传文件">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11.5 7L7 11.5a2.5 2.5 0 0 1-3.5-3.5L8 3.5a4 4 0 0 1 5.5 5.5L8.5 14"/>
+                </svg>
+              </button>
+              <div class="model-picker" data-picker>
+                <span class="mp-current">快速</span>
+                <span class="mp-caret">▾</span>
+                <div class="mp-menu">
+                  <div class="mp-opt active">快速</div>
+                  <div class="mp-opt">深度思考</div>
+                  <div class="mp-opt">专家</div>
+                  <div class="mp-opt">智能</div>
+                </div>
+              </div>
+            </div>
+            <div class="send">↑</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1116,6 +1186,36 @@
   const closeBtn = document.getElementById('closeCopilot');
   // 副驾 ✕:切换到全屏对话
   closeBtn.addEventListener('click', enterChatMode);
+
+  // 模型选择器:点击展开菜单,选中后回写
+  document.querySelectorAll('.model-picker').forEach(picker => {
+    const current = picker.querySelector('.mp-current');
+    picker.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = picker.classList.contains('open');
+      // 先关所有,再根据之前状态决定是否打开当前
+      document.querySelectorAll('.model-picker.open').forEach(p => p.classList.remove('open'));
+      if (!wasOpen) picker.classList.add('open');
+    });
+    picker.querySelectorAll('.mp-opt').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const val = opt.textContent.trim();
+        // 同步所有 picker 的当前值和 active 状态(副驾 / 全屏保持一致)
+        document.querySelectorAll('.model-picker').forEach(p => {
+          p.querySelector('.mp-current').textContent = val;
+          p.querySelectorAll('.mp-opt').forEach(o => {
+            o.classList.toggle('active', o.textContent.trim() === val);
+          });
+          p.classList.remove('open');
+        });
+      });
+    });
+  });
+  // 点击其他地方关闭下拉
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.model-picker.open').forEach(p => p.classList.remove('open'));
+  });
 })();
 </script>
 </body>
