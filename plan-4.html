@@ -440,13 +440,8 @@
   }
   .demo-note b { color: var(--text); }
 
-  /* 新建对话入口 */
-  .nav-newchat {
-    background: var(--accent-bg); color: var(--accent); font-weight: 500;
-    margin-bottom: 4px;
-  }
-  .nav-newchat:hover { background: var(--accent-light); color: var(--accent); }
-  .nav-newchat .emoji { color: var(--accent); font-weight: 600; }
+  /* 新建对话入口(与其他 nav-item 同一风格) */
+  .nav-newchat .emoji { font-weight: 600; }
 
   /* 历史对话条目 */
   .nav-history {
@@ -467,9 +462,6 @@
   .main-layout.chat-mode .copilot { display: none; }
   .main-layout.chat-mode .fullscreen-chat { display: flex; }
   .main-layout.chat-mode .nav-item.active { background: transparent; color: var(--text-2); font-weight: 400; }
-  .main-layout.chat-mode .nav-newchat { background: var(--accent); color: #fff; }
-  .main-layout.chat-mode .nav-newchat .emoji { color: #fff; }
-  .main-layout.chat-mode .nav-newchat:hover { background: var(--accent); }
 
   .fsc-body {
     flex: 1; display: flex; flex-direction: column;
