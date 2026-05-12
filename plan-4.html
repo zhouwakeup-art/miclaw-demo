@@ -268,7 +268,7 @@
   .copilot-input .ci-toolbar {
     display: flex; align-items: center; justify-content: space-between;
   }
-  .copilot-input .ci-tools { display: flex; align-items: center; gap: 2px; }
+  .copilot-input .ci-tools { display: flex; align-items: center; gap: 6px; }
   .copilot-input .send {
     width: 24px; height: 24px; border-radius: 50%;
     background: var(--accent); color: white;
@@ -276,24 +276,34 @@
     font-size: 11px; cursor: pointer;
   }
 
-  /* 工具按钮:上传 / 模型选择 */
+  /* 工具按钮:上传 / 模型选择(带边框胶囊,用作分区) */
   .ci-tool {
-    border: none; background: transparent;
-    width: 24px; height: 24px; border-radius: 5px;
-    font-size: 14px; cursor: pointer; color: var(--text-2);
+    height: 26px; min-width: 26px; padding: 0 6px;
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: 99px;
+    font-size: 13px; cursor: pointer; color: var(--text-2);
     display: inline-flex; align-items: center; justify-content: center;
-    padding: 0;
+    transition: all .1s;
   }
-  .ci-tool:hover { background: var(--surface-2); }
+  .ci-tool:hover {
+    background: var(--surface-2); color: var(--text);
+    border-color: var(--border-strong);
+  }
 
   .model-picker {
     position: relative;
-    display: inline-flex; align-items: center; gap: 3px;
-    padding: 3px 7px; border-radius: 5px;
+    display: inline-flex; align-items: center; gap: 4px;
+    height: 26px; padding: 0 10px;
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: 99px;
     cursor: pointer; color: var(--text-2); font-size: 12px;
     user-select: none;
+    transition: all .1s;
   }
-  .model-picker:hover { background: var(--surface-2); }
+  .model-picker:hover {
+    background: var(--surface-2); color: var(--text);
+    border-color: var(--border-strong);
+  }
   .mp-caret { font-size: 10px; color: var(--text-3); line-height: 1; }
   .mp-menu {
     position: absolute; bottom: calc(100% + 6px); left: 0;
@@ -1121,7 +1131,7 @@
   .fsc-toolbar {
     display: flex; align-items: center; justify-content: space-between;
   }
-  .fsc-tools { display: flex; align-items: center; gap: 4px; }
+  .fsc-tools { display: flex; align-items: center; gap: 6px; }
   .fsc-input .send {
     width: 28px; height: 28px; border-radius: 50%;
     background: var(--accent); color: white;
