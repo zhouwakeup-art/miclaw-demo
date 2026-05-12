@@ -1144,6 +1144,8 @@
     display: flex; justify-content: flex-end;
     padding: 12px 20px 0; flex-shrink: 0;
   }
+  /* 欢迎屏不显示"收起到侧栏"按钮(没有会话内容需要保留) */
+  .fullscreen-chat[data-mode="welcome"] .fsc-topbar { display: none; }
   .fsc-collapse {
     display: inline-flex; align-items: center; gap: 6px;
     border: 1px solid var(--border); border-radius: var(--radius-sm);
