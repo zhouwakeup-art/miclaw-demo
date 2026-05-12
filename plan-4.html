@@ -1139,25 +1139,6 @@
     font-size: 12px; cursor: pointer; flex-shrink: 0;
   }
 
-  /* 全屏对话 · 顶栏(含收起按钮) */
-  .fsc-topbar {
-    display: flex; justify-content: flex-end;
-    padding: 12px 20px 0; flex-shrink: 0;
-  }
-  /* 欢迎屏不显示"收起到侧栏"按钮(没有会话内容需要保留) */
-  .fullscreen-chat[data-mode="welcome"] .fsc-topbar { display: none; }
-  .fsc-collapse {
-    display: inline-flex; align-items: center; gap: 6px;
-    border: 1px solid var(--border); border-radius: var(--radius-sm);
-    padding: 5px 10px; font-size: 12px; color: var(--text-2);
-    background: var(--surface); cursor: pointer;
-    transition: all .15s;
-  }
-  .fsc-collapse:hover {
-    border-color: var(--border-strong); background: var(--surface-2);
-    color: var(--text);
-  }
-
   /* 全屏对话 · 历史会话视图 */
   .fsc-conversation {
     display: none; flex: 1; flex-direction: column;
@@ -1812,15 +1793,6 @@
 
     <!-- 全屏对话模式 -->
     <div class="fullscreen-chat" id="fullscreenChat" data-mode="welcome">
-      <div class="fsc-topbar">
-        <div class="fsc-collapse" id="collapseBtn" title="收起到侧栏并回到设备互联">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="12" height="10" rx="1.5"/>
-            <line x1="10.5" y1="3" x2="10.5" y2="13"/>
-          </svg>
-          <span>收起到侧栏</span>
-        </div>
-      </div>
       <div class="fsc-body">
         <div class="fsc-logo">✦</div>
         <div class="fsc-title">Hi, 我是超级小爱</div>
@@ -1948,7 +1920,6 @@
   const fullscreenChat = document.getElementById('fullscreenChat');
   const fscConvTitle = document.getElementById('fscConvTitle');
   const fscMessages = document.getElementById('fscMessages');
-  const collapseBtn = document.getElementById('collapseBtn');
   const copilot = document.getElementById('copilot');
   const copilotName = document.getElementById('copilotName');
   const cpMessages = document.getElementById('cpMessages');
@@ -2043,11 +2014,6 @@
       exitChatMode();
     }
   }));
-  // 收起到侧栏:退出全屏 + 回到设备互联,但保留会话状态(副驾继续显示该对话)
-  if (collapseBtn) collapseBtn.addEventListener('click', () => {
-    exitChatMode();
-    switchPage('hub');
-  });
   // 历史对话:保持当前模式(全屏/侧栏),只替换内容
   historyItems.forEach(h => h.addEventListener('click', () => {
     const id = h.dataset.conv;
