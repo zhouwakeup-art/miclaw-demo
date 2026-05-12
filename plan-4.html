@@ -473,60 +473,60 @@
   .dc-desc { font-size: 12px; color: var(--text-3); }
   .dc-tag { font-size: 11px; color: var(--accent); margin-top: 5px; }
 
-  /* 云笔记 · 3 栏布局 */
+  /* 云笔记 · 3 栏布局(复用 app 全局色板) */
   .notes-page.active { display: flex; padding: 0; }
   .notes-layout {
     flex: 1; display: flex;
-    background: #eae7e0;
-    padding: 10px; gap: 10px;
+    background: var(--bg);
+    padding: 14px; gap: 12px;
     overflow: hidden; min-height: 0;
   }
   .notes-sidebar {
-    width: 140px; flex-shrink: 0;
-    padding: 10px 2px;
+    width: 160px; flex-shrink: 0;
+    padding: 6px 2px;
     display: flex; flex-direction: column; gap: 18px;
     overflow-y: auto;
   }
   .ns-section { display: flex; flex-direction: column; gap: 1px; }
   .ns-title {
-    font-size: 18px; font-weight: 700; color: var(--text);
-    padding: 4px 10px 10px;
+    font-size: 15px; font-weight: 600; color: var(--text);
+    padding: 4px 10px 8px;
   }
   .ns-item {
-    display: flex; align-items: center; gap: 6px;
-    padding: 7px 10px; border-radius: 8px;
-    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 10px; border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--text-2);
     cursor: pointer; user-select: none;
   }
-  .ns-item:hover { background: rgba(0,0,0,.04); }
+  .ns-item:hover { background: rgba(0,0,0,.04); color: var(--text); }
   .ns-item.ns-active {
-    background: #d6e5ff; color: #2c5fea; font-weight: 500;
+    background: var(--accent-bg); color: var(--accent); font-weight: 500;
   }
   .ns-item .ns-icon {
     font-size: 13px; width: 16px; text-align: center;
-    color: #2c5fea;
+    color: var(--text-3);
     flex-shrink: 0;
   }
-  .ns-active .ns-icon { color: #2c5fea; }
-  .ns-check { color: #2c5fea; }
+  .ns-active .ns-icon,
+  .ns-active .ns-check { color: var(--accent); }
   .ns-caret { color: var(--text-3); font-size: 9px; margin-right: -3px; }
   .ns-plus { margin-left: auto; color: var(--text-3); font-size: 14px; }
 
   .notes-list-col {
-    width: 230px; flex-shrink: 0;
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    width: 240px; flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
     display: flex; flex-direction: column;
     overflow: hidden;
   }
   .nl-head { padding: 16px 16px 10px; flex-shrink: 0; }
-  .nl-title { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+  .nl-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
   .nl-search-row {
     display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
   }
   .nl-search-input {
-    flex: 1; background: #f1efe8; border-radius: 99px;
+    flex: 1; background: var(--surface-3); border-radius: 99px;
     padding: 6px 12px;
     display: flex; align-items: center; gap: 6px;
     font-size: 12.5px; color: var(--text-3);
@@ -538,12 +538,14 @@
   }
   .nl-new {
     width: 26px; height: 26px; border-radius: 50%;
-    background: #ffaa00; color: #fff; border: none;
+    background: var(--accent); color: #fff; border: none;
     font-size: 18px; font-weight: 300; line-height: 1;
     cursor: pointer; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     padding: 0;
+    transition: background .1s;
   }
+  .nl-new:hover { background: #3b5de7; }
   .nl-meta {
     font-size: 11px; color: var(--text-3);
     display: flex; justify-content: space-between; gap: 4px;
@@ -552,7 +554,7 @@
   .nl-list { flex: 1; overflow-y: auto; padding: 0 16px 12px; }
   .nl-row {
     padding: 12px 0;
-    border-bottom: 1px solid #f0efe8;
+    border-bottom: 1px solid var(--border);
     cursor: pointer;
   }
   .nl-row:last-child { border-bottom: none; }
@@ -567,40 +569,40 @@
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .nl-row-date { font-size: 11px; color: var(--text-3); }
-  .nl-row.nl-active .nl-row-title { color: var(--text); }
+  .nl-row.nl-active .nl-row-title { color: var(--accent); }
 
   .notes-editor-col {
     flex: 1; min-width: 0;
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
     display: flex; flex-direction: column;
     overflow: hidden;
   }
   .ne-toolbar {
     display: flex; align-items: center; gap: 2px;
     padding: 10px 14px; flex-shrink: 0;
-    border-bottom: 1px solid #f0efe8;
+    border-bottom: 1px solid var(--border);
   }
   .ne-btn {
     min-width: 28px; height: 28px; padding: 0 4px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: transparent; border: none; cursor: pointer;
     color: var(--text-2); font-size: 13px;
     display: inline-flex; align-items: center; justify-content: center;
   }
-  .ne-btn:hover { background: rgba(0,0,0,.05); color: var(--text); }
+  .ne-btn:hover { background: var(--surface-2); color: var(--text); }
   .ne-h { font-weight: 600; font-size: 13px; }
   .ne-h sub { font-size: 9px; vertical-align: baseline; }
-  .ne-sep { color: var(--text-3); margin: 0 2px; font-size: 12px; }
+  .ne-sep { color: var(--border-strong); margin: 0 2px; font-size: 12px; }
   .ne-spacer { flex: 1; }
-  .ne-body { flex: 1; overflow-y: auto; padding: 20px 26px; }
+  .ne-body { flex: 1; overflow-y: auto; padding: 22px 28px; }
   .ne-title {
-    font-size: 22px; font-weight: 700; color: var(--text);
-    margin-bottom: 14px;
+    font-size: 20px; font-weight: 600; color: var(--text);
+    margin-bottom: 14px; letter-spacing: -0.01em;
   }
   .ne-content p {
-    font-size: 13.5px; line-height: 1.9; color: var(--text);
+    font-size: 13.5px; line-height: 1.85; color: var(--text);
     margin: 0;
   }
 
