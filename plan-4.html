@@ -494,7 +494,8 @@
   }
   .find-list {
     top: 20px; left: 20px;
-    width: 320px; padding: 18px 18px 14px;
+    width: 330px; padding: 18px 18px 14px;
+    background: linear-gradient(165deg, #dceacd 0%, #f1f5eb 55%, rgba(255,255,255,0.96) 100%);
   }
   .fo-title {
     font-size: 22px; font-weight: 700; color: var(--text);
@@ -505,10 +506,23 @@
     padding: 8px 0; cursor: pointer;
   }
   .fod-avatar {
-    width: 44px; height: 44px; border-radius: 10px;
-    background: var(--surface-2);
+    width: 48px; height: 48px; border-radius: 12px;
+    background: #fff; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 22px; flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    overflow: hidden;
+  }
+  .fod-phone-img {
+    width: 24px; height: 38px; border-radius: 4px;
+    background: linear-gradient(140deg, #c8a981 0%, #e0c298 40%, #8b7149 100%);
+    position: relative;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+  }
+  .fod-phone-img::after {
+    content: ''; position: absolute;
+    top: 3px; right: 3px;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: radial-gradient(circle, #222 40%, #444 60%);
   }
   .fod-info { flex: 1; min-width: 0; }
   .fod-name {
@@ -562,19 +576,32 @@
   }
 
   .find-pin {
-    position: absolute; top: 56%; left: 62%;
+    position: absolute; top: 58%; left: 64%;
     transform: translate(-50%, -50%);
-    width: 48px; height: 48px;
+    width: 54px; height: 54px;
     display: flex; align-items: center; justify-content: center;
   }
-  .fp-avatar {
+  .fp-phone {
     position: relative; z-index: 3;
-    width: 48px; height: 48px; border-radius: 50%;
-    background: #fff;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: #fff; padding: 4px;
     border: 3px solid #fff;
-    box-shadow: 0 6px 18px rgba(0,0,0,.18);
+    box-shadow: 0 6px 20px rgba(0,0,0,.22);
     display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
+  }
+  .fp-phone::before {
+    content: ''; display: block;
+    width: 28px; height: 44px; border-radius: 5px;
+    background: linear-gradient(140deg, #c8a981 0%, #e0c298 40%, #8b7149 100%);
+    position: relative;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+  }
+  .fp-phone::after {
+    content: ''; position: absolute;
+    top: 11px; right: 16px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: radial-gradient(circle, #222 40%, #444 60%);
+    z-index: 4;
   }
   .fp-ring {
     position: absolute; top: 50%; left: 50%;
@@ -590,18 +617,51 @@
   }
 
   .find-scale {
-    position: absolute; bottom: 20px; right: 88px;
+    position: absolute; bottom: 16px; right: 100px;
     font-size: 11px; color: var(--text-2);
-    background: rgba(255,255,255,.7);
-    padding: 2px 10px; border-radius: 4px;
     letter-spacing: 0.05em;
   }
   .find-mapbrand {
-    position: absolute; bottom: 18px; right: 20px;
-    font-size: 11px; color: var(--accent);
-    font-weight: 600;
-    background: rgba(255,255,255,.7);
-    padding: 2px 8px; border-radius: 4px;
+    position: absolute; bottom: 14px; right: 16px;
+    font-size: 11px; color: var(--text-2);
+  }
+  .fb-baidu {
+    font-weight: 700; color: #3677ed;
+    background: linear-gradient(135deg, #3677ed, #5b94ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* POI 标签层 */
+  .find-pois {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .poi {
+    position: absolute; transform: translate(-50%, -50%);
+    display: flex; align-items: center; gap: 3px;
+    font-size: 11px; color: #4a4a46;
+    text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff;
+  }
+  .poi-big .poi-lbl { font-weight: 500; line-height: 1.25; }
+  .poi-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    flex-shrink: 0;
+  }
+  .poi-red    { background: #e03a2f; color: #fff; }
+  .poi-orange { background: #ff8a3c; color: #fff; }
+  .poi-green  { background: #0b7a42; color: #fff; }
+  .poi-purple { background: #8257cc; color: #fff; }
+  .poi-blue   { background: #3a7bd5; color: #fff; }
+  .poi-lbl { white-space: nowrap; }
+  .poi-big { max-width: 110px; }
+  .poi-big .poi-lbl { white-space: normal; }
+  .poi-lbl-plain {
+    color: #6b6b68; font-size: 10.5px;
+    background: rgba(255,255,255,.5);
+    padding: 1px 4px; border-radius: 2px;
   }
 
   /* 拖拽高亮态 */
@@ -1117,45 +1177,76 @@
       <!-- 查找设备(地图全屏视图) -->
       <div class="panel find-panel-page" id="page-find-device">
         <div class="find-view">
-          <!-- 伪造地图背景 -->
-          <svg class="find-map-bg" viewBox="0 0 200 140" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <rect width="200" height="140" fill="#e4e9de"/>
-            <!-- 绿地 -->
-            <path d="M0,0 L70,0 L56,22 Q38,20 0,34 Z" fill="#c8dcbc"/>
-            <!-- 道路 -->
-            <rect x="0" y="58" width="200" height="6" fill="#fafafa"/>
-            <rect x="112" y="0" width="5" height="140" fill="#fafafa"/>
-            <path d="M0,112 Q100,122 200,108" stroke="#fafafa" stroke-width="5" fill="none"/>
-            <!-- 建筑(楼栋) -->
-            <rect x="10" y="10" width="32" height="14" fill="#d2d9df" rx="1"/>
-            <rect x="80" y="20" width="24" height="30" fill="#d2d9df" rx="1"/>
-            <rect x="125" y="15" width="40" height="30" fill="#d2d9df" rx="1"/>
-            <rect x="170" y="8" width="24" height="22" fill="#d2d9df" rx="1"/>
-            <rect x="55" y="72" width="38" height="28" fill="#d2d9df" rx="1"/>
-            <rect x="122" y="74" width="44" height="26" fill="#d2d9df" rx="1"/>
-            <rect x="172" y="80" width="24" height="22" fill="#d2d9df" rx="1"/>
-            <rect x="20" y="118" width="46" height="16" fill="#d2d9df" rx="1"/>
-            <rect x="120" y="120" width="56" height="14" fill="#d2d9df" rx="1"/>
-            <!-- 楼栋文字 -->
-            <text x="95" y="38" font-size="3.5" fill="#8a8983" text-anchor="middle">F栋</text>
-            <text x="145" y="32" font-size="3.5" fill="#8a8983" text-anchor="middle">G栋</text>
-            <text x="188" y="94" font-size="3.5" fill="#8a8983" text-anchor="middle">B栋</text>
-            <!-- POI 小点 -->
-            <circle cx="155" cy="22" r="1.8" fill="#ff7846"/>
-            <circle cx="175" cy="20" r="1.8" fill="#ff7846"/>
-            <circle cx="145" cy="80" r="1.8" fill="#ff7846"/>
-            <circle cx="160" cy="78" r="1.8" fill="#ff7846"/>
-            <circle cx="135" cy="110" r="1.8" fill="#ff7846"/>
-            <!-- KFC/星巴克等 logo 位(简化为彩色圆点) -->
-            <circle cx="150" cy="17" r="3" fill="#e03a2f"/>
-            <text x="150" y="19" font-size="3" fill="white" text-anchor="middle" font-weight="bold">K</text>
+          <!-- 模拟地图背景 -->
+          <svg class="find-map-bg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            <!-- 基础地表 -->
+            <rect width="1600" height="1000" fill="#eef1ea"/>
+            <!-- 左上绿地 -->
+            <path d="M0,0 L720,0 L520,260 Q340,220 0,320 Z" fill="#bdd9a8"/>
+            <!-- 小路穿过绿地 -->
+            <path d="M380,0 L280,180 L60,300" stroke="#fff" stroke-width="14" fill="none" opacity=".7"/>
+
+            <!-- 主干道 -->
+            <rect x="0" y="420" width="1600" height="54" fill="#f6f6f6"/>
+            <path d="M0,800 Q600,880 1200,800 T1600,780" stroke="#f6f6f6" stroke-width="46" fill="none"/>
+            <rect x="920" y="0" width="44" height="1000" fill="#f6f6f6"/>
+
+            <!-- 楼栋:F 栋 -->
+            <g>
+              <rect x="640" y="180" width="250" height="380" fill="#d3d9df"/>
+              <rect x="640" y="180" width="250" height="18" fill="#c2cad1"/>
+              <text x="765" y="400" font-size="28" fill="#7a7a7a" text-anchor="middle" font-weight="500">F 栋</text>
+            </g>
+            <!-- G 栋 -->
+            <g>
+              <rect x="1100" y="140" width="320" height="300" fill="#d3d9df"/>
+              <rect x="1100" y="140" width="320" height="18" fill="#c2cad1"/>
+              <text x="1260" y="305" font-size="28" fill="#7a7a7a" text-anchor="middle" font-weight="500">G 栋</text>
+            </g>
+            <!-- 超级碗 & 村上一屋所在建筑 -->
+            <g>
+              <rect x="1180" y="480" width="280" height="120" fill="#d3d9df"/>
+            </g>
+            <!-- 北京小米松果电子有限公司 -->
+            <g>
+              <rect x="1000" y="660" width="480" height="220" fill="#d3d9df"/>
+              <rect x="1000" y="660" width="480" height="18" fill="#c2cad1"/>
+            </g>
+            <!-- B 栋(右下) -->
+            <g>
+              <rect x="1380" y="920" width="220" height="80" fill="#d3d9df"/>
+              <text x="1490" y="970" font-size="24" fill="#7a7a7a" text-anchor="middle" font-weight="500">B 栋</text>
+            </g>
+            <!-- 左下建筑(罗森便利店附近) -->
+            <rect x="720" y="640" width="240" height="200" fill="#d3d9df"/>
           </svg>
+
+          <!-- POI 标签层 -->
+          <div class="find-pois">
+            <div class="poi" style="top: 19%; left: 77%;"><span class="poi-dot poi-red">🍗</span><span class="poi-lbl">KFC</span></div>
+            <div class="poi" style="top: 27%; left: 72%;"><span class="poi-dot poi-orange">☕</span><span class="poi-lbl">肯悦咖啡</span></div>
+            <div class="poi" style="top: 27%; right: 3%;"><span class="poi-dot poi-purple">🏠</span><span class="poi-lbl">小米之家</span></div>
+            <div class="poi" style="top: 42%; left: 73%;"><span class="poi-dot poi-orange">🍜</span><span class="poi-lbl">超级碗 FOODBOWL</span></div>
+            <div class="poi" style="top: 54%; left: 70%;"><span class="poi-lbl-plain">全家便利店</span></div>
+            <div class="poi" style="top: 56%; left: 77%;"><span class="poi-dot poi-orange">🍱</span><span class="poi-lbl">村上一屋</span></div>
+            <div class="poi" style="top: 54%; left: 87%;"><span class="poi-dot poi-green">🍵</span><span class="poi-lbl">星巴克</span></div>
+            <div class="poi" style="top: 59%; left: 84%;"><span class="poi-dot poi-orange">🧋</span><span class="poi-lbl">喜茶</span></div>
+            <div class="poi" style="top: 80%; left: 49%;"><span class="poi-lbl-plain">罗森便利店</span></div>
+            <div class="poi" style="top: 84%; left: 88%;"><span class="poi-dot poi-orange">🍚</span><span class="poi-lbl">小米食堂</span></div>
+            <div class="poi poi-big" style="top: 86%; left: 70%;">
+              <span class="poi-dot poi-blue">🏢</span>
+              <span class="poi-lbl">北京小米松果<br>电子有限公司</span>
+            </div>
+            <div class="poi" style="top: 100%; left: 60%; transform: translateY(-50%);"><span class="poi-lbl-plain">小米移动互联网产业园</span></div>
+          </div>
 
           <!-- 左侧浮动设备面板 -->
           <div class="find-overlay find-list">
             <div class="fo-title">设备</div>
             <div class="fo-device">
-              <div class="fod-avatar">📱</div>
+              <div class="fod-avatar">
+                <div class="fod-phone-img"></div>
+              </div>
               <div class="fod-info">
                 <div class="fod-name">Xiaomi MIX Flip 2</div>
                 <div class="fod-loc"><span class="fod-dot"></span>北京市 村上一屋(小米科技园店)小米移动互联网产业园 · 刚刚</div>
@@ -1189,16 +1280,16 @@
             </div>
           </div>
 
-          <!-- 中央设备图钉 -->
+          <!-- 中央设备图钉(手机样式) -->
           <div class="find-pin">
             <div class="fp-ring"></div>
             <div class="fp-ring fp-ring-2"></div>
-            <div class="fp-avatar">📱</div>
+            <div class="fp-phone"></div>
           </div>
 
           <!-- 比例尺 -->
           <div class="find-scale">━━ 10 米</div>
-          <div class="find-mapbrand">Baidu 地图</div>
+          <div class="find-mapbrand"><span class="fb-baidu">Baidu</span> 地图</div>
         </div>
       </div>
 
