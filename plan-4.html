@@ -772,7 +772,7 @@
 
         <div class="nav-group-label">超级小爱</div>
         <div class="nav-item nav-newchat" data-action="new-chat"><span class="emoji">＋</span>新建对话</div>
-        <div class="nav-item" data-page="discover"><span class="emoji">💡</span>发现<span class="badge">NEW</span></div>
+        <div class="nav-item" data-page="discover"><span class="emoji">💡</span>发现</div>
         <div class="nav-item" data-page="files"><span class="emoji">🗂️</span>文件</div>
         <div class="nav-item" data-page="cross"><span class="emoji">🔄</span>跨端执行</div>
 
@@ -870,6 +870,7 @@
               <div style="font-size: 14px; font-weight: 500;">拖拽文件到此处发送</div>
               <div style="margin-top: 4px; font-size: 12px;">或点击选择文件</div>
             </div>
+            <input type="file" id="transferFileInput" multiple hidden>
             <div style="margin-top: 16px;">
               <div class="tool-section-title">最近发送</div>
               <div class="file-list">
@@ -1348,13 +1349,49 @@
     document.querySelectorAll('.model-picker.open').forEach(p => p.classList.remove('open'));
   });
 
-  // 小米互传:拖拽/点击触发分享弹窗
+  // 小米互传:拖拽 / 点击(唤起系统文件选择器)触发分享弹窗
   const shareModal = document.getElementById('shareModal');
   const transferDrop = document.getElementById('transferDrop');
+  const transferFileInput = document.getElementById('transferFileInput');
+  const sfIconEl = shareModal ? shareModal.querySelector('.sf-icon') : null;
+  const sfNameEl = shareModal ? shareModal.querySelector('.sf-name') : null;
+  const sfMetaEl = shareModal ? shareModal.querySelector('.sf-meta') : null;
+
+  function iconForFile(name) {
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    if (['jpg','jpeg','png','gif','webp','heic','bmp','svg'].includes(ext)) return '🖼️';
+    if (['mp4','mov','avi','mkv','webm'].includes(ext)) return '🎬';
+    if (['mp3','wav','flac','m4a','aac'].includes(ext)) return '🎵';
+    if (['pdf'].includes(ext)) return '📄';
+    if (['doc','docx'].includes(ext)) return '📝';
+    if (['xls','xlsx','csv'].includes(ext)) return '📊';
+    if (['ppt','pptx','key'].includes(ext)) return '📽️';
+    if (['zip','rar','7z','tar','gz'].includes(ext)) return '🗜️';
+    return '📎';
+  }
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    const kb = bytes / 1024;
+    if (kb < 1024) return kb.toFixed(1) + ' KB';
+    const mb = kb / 1024;
+    if (mb < 1024) return mb.toFixed(2) + ' MB';
+    return (mb / 1024).toFixed(2) + ' GB';
+  }
+  function updateShareWithFile(file) {
+    if (!sfNameEl) return;
+    sfNameEl.textContent = file.name;
+    const ext = (file.name.split('.').pop() || '').toUpperCase() || 'FILE';
+    sfMetaEl.textContent = `${ext} · ${formatSize(file.size)}`;
+    sfIconEl.textContent = iconForFile(file.name);
+  }
   function openShare() { shareModal.hidden = false; }
   function closeShare() { shareModal.hidden = true; }
+
   if (transferDrop) {
-    transferDrop.addEventListener('click', openShare);
+    // 点击 → 唤起系统文件选择器
+    transferDrop.addEventListener('click', () => {
+      if (transferFileInput) transferFileInput.click();
+    });
     transferDrop.addEventListener('dragover', (e) => {
       e.preventDefault();
       transferDrop.classList.add('drag-over');
@@ -1365,7 +1402,19 @@
     transferDrop.addEventListener('drop', (e) => {
       e.preventDefault();
       transferDrop.classList.remove('drag-over');
+      if (e.dataTransfer.files && e.dataTransfer.files.length) {
+        updateShareWithFile(e.dataTransfer.files[0]);
+      }
       openShare();
+    });
+  }
+  if (transferFileInput) {
+    transferFileInput.addEventListener('change', () => {
+      if (transferFileInput.files && transferFileInput.files.length) {
+        updateShareWithFile(transferFileInput.files[0]);
+        openShare();
+        transferFileInput.value = ''; // 重置以便下次还能选同一个文件
+      }
     });
   }
   if (shareModal) {
