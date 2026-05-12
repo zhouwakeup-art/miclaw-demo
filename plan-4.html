@@ -473,6 +473,137 @@
   .dc-desc { font-size: 12px; color: var(--text-3); }
   .dc-tag { font-size: 11px; color: var(--accent); margin-top: 5px; }
 
+  /* 查找设备 · 地图页 */
+  .find-panel-page.active { display: flex; padding: 0; }
+  .find-view {
+    position: relative; flex: 1;
+    width: 100%; height: 100%;
+    overflow: hidden;
+  }
+  .find-map-bg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+  .find-overlay {
+    position: absolute;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.1);
+  }
+  .find-list {
+    top: 20px; left: 20px;
+    width: 320px; padding: 18px 18px 14px;
+  }
+  .fo-title {
+    font-size: 22px; font-weight: 700; color: var(--text);
+    margin-bottom: 14px;
+  }
+  .fo-device {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 0; cursor: pointer;
+  }
+  .fod-avatar {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .fod-info { flex: 1; min-width: 0; }
+  .fod-name {
+    font-size: 14px; font-weight: 600; color: var(--text);
+    margin-bottom: 4px;
+  }
+  .fod-loc {
+    font-size: 12px; color: var(--text-2);
+    line-height: 1.5;
+  }
+  .fod-dot {
+    display: inline-block;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ok); margin-right: 4px;
+    vertical-align: middle;
+  }
+  .fod-chev {
+    color: var(--text-3); font-size: 18px; flex-shrink: 0;
+  }
+  .find-ctrls {
+    top: 20px; right: 20px;
+    background: transparent; box-shadow: none; backdrop-filter: none;
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 0;
+  }
+  .fc-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-2);
+    transition: color .1s;
+  }
+  .fc-btn:hover { color: var(--text); }
+  .fc-zoom {
+    display: flex; flex-direction: column;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    overflow: hidden;
+  }
+  .fc-zoom .fc-zoom-btn {
+    background: transparent; box-shadow: none; border-radius: 0;
+    font-size: 18px; font-weight: 400;
+  }
+  .fc-zoom .fc-zoom-btn + .fc-zoom-btn {
+    border-top: 1px solid rgba(0,0,0,.06);
+  }
+
+  .find-pin {
+    position: absolute; top: 56%; left: 62%;
+    transform: translate(-50%, -50%);
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fp-avatar {
+    position: relative; z-index: 3;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: #fff;
+    border: 3px solid #fff;
+    box-shadow: 0 6px 18px rgba(0,0,0,.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .fp-ring {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(58,154,92,.28);
+    animation: findPinPulse 2.4s ease-out infinite;
+  }
+  .fp-ring-2 { animation-delay: 1.2s; }
+  @keyframes findPinPulse {
+    0%   { width: 48px; height: 48px; opacity: .7; }
+    100% { width: 140px; height: 140px; opacity: 0; }
+  }
+
+  .find-scale {
+    position: absolute; bottom: 20px; right: 88px;
+    font-size: 11px; color: var(--text-2);
+    background: rgba(255,255,255,.7);
+    padding: 2px 10px; border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .find-mapbrand {
+    position: absolute; bottom: 18px; right: 20px;
+    font-size: 11px; color: var(--accent);
+    font-weight: 600;
+    background: rgba(255,255,255,.7);
+    padding: 2px 8px; border-radius: 4px;
+  }
+
   /* 拖拽高亮态 */
   .transfer-drop.drag-over {
     background: var(--accent-light) !important;
@@ -983,15 +1114,91 @@
         </div>
       </div>
 
-      <!-- 查找设备 -->
-      <div class="panel" id="page-find-device">
-        <div class="ws-header"><h2>查找设备</h2></div>
-        <div class="ws-body">
-          <div style="background: var(--surface-3); border-radius: var(--radius-lg); height: 220px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 40px;">🗺️</div>
-          <div class="file-list">
-            <div class="file-row"><span class="f-icon">📱</span><span class="f-name">Xiaomi MIX Flip 2</span><span class="f-meta">北京市海淀区 · 刚刚</span></div>
-            <div class="file-row"><span class="f-icon">📲</span><span class="f-name">Xiaomi Pad 6S Pro</span><span class="f-meta">北京市朝阳区 · 2小时前</span></div>
+      <!-- 查找设备(地图全屏视图) -->
+      <div class="panel find-panel-page" id="page-find-device">
+        <div class="find-view">
+          <!-- 伪造地图背景 -->
+          <svg class="find-map-bg" viewBox="0 0 200 140" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="140" fill="#e4e9de"/>
+            <!-- 绿地 -->
+            <path d="M0,0 L70,0 L56,22 Q38,20 0,34 Z" fill="#c8dcbc"/>
+            <!-- 道路 -->
+            <rect x="0" y="58" width="200" height="6" fill="#fafafa"/>
+            <rect x="112" y="0" width="5" height="140" fill="#fafafa"/>
+            <path d="M0,112 Q100,122 200,108" stroke="#fafafa" stroke-width="5" fill="none"/>
+            <!-- 建筑(楼栋) -->
+            <rect x="10" y="10" width="32" height="14" fill="#d2d9df" rx="1"/>
+            <rect x="80" y="20" width="24" height="30" fill="#d2d9df" rx="1"/>
+            <rect x="125" y="15" width="40" height="30" fill="#d2d9df" rx="1"/>
+            <rect x="170" y="8" width="24" height="22" fill="#d2d9df" rx="1"/>
+            <rect x="55" y="72" width="38" height="28" fill="#d2d9df" rx="1"/>
+            <rect x="122" y="74" width="44" height="26" fill="#d2d9df" rx="1"/>
+            <rect x="172" y="80" width="24" height="22" fill="#d2d9df" rx="1"/>
+            <rect x="20" y="118" width="46" height="16" fill="#d2d9df" rx="1"/>
+            <rect x="120" y="120" width="56" height="14" fill="#d2d9df" rx="1"/>
+            <!-- 楼栋文字 -->
+            <text x="95" y="38" font-size="3.5" fill="#8a8983" text-anchor="middle">F栋</text>
+            <text x="145" y="32" font-size="3.5" fill="#8a8983" text-anchor="middle">G栋</text>
+            <text x="188" y="94" font-size="3.5" fill="#8a8983" text-anchor="middle">B栋</text>
+            <!-- POI 小点 -->
+            <circle cx="155" cy="22" r="1.8" fill="#ff7846"/>
+            <circle cx="175" cy="20" r="1.8" fill="#ff7846"/>
+            <circle cx="145" cy="80" r="1.8" fill="#ff7846"/>
+            <circle cx="160" cy="78" r="1.8" fill="#ff7846"/>
+            <circle cx="135" cy="110" r="1.8" fill="#ff7846"/>
+            <!-- KFC/星巴克等 logo 位(简化为彩色圆点) -->
+            <circle cx="150" cy="17" r="3" fill="#e03a2f"/>
+            <text x="150" y="19" font-size="3" fill="white" text-anchor="middle" font-weight="bold">K</text>
+          </svg>
+
+          <!-- 左侧浮动设备面板 -->
+          <div class="find-overlay find-list">
+            <div class="fo-title">设备</div>
+            <div class="fo-device">
+              <div class="fod-avatar">📱</div>
+              <div class="fod-info">
+                <div class="fod-name">Xiaomi MIX Flip 2</div>
+                <div class="fod-loc"><span class="fod-dot"></span>北京市 村上一屋(小米科技园店)小米移动互联网产业园 · 刚刚</div>
+              </div>
+              <div class="fod-chev">›</div>
+            </div>
           </div>
+
+          <!-- 右侧地图控件 -->
+          <div class="find-overlay find-ctrls">
+            <button class="fc-btn" title="图层">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 2L2 5l6 3 6-3-6-3z"/>
+                <path d="M2 9l6 3 6-3"/>
+                <path d="M2 12l6 3 6-3"/>
+              </svg>
+            </button>
+            <button class="fc-btn" title="定位">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+                <circle cx="8" cy="8" r="5"/>
+                <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+                <line x1="8" y1="1" x2="8" y2="3"/>
+                <line x1="8" y1="13" x2="8" y2="15"/>
+                <line x1="1" y1="8" x2="3" y2="8"/>
+                <line x1="13" y1="8" x2="15" y2="8"/>
+              </svg>
+            </button>
+            <div class="fc-zoom">
+              <button class="fc-btn fc-zoom-btn" title="放大">+</button>
+              <button class="fc-btn fc-zoom-btn" title="缩小">−</button>
+            </div>
+          </div>
+
+          <!-- 中央设备图钉 -->
+          <div class="find-pin">
+            <div class="fp-ring"></div>
+            <div class="fp-ring fp-ring-2"></div>
+            <div class="fp-avatar">📱</div>
+          </div>
+
+          <!-- 比例尺 -->
+          <div class="find-scale">━━ 10 米</div>
+          <div class="find-mapbrand">Baidu 地图</div>
         </div>
       </div>
 
