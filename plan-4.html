@@ -2019,19 +2019,26 @@
   function enterChatMode() { mainLayout.classList.add('chat-mode'); }
   function exitChatMode() { mainLayout.classList.remove('chat-mode'); }
 
+  // 新建对话:来源决定模式
+  //   · 左栏 → 进入全屏(大屏新建)
+  //   · 副驾头部 → 留在右侧栏(就地新建)
   newChatBtns.forEach(btn => btn.addEventListener('click', () => {
     showWelcome();
-    enterChatMode();
+    if (btn.closest('.sidebar')) {
+      enterChatMode();
+    } else if (btn.closest('.copilot')) {
+      exitChatMode();
+    }
   }));
   // 收起到侧栏:退出全屏 + 回到设备互联,但保留会话状态(副驾继续显示该对话)
   if (collapseBtn) collapseBtn.addEventListener('click', () => {
     exitChatMode();
     switchPage('hub');
   });
+  // 历史对话:保持当前模式(全屏/侧栏),只替换内容
   historyItems.forEach(h => h.addEventListener('click', () => {
     const id = h.dataset.conv;
     setActiveConv(id || null);
-    enterChatMode();
   }));
 
   // 副驾前两个引导入口:按左栏当前页切换(后两个 🗂️整理桌面 / 🎨生成网页 固定)
