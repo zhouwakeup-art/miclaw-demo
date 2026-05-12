@@ -293,8 +293,27 @@
   }
   .device-info { flex: 1; min-width: 0; }
   .device-name { font-size: 14px; font-weight: 600; color: var(--text); }
-  .device-status { font-size: 12px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
-  .device-status .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .device-status { font-size: 12px; color: var(--text-3); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .device-status .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
+  .device-status .status-dot.dot-off { background: var(--off); }
+  .device-status .status-link {
+    color: var(--accent); cursor: pointer; margin: 0 2px;
+    text-decoration: none;
+  }
+  .device-status .status-link:hover { text-decoration: underline; }
+
+  /* 未连接卡片:整体保持可见,但 妙享桌面/屏幕扩展 区域置灰不可点 */
+  .device-card.disconnected .card-subscreen {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: saturate(0.3);
+  }
+  .ss-btn.disabled {
+    background: var(--surface-3); color: var(--text-3);
+    border-color: var(--surface-3);
+    cursor: not-allowed;
+  }
+  .ss-btn.disabled:hover { background: var(--surface-3); color: var(--text-3); border-color: var(--surface-3); }
   .card-actions { display: flex; flex-wrap: wrap; gap: 6px; }
   .action-chip {
     border: 1px solid var(--border); border-radius: 99px;
@@ -718,6 +737,34 @@
                 <div class="ss-title">屏幕扩展</div>
                 <div class="ss-desc">把小米平板当作 Mac 的扩展显示器</div>
                 <div class="ss-btn">开启</div>
+              </div>
+            </div>
+            <div class="device-card disconnected">
+              <div class="card-top">
+                <div class="device-icon">📱</div>
+                <div class="device-info">
+                  <div class="device-name">Xiaomi 14 Pro</div>
+                  <div class="device-status">
+                    <span class="status-dot dot-off"></span>
+                    <span>未连接,<a class="status-link">查看连接帮助</a>或<a class="status-link">重新连接</a></span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-actions">
+                <div class="action-chip">🔗 启用热点</div>
+                <div class="action-chip">🔔 响铃查找</div>
+              </div>
+              <div class="card-subscreen">
+                <div class="ss-title">妙享桌面</div>
+                <div class="ss-desc">在 Mac 上使用小米手机</div>
+                <div class="ss-btn disabled">开启</div>
+                <div class="app-grid app-grid-5">
+                  <div class="app-item"><div class="a-icon">📱</div><div class="a-name">主屏</div></div>
+                  <div class="app-item"><div class="a-icon">💬</div><div class="a-name">微信</div></div>
+                  <div class="app-item"><div class="a-icon">📷</div><div class="a-name">相机</div></div>
+                  <div class="app-item"><div class="a-icon">🗺️</div><div class="a-name">高德</div></div>
+                  <div class="app-item"><div class="a-icon">🎵</div><div class="a-name">网易云</div></div>
+                </div>
               </div>
             </div>
           </div>
