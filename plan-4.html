@@ -571,6 +571,76 @@
   }
   .share-cancel:hover { background: #ccc9c2; }
 
+  /* 添加设备 搜索弹窗 */
+  .ad-dialog {
+    position: relative;
+    width: 460px; max-width: 90vw;
+    padding: 44px 44px 20px;
+    background: #f2efe8;
+    border-radius: 14px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.22);
+    animation: popIn .18s ease;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .ad-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0,0,0,.08); color: var(--text-2);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .1s;
+  }
+  .ad-close:hover { background: rgba(0,0,0,.14); }
+  .ad-title {
+    font-size: 22px; font-weight: 700; color: var(--text);
+    margin-bottom: 10px; text-align: center;
+  }
+  .ad-desc {
+    font-size: 13px; color: var(--text-2);
+    line-height: 1.65; text-align: center;
+    max-width: 360px;
+  }
+  .ad-scanner {
+    position: relative;
+    width: 240px; height: 240px;
+    margin: 40px auto 30px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scan-center {
+    position: absolute;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,.85);
+    box-shadow: 0 4px 16px rgba(0,0,0,.06);
+    z-index: 2;
+  }
+  .scan-ring {
+    position: absolute;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,.5);
+    animation: scanExpand 2.4s cubic-bezier(0.2, 0.7, 0.4, 1) infinite;
+  }
+  .scan-ring.delayed { animation-delay: 1.2s; }
+  @keyframes scanExpand {
+    0%   { width: 44px; height: 44px; opacity: .6; }
+    100% { width: 240px; height: 240px; opacity: 0; }
+  }
+  .ad-progress {
+    width: 100%; max-width: 360px;
+    padding: 12px 0; border-radius: 99px;
+    background: rgba(0,0,0,.05); color: var(--text-3);
+    text-align: center; font-size: 14px; font-weight: 500;
+    margin-bottom: 14px;
+  }
+  .ad-foot {
+    font-size: 12.5px; color: var(--text-2);
+    text-align: center;
+  }
+  .ad-link {
+    color: var(--accent); cursor: pointer; text-decoration: none;
+    margin-left: 2px;
+  }
+  .ad-link:hover { text-decoration: underline; }
+
   .demo-note {
     margin-top: 18px; padding: 14px 18px;
     background: var(--surface); border: 1px solid var(--border);
@@ -802,7 +872,7 @@
       <div class="panel active" id="page-hub">
         <div class="ws-header">
           <h2>设备互联</h2>
-          <div class="hdr-btn">＋ 添加设备</div>
+          <div class="hdr-btn" id="addDeviceBtn">＋ 添加设备</div>
         </div>
         <div class="ws-body">
           <div class="device-grid">
@@ -1120,6 +1190,27 @@
     </div>
   </div>
 
+  <!-- 添加设备 搜索弹窗 -->
+  <div class="share-modal" id="addDeviceModal" hidden>
+    <div class="share-backdrop" data-close></div>
+    <div class="ad-dialog">
+      <button class="ad-close" data-close title="关闭">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M3 3l8 8M11 3l-8 8"/>
+        </svg>
+      </button>
+      <div class="ad-title">我的设备</div>
+      <div class="ad-desc">请确保小米手机在附近,手机系统已升级至小米澎湃 OS 3,并与 Mac 登录相同小米账号、连接相同网络</div>
+      <div class="ad-scanner">
+        <div class="scan-ring"></div>
+        <div class="scan-ring delayed"></div>
+        <div class="scan-center"></div>
+      </div>
+      <div class="ad-progress">搜索中...</div>
+      <div class="ad-foot">未搜索到小米手机或平板?尝试<a class="ad-link">扫码添加</a></div>
+    </div>
+  </div>
+
   <!-- 分享弹窗(拖拽文件到互传触发) -->
   <div class="share-modal" id="shareModal" hidden>
     <div class="share-backdrop" data-close></div>
@@ -1427,6 +1518,21 @@
     });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !shareModal.hidden) closeShare();
+    });
+  }
+
+  // 添加设备 搜索弹窗
+  const addDeviceBtn = document.getElementById('addDeviceBtn');
+  const addDeviceModal = document.getElementById('addDeviceModal');
+  function openAddDevice() { if (addDeviceModal) addDeviceModal.hidden = false; }
+  function closeAddDevice() { if (addDeviceModal) addDeviceModal.hidden = true; }
+  if (addDeviceBtn) addDeviceBtn.addEventListener('click', openAddDevice);
+  if (addDeviceModal) {
+    addDeviceModal.querySelectorAll('[data-close]').forEach(el => {
+      el.addEventListener('click', closeAddDevice);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !addDeviceModal.hidden) closeAddDevice();
     });
   }
 })();
