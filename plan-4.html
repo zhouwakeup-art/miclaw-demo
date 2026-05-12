@@ -635,9 +635,7 @@
     <!-- 左侧工具导航 -->
     <aside class="sidebar">
       <div class="sidebar-scroll">
-        <div class="nav-group-label">设备互联</div>
-        <div class="nav-item active" data-page="hub"><span class="emoji">🔗</span>我的设备</div>
-        <div class="nav-item" data-page="transfer"><span class="emoji">📤</span>小米互传</div>
+        <div class="nav-item active" data-page="hub"><span class="emoji">🔗</span>设备互联</div>
 
         <div class="nav-divider"></div>
 
@@ -676,10 +674,10 @@
 
     <!-- 中间主工作区 -->
     <div class="workspace">
-      <!-- 我的设备 -->
+      <!-- 设备互联(设备列表 + 小米互传) -->
       <div class="panel active" id="page-hub">
         <div class="ws-header">
-          <h2>我的设备</h2>
+          <h2>设备互联</h2>
           <div class="hdr-btn">＋ 添加设备</div>
         </div>
         <div class="ws-body">
@@ -740,23 +738,20 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- 互传 -->
-      <div class="panel" id="page-transfer">
-        <div class="ws-header"><h2>小米互传</h2></div>
-        <div class="ws-body">
-          <div class="drop-zone" style="padding: 48px; border-color: var(--accent); background: var(--accent-bg); color: var(--accent);">
-            <div class="dz-icon" style="font-size: 40px;">📤</div>
-            <div style="font-size: 15px; font-weight: 500;">拖拽文件到此处发送</div>
-            <div style="margin-top: 4px; font-size: 12px;">或点击选择文件</div>
-          </div>
-          <div style="margin-top: 20px;">
-            <div class="tool-section-title">最近发送</div>
-            <div class="file-list">
-              <div class="file-row"><span class="f-icon">📄</span><span class="f-name">产品方案_v3.pdf</span><span class="f-meta">→ Xiaomi MIX Flip 2 · 2 分钟前</span></div>
-              <div class="file-row"><span class="f-icon">🖼️</span><span class="f-name">截图_20260511.png</span><span class="f-meta">→ Xiaomi Pad 6S Pro · 1 小时前</span></div>
+          <div class="transfer-section" style="margin-top: 24px;">
+            <div class="tool-section-title" style="font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px;">小米互传</div>
+            <div class="drop-zone" style="padding: 44px; border-color: var(--accent); background: var(--accent-bg); color: var(--accent);">
+              <div class="dz-icon" style="font-size: 36px;">📤</div>
+              <div style="font-size: 14px; font-weight: 500;">拖拽文件到此处发送</div>
+              <div style="margin-top: 4px; font-size: 12px;">或点击选择文件</div>
+            </div>
+            <div style="margin-top: 16px;">
+              <div class="tool-section-title">最近发送</div>
+              <div class="file-list">
+                <div class="file-row"><span class="f-icon">📄</span><span class="f-name">产品方案_v3.pdf</span><span class="f-meta">→ Xiaomi MIX Flip 2 · 2 分钟前</span></div>
+                <div class="file-row"><span class="f-icon">🖼️</span><span class="f-name">截图_20260511.png</span><span class="f-meta">→ Xiaomi Pad 6S Pro · 1 小时前</span></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1089,7 +1084,6 @@
   // 副驾前两个引导入口:按左栏当前页切换(后两个 🗂️整理桌面 / 🎨生成网页 固定)
   const promptsByPage = {
     'hub':         [ { emoji: '💬', text: '打开手机微信' },         { emoji: '📲', text: '把手机上的照片传过来' } ],
-    'transfer':    [ { emoji: '📤', text: '发送文件给其他设备' },   { emoji: '🕘', text: '查看最近传输记录' } ],
     'cloud-photo': [ { emoji: '📷', text: '下载云相册照片到本地' }, { emoji: '🧹', text: '帮我清理重复照片' } ],
     'cloud-note':  [ { emoji: '📝', text: '把这篇笔记导出为 Word' },{ emoji: '🔍', text: '在笔记里搜索关键词' } ],
     'find-device': [ { emoji: '🔔', text: '让我的手机响铃' },       { emoji: '📍', text: '查看设备最近位置' } ],
