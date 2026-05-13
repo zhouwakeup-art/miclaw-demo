@@ -80,7 +80,7 @@
 </style>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body class="text-[14px] leading-[1.5] text-text">
 <div id="root"></div>
@@ -1126,7 +1126,7 @@ function App() {
 
       <div className="mt-5 p-4 px-5 bg-surface border border-border rounded-xl text-[13px] text-text-2 leading-[1.8]">
         <b className="text-text">技术栈</b>:React 18 (UMD CDN) · Tailwind CSS (CDN, JIT) · Babel Standalone · 零构建,直接打开 HTML 即可。<br />
-        研发把这个文件迁到 Vite/Electron 项目时:把 `<script src="cdn">` 换成 npm 依赖,Tailwind config 已在 `tailwind.config.js` 直接复用,组件可按 `App` 内部拆分搬到 `src/components/*.tsx`。状态管理简单可改 Zustand。
+        研发把这个文件迁到 Vite/Electron 项目时:把 CDN 的 script 标签换成 npm 依赖,Tailwind config 已在 tailwind.config.js 直接复用,组件可按 App 内部拆分搬到 src/components/*.tsx。状态管理简单可改 Zustand。
       </div>
     </div>
   );
