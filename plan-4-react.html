@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>方案 4 · 工具主 + AI 副驾(React + Tailwind)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: '#f7f6f3',
+          surface: '#ffffff',
+          'surface-2': '#fafaf9',
+          'surface-3': '#f2f1ec',
+          border: '#e7e5e0',
+          'border-strong': '#d4d2cc',
+          text: '#1a1a1a',
+          'text-2': '#5f5e5b',
+          'text-3': '#8a8983',
+          accent: '#4a6cf7',
+          'accent-bg': '#eef2ff',
+          'accent-light': '#dbe4ff',
+          ok: '#3a9a5c',
+          warn: '#c89b2b',
+          off: '#c1c0bc',
+        },
+        boxShadow: {
+          'soft':    '0 1px 2px rgba(0,0,0,.04)',
+          'card':    '0 4px 12px rgba(0,0,0,.06)',
+          'modal':   '0 24px 80px rgba(0,0,0,.22)',
+          'overlay': '0 8px 24px rgba(0,0,0,.10)',
+        },
+        keyframes: {
+          fadeIn: { from: { opacity: 0 }, to: { opacity: 1 } },
+          popIn: { from: { opacity: 0, transform: 'translateY(12px) scale(.98)' }, to: { opacity: 1, transform: 'translateY(0) scale(1)' } },
+          scanExpand: { '0%': { width: '44px', height: '44px', opacity: .6 }, '100%': { width: '240px', height: '240px', opacity: 0 } },
+          pinPulse: { '0%': { width: '48px', height: '48px', opacity: .7 }, '100%': { width: '140px', height: '140px', opacity: 0 } },
+        },
+        animation: {
+          fadeIn: 'fadeIn .15s ease',
+          popIn: 'popIn .18s ease',
+          scan: 'scanExpand 2.4s cubic-bezier(.2,.7,.4,1) infinite',
+          pin:  'pinPulse 2.4s ease-out infinite',
+        },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { background: #f7f6f3; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  /* 手机渐变(妙享/查找设备图钉) */
+  .phone-gradient { background: linear-gradient(140deg, #c8a981 0%, #e0c298 40%, #8b7149 100%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+  .phone-camera { background: radial-gradient(circle, #222 40%, #444 60%); }
+  /* 相册缩略图 */
+  .thumb-phone   { background: linear-gradient(135deg,#3a4a5c 0%,#5b7090 50%,#7c95b3 100%); }
+  .thumb-family  { background: linear-gradient(165deg,#b8c8a4,#e8d5b0 60%,#a8937a); }
+  .thumb-sunset  { background: linear-gradient(to bottom,#f27a3e 0%,#e85c2a 45%,#2a2e3a 70%,#1a1d28 100%); }
+  .thumb-doc     { background: linear-gradient(135deg,#ffeb5b 0%,#f5d430 100%); }
+  .thumb-bottle  { background: linear-gradient(135deg,#d8c9a6 0%,#b8a888 100%); }
+  .thumb-dark    { background: linear-gradient(135deg,#3a3025 0%,#2a2118 100%); }
+  .thumb-eggs    { background: linear-gradient(135deg,#f5ebd8 0%,#e8d4b0 100%); }
+  .thumb-grass   { background: linear-gradient(165deg,#7a9a6a 0%,#5a7a5a 60%,#3a4a3a 100%); }
+  .thumb-vinyl   { background: linear-gradient(135deg,#f0a8b8 0%,#c85a6a 100%); }
+  .thumb-outdoor { background: linear-gradient(165deg,#6ab8d8 0%,#a8c88a 60%,#8a9a6a 100%); }
+  .thumb-food    { background: linear-gradient(135deg,#e8c09a 0%,#c87a4a 50%,#8aa858 100%); }
+  .thumb-cloud   { background: linear-gradient(to bottom,#a8d8f0 0%,#d8e8f5 60%,#f0f5fa 100%); }
+  /* 分享弹窗紫色文件图标 */
+  .file-grad { background: linear-gradient(135deg,#a894ff,#7c3aed); box-shadow: 0 4px 12px rgba(124,58,237,.2); }
+  /* 设备头像渐变 */
+  .device-grad { background: linear-gradient(135deg,#a3b4ff,#6478ff); box-shadow: 0 3px 8px rgba(100,120,255,.25); }
+  /* 找设备面板背景渐变 */
+  .find-list-bg { background: linear-gradient(165deg,#dceacd 0%,#f1f5eb 55%,rgba(255,255,255,.96) 100%); }
+  /* 副驾头部头像 */
+  .copilot-avatar { background: linear-gradient(135deg,#4a6cf7,#7c3aed); }
+  .text-grad { background: linear-gradient(135deg,#4a6cf7,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .text-baidu { background: linear-gradient(135deg,#3677ed,#5b94ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  /* POI 标签:白色发光背景 */
+  .poi-text { text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
+</style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="text-[14px] leading-[1.5] text-text">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect, useCallback, useMemo } = React;
+
+/* ===========================  Mock data  =========================== */
+
+const CONVERSATIONS = {
+  desktop: { title: '整理我的桌面文件', messages: [
+    { role: 'user', text: '帮我整理一下桌面文件,太乱了' },
+    { role: 'ai',   text: '好的,扫描完成。桌面有 48 个文件,我按类型分好了 4 类:\n📄 文档 12 个\n🖼️ 图片 18 个\n📦 安装包 6 个\n🗂️ 其他 12 个\n要我现在执行吗?' },
+    { role: 'user', text: '执行吧' },
+    { role: 'ai',   text: '✅ 整理完成。桌面从 48 个文件归到 4 个文件夹,原文件都保留没删。需要的话可以在「文件」里查看。' },
+  ]},
+  heart: { title: '生成一个爱心网页', messages: [
+    { role: 'user', text: '帮我生成一个爱心动画网页,要粉色的' },
+    { role: 'ai',   text: '好的,已经生成一个粉色爱心动画网页 ❤️\n• 爱心带呼吸感的脉动效果\n• 点击后会爆出小爱心\n• 文件:heart.html (2.3 KB)\n已保存到「文件」,要我直接打开预览吗?' },
+    { role: 'user', text: '打开看看' },
+    { role: 'ai',   text: '已在浏览器打开 heart.html ✓' },
+  ]},
+  weekly: { title: '周报数据分析', messages: [
+    { role: 'user', text: '帮我分析一下这周的销售数据' },
+    { role: 'ai',   text: '已读取 sales_w19.xlsx。本周关键指标:\n• 总额 ¥128,450,环比 +12.3%\n• 北京区增长最快 +21%\n• 上海区下滑 −5.2%,建议关注\n• 客单价 ¥268,同比 +4.1%\n已生成可视化图表,保存到「文件」:周报_w19.xlsx' },
+  ]},
+  express: { title: '查快递到哪了', messages: [
+    { role: 'user', text: '我昨天寄的快递到哪了' },
+    { role: 'ai',   text: '帮你查了 3 个在途快递:\n📦 SF1234567890 · 顺丰\n   已到达深圳转运中心,预计今天下午送达\n📦 YT9876543210 · 圆通\n   派送中,司机电话 138****5678\n📦 ZT5555555555 · 中通\n   已签收,昨天 18:42' },
+  ]},
+  hotpot: { title: '推荐好吃的火锅店', messages: [
+    { role: 'user', text: '推荐几家成都好吃的火锅店' },
+    { role: 'ai',   text: '根据大众点评近期数据,给你挑了 3 家:\n🍲 小龙坎(春熙路店)· 4.7 分\n   招牌三鲜锅,排队约 40 分钟\n🍲 蜀大侠(宽窄巷子店)· 4.6 分\n   牛油锅底很地道,环境偏古风\n🍲 大龙燚(太古里店)· 4.5 分\n   适合聚餐,人均 ¥128\n要帮你在美团上订位吗?' },
+  ]},
+};
+
+const HISTORY_LIST = [
+  { id: 'desktop', title: '整理我的桌面文件' },
+  { id: 'heart',   title: '生成一个爱心网页' },
+  { id: 'weekly',  title: '周报数据分析' },
+  { id: 'express', title: '查快递到哪了' },
+  { id: 'hotpot',  title: '推荐好吃的火锅店' },
+  { id: 'news',    title: '今日新闻摘要' },
+  { id: 'tx',      title: '翻译这段英文' },
+  { id: 'wx',      title: '北京明天天气' },
+  { id: 'bday',    title: '给女朋友的生日祝福' },
+  { id: 'leave',   title: '帮我写一份请假条' },
+  { id: 'py',      title: 'Python 列表去重的写法' },
+];
+
+const PROMPTS_BY_PAGE = {
+  hub:         [{ emoji:'💬', text:'打开手机微信' },         { emoji:'📲', text:'把手机上的照片传过来' }],
+  'cloud-photo': [{ emoji:'📷', text:'下载云相册照片到本地' }, { emoji:'🧹', text:'帮我清理重复照片' }],
+  'cloud-note':  [{ emoji:'📝', text:'把这篇笔记导出为 Word' },{ emoji:'🔍', text:'在笔记里搜索关键词' }],
+  'find-device': [{ emoji:'🔔', text:'让我的手机响铃' },       { emoji:'📍', text:'查看设备最近位置' }],
+  discover:    [{ emoji:'🗺️', text:'推荐好用的 MCP' },        { emoji:'📦', text:'安装快递 100 插件' }],
+  files:       [{ emoji:'🌐', text:'打开最近生成的网页' },    { emoji:'🧺', text:'清理一个月前的旧文件' }],
+  cross:       [{ emoji:'🔁', text:'查看上次跨端任务' },      { emoji:'📱', text:'让手机执行一个操作' }],
+  settings:    [{ emoji:'⚙️', text:'关闭 AI 副驾默认展开' },  { emoji:'🔐', text:'检查账号与隐私设置' }],
+};
+const FIXED_PROMPTS = [
+  { emoji:'🗂️', text:'整理桌面' },
+  { emoji:'🎨', text:'生成网页' },
+];
+
+const ALBUMS = [
+  { name:'相机',         count:10067, thumb:'thumb-phone' },
+  { name:'截屏',         count:469,   thumb:'thumb-screen' },
+  { name:'所有视频',     count:1751,  thumb:'thumb-empty' },
+  { name:'我的 iPhone',   count:12,    thumb:'thumb-family' },
+  { name:'屏幕录制',     count:27,    thumb:'thumb-empty' },
+  { name:'微信',         count:2747,  thumb:'thumb-sunset' },
+  { name:'百度云',       count:4,     thumb:'thumb-doc' },
+  { name:'纪念相册',     count:0,     thumb:'thumb-empty' },
+  { name:'手机淘宝',     count:2,     thumb:'thumb-bottle' },
+  { name:'网易云音乐相册', count:4,    thumb:'thumb-dark' },
+  { name:'DCIM',         count:77,    thumb:'thumb-eggs' },
+  { name:'我的创作',     count:1,     thumb:'thumb-grass' },
+  { name:'下载',         count:4,     thumb:'thumb-empty' },
+  { name:'全民K歌',      count:1,     thumb:'thumb-vinyl' },
+  { name:'小红书',       count:5,     thumb:'thumb-outdoor' },
+  { name:'扫一扫',       count:0,     thumb:'thumb-empty' },
+  { name:'Pictures',     count:1341,  thumb:'thumb-food' },
+  { name:'锁屏壁纸',     count:2,     thumb:'thumb-cloud' },
+];
+
+const NOTES_LIST = [
+  { title:'需要渠道方 app 自己开...', preview:'开发',                 date:'2023年11月20日 15:52' },
+  { title:'大理丽江行', preview:'12.27 晚11点到丽江 ...',             date:'2023年11月23日 20:40', active:true },
+  { title:'可买物品',   preview:'裤子 适合冬天穿的裤子',              date:'2023年11月5日 09:00' },
+  { title:'双十一购物list', preview:'护肤品',                          date:'2023年10月11日 15:01' },
+  { title:'小二七十 六分', preview:'大贰柒拾 九分',                    date:'2023年9月28日 18:25' },
+  { title:'上海特种兵',    preview:'9月15日',                          date:'2023年9月17日 20:19' },
+  { title:'出行痛点',      preview:'掌握公交路线和剩余时间',           date:'2023年9月15日 12:32' },
+];
+
+const NOTE_BODY = [
+  '12.27 晚11点到丽江',
+  '12.28 早八到东巴谷 牦牛坪 蓝月谷 云杉坪 晚上逛丽江古城',
+  '12.29 自然醒 午饭后去高铁站 下午到大理 下午+晚上喜洲古镇',
+  '12.30 早起龙龛码头看水杉+日出 无量樱花谷 2h车程 下午看情况洱海生态廊',
+  '12.31 早8点出发去机场',
+  ' ',
+  '12.19 16:10落地大理凤仪机场 40min车程至酒店 5:30到酒店 大理古城晚饭 逛古城',
+  '12.27 自然醒 无量樱花谷 2h车程 晚饭前折返 休息',
+  '12.28 早起龙龛码头看水杉 早饭后赴喜洲古镇 下午洱海生态廊',
+  '12.29 九点高铁中午到丽江 丽江古城入住午饭 下午古城附近逛',
+  '12.30 早八到东巴谷 牦牛坪 蓝月谷 云杉坪',
+];
+
+const MODELS = ['快速','深度思考','专家','智能'];
+
+/* ===========================  utils  =========================== */
+
+function iconForFile(name) {
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  if (['jpg','jpeg','png','gif','webp','heic','bmp','svg'].includes(ext)) return '🖼️';
+  if (['mp4','mov','avi','mkv','webm'].includes(ext)) return '🎬';
+  if (['mp3','wav','flac','m4a','aac'].includes(ext)) return '🎵';
+  if (['pdf'].includes(ext)) return '📄';
+  if (['doc','docx'].includes(ext)) return '📝';
+  if (['xls','xlsx','csv'].includes(ext)) return '📊';
+  if (['ppt','pptx','key'].includes(ext)) return '📽️';
+  if (['zip','rar','7z','tar','gz'].includes(ext)) return '🗜️';
+  return '📎';
+}
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  const kb = bytes / 1024;
+  if (kb < 1024) return kb.toFixed(1) + ' KB';
+  const mb = kb / 1024;
+  if (mb < 1024) return mb.toFixed(2) + ' MB';
+  return (mb / 1024).toFixed(2) + ' GB';
+}
+
+/* ===========================  Icons (inline SVG)  =========================== */
+
+const Icon = {
+  Compose: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M12.5 9v3.5A1.5 1.5 0 0 1 11 14H4a1.5 1.5 0 0 1-1.5-1.5V5.5A1.5 1.5 0 0 1 4 4h3.5"/>
+      <path d="M11.5 2.5l2 2-6 6H5.5V8z"/>
+    </svg>
+  ),
+  Maximize: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <polyline points="10 2.5 13.5 2.5 13.5 6"/>
+      <line x1="8.5" y1="7.5" x2="13.5" y2="2.5"/>
+      <polyline points="6 13.5 2.5 13.5 2.5 10"/>
+      <line x1="7.5" y1="8.5" x2="2.5" y2="13.5"/>
+    </svg>
+  ),
+  Paperclip: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M11.5 7L7 11.5a2.5 2.5 0 0 1-3.5-3.5L8 3.5a4 4 0 0 1 5.5 5.5L8.5 14"/>
+    </svg>
+  ),
+  ArrowUp: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M8 13V3M3.5 7.5L8 3l4.5 4.5"/>
+    </svg>
+  ),
+  Close: (p) => (
+    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" {...p}>
+      <path d="M3 3l8 8M11 3l-8 8"/>
+    </svg>
+  ),
+  Plus: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" {...p}>
+      <path d="M8 3v10M3 8h10"/>
+    </svg>
+  ),
+  Layers: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M8 2L2 5l6 3 6-3-6-3z"/>
+      <path d="M2 9l6 3 6-3"/>
+      <path d="M2 12l6 3 6-3"/>
+    </svg>
+  ),
+  Crosshair: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" {...p}>
+      <circle cx="8" cy="8" r="5"/>
+      <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+      <line x1="8" y1="1" x2="8" y2="3"/>
+      <line x1="8" y1="13" x2="8" y2="15"/>
+      <line x1="1" y1="8" x2="3" y2="8"/>
+      <line x1="13" y1="8" x2="15" y2="8"/>
+    </svg>
+  ),
+  Image: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" {...p}>
+      <rect x="2" y="3" width="12" height="10" rx="1"/>
+      <circle cx="6" cy="7" r="1.2" fill="currentColor" stroke="none"/>
+      <path d="M2 11l3-3 3 3 2-2 4 4" strokeLinejoin="round"/>
+    </svg>
+  ),
+  Highlight: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" {...p}>
+      <path d="M9 2l5 5-7 7H3v-4z" strokeLinejoin="round"/>
+    </svg>
+  ),
+  History: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M8 3a5 5 0 1 1-4.5 2.8"/><path d="M3.5 2v3.5H7"/>
+      <path d="M8 5v3l2 2"/>
+    </svg>
+  ),
+  Trash: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" {...p}>
+      <path d="M3 4h10M6 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M4 4v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4"/>
+    </svg>
+  ),
+  Upload: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M4 8a4 4 0 0 1 7.8-1 3 3 0 0 1 0 6H5a3.5 3.5 0 0 1-1-6.8"/>
+      <path d="M8 7v6M6 9l2-2 2 2"/>
+    </svg>
+  ),
+  Download: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M8 2v9M5 8l3 3 3-3M3 13h10"/>
+    </svg>
+  ),
+  Refresh: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" {...p}>
+      <path d="M13 4v3h-3M3 12V9h3"/>
+      <path d="M12.2 6.5A5 5 0 0 0 4.2 6M3.8 9.5a5 5 0 0 0 8 .5"/>
+    </svg>
+  ),
+};
+
+/* ===========================  Components  =========================== */
+
+function TitleBar() {
+  return (
+    <div className="relative h-[42px] bg-surface-2 border-b border-border flex items-center px-3.5 shrink-0">
+      <div className="flex gap-1.5 z-10">
+        <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+        <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
+        <span className="w-3 h-3 rounded-full bg-[#28c940]" />
+      </div>
+      <div className="absolute inset-x-0 text-center text-[13px] font-medium text-text pointer-events-none">小米互联服务</div>
+    </div>
+  );
+}
+
+function NavItem({ icon, label, badge, active, onClick, className='' }) {
+  return (
+    <div onClick={onClick}
+         className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[13px] cursor-pointer mb-px transition-colors
+                    ${active ? 'bg-black/[.06] text-text font-medium' : 'text-text-2 hover:bg-black/[.04] hover:text-text'} ${className}`}>
+      {icon && <span className="text-[14px] w-[18px] text-center">{icon}</span>}
+      <span>{label}</span>
+      {badge && <span className="ml-auto bg-accent text-white text-[10px] px-1.5 py-px rounded-full font-semibold">{badge}</span>}
+    </div>
+  );
+}
+
+function HistoryItem({ title, onClick }) {
+  return (
+    <div onClick={onClick}
+         className="px-3.5 py-1.5 text-[12.5px] leading-[1.4] text-text-2 hover:bg-black/[.04] hover:text-text rounded-md cursor-pointer break-all">
+      {title}
+    </div>
+  );
+}
+
+function Sidebar({ activeTab, onSelectTab, onNewChat, onOpenConv }) {
+  return (
+    <aside className="w-[200px] bg-surface-2 border-r border-border flex flex-col shrink-0">
+      <div className="flex-1 min-h-0 overflow-y-auto py-2.5 px-2">
+        <NavItem active={activeTab==='hub'} icon="🔗" label="设备互联" onClick={() => onSelectTab('hub')} />
+
+        <div className="h-px bg-border my-2 mx-1.5" />
+        <div className="text-[11px] font-semibold text-text-3 px-2.5 pt-2 pb-1 tracking-wide">云服务</div>
+        <NavItem active={activeTab==='cloud-photo'} icon="📷" label="云相册"  onClick={() => onSelectTab('cloud-photo')} />
+        <NavItem active={activeTab==='cloud-note'}  icon="📝" label="云笔记"  onClick={() => onSelectTab('cloud-note')} />
+        <NavItem active={activeTab==='find-device'} icon="📍" label="查找设备" onClick={() => onSelectTab('find-device')} />
+
+        <div className="h-px bg-border my-2 mx-1.5" />
+        <div className="text-[11px] font-semibold text-text-3 px-2.5 pt-2 pb-1 tracking-wide">超级小爱</div>
+        <NavItem icon="＋" label="新建对话" onClick={onNewChat} />
+        <NavItem active={activeTab==='discover'} icon="💡" label="发现"      onClick={() => onSelectTab('discover')} />
+        <NavItem active={activeTab==='files'}    icon="🗂️" label="文件"      onClick={() => onSelectTab('files')} />
+        <NavItem active={activeTab==='cross'}    icon="🔄" label="跨端执行"  onClick={() => onSelectTab('cross')} />
+
+        <div className="h-px bg-border my-2 mx-1.5" />
+        <div className="text-[11px] font-semibold text-text-3 px-2.5 pt-2 pb-1 tracking-wide">历史对话</div>
+        {HISTORY_LIST.map(h => (
+          <HistoryItem key={h.id} title={h.title} onClick={() => onOpenConv(h.id)} />
+        ))}
+      </div>
+      <div className="shrink-0 border-t border-border bg-surface-2 py-1.5 px-2">
+        <NavItem active={activeTab==='settings'} icon="⚙️" label="设置" onClick={() => onSelectTab('settings')} />
+      </div>
+    </aside>
+  );
+}
+
+/* ----------  Workspace pages  ---------- */
+
+function WsHeader({ children, action }) {
+  return (
+    <div className="h-[54px] px-6 border-b border-border flex items-center gap-3 shrink-0">
+      <h2 className="text-[17px] font-semibold flex-1">{children}</h2>
+      {action}
+    </div>
+  );
+}
+function HdrBtn({ children, onClick }) {
+  return (
+    <button onClick={onClick} className="border border-border rounded-md px-3 py-1 text-[12px] text-text bg-surface hover:bg-text hover:text-white hover:border-text transition-colors">
+      {children}
+    </button>
+  );
+}
+
+function ActionChip({ children, primary }) {
+  return (
+    <div className={`border rounded-full px-3 py-1 text-[12px] inline-flex items-center gap-1 cursor-pointer transition-colors
+                     ${primary ? 'bg-accent text-white border-accent hover:bg-[#3b5de7]'
+                               : 'bg-surface text-text-2 border-border hover:bg-text hover:text-white hover:border-text'}`}>
+      {children}
+    </div>
+  );
+}
+
+function AppItem({ icon, name }) {
+  return (
+    <div className="flex flex-col items-center gap-1 py-2.5 px-1 border border-border rounded-lg bg-surface cursor-pointer transition-colors hover:border-accent hover:bg-accent-bg group">
+      <div className="text-[20px] leading-none">{icon}</div>
+      <div className="text-[11px] text-text-2 group-hover:text-accent">{name}</div>
+    </div>
+  );
+}
+
+function DeviceCard({ children }) {
+  return <div className="bg-surface border border-border rounded-lg p-5 flex flex-col gap-3.5 transition-colors hover:border-border-strong hover:shadow-card">{children}</div>;
+}
+
+function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop }) {
+  const fileRef = useRef();
+  const [dragOver, setDragOver] = useState(false);
+  return (
+    <>
+      <WsHeader action={<HdrBtn onClick={onAddDevice}>＋ 添加设备</HdrBtn>}>设备互联</WsHeader>
+      <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+          {/* Phone */}
+          <DeviceCard>
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-surface-2 flex items-center justify-center text-[24px] shrink-0">📱</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[14px] font-semibold">Xiaomi MIX Flip 2</div>
+                <div className="text-[12px] text-text-3 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-ok" />局域网连接
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <ActionChip>🔗 启用热点</ActionChip>
+              <ActionChip>🔔 响铃查找</ActionChip>
+            </div>
+            <div className="flex flex-col gap-2 pt-3.5 border-t border-dashed border-border mt-0.5">
+              <div className="text-[15px] font-semibold">妙享桌面</div>
+              <div className="grid grid-cols-5 gap-1.5">
+                <AppItem icon="📱" name="主屏" />
+                <AppItem icon="💬" name="微信" />
+                <AppItem icon="📷" name="相机" />
+                <AppItem icon="🗺️" name="高德" />
+                <AppItem icon="🎵" name="网易云" />
+              </div>
+            </div>
+          </DeviceCard>
+
+          {/* Pad */}
+          <DeviceCard>
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-surface-2 flex items-center justify-center text-[24px] shrink-0">📲</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[14px] font-semibold">Xiaomi Pad 6S Pro 12.4</div>
+                <div className="text-[12px] text-text-3 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-ok" />局域网连接
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <ActionChip>🔔 响铃查找</ActionChip>
+            </div>
+            <div className="flex flex-col gap-1.5 pt-3.5 border-t border-dashed border-border mt-0.5">
+              <div className="text-[15px] font-semibold">屏幕扩展</div>
+              <div className="text-[12.5px] text-text-2 mb-2.5">把小米平板当作 Mac 的扩展显示器</div>
+              <div className="text-center py-2 rounded-full bg-surface text-accent border border-accent text-[13px] font-medium cursor-pointer hover:bg-accent-bg transition-colors">开启</div>
+            </div>
+          </DeviceCard>
+        </div>
+
+        {/* Transfer */}
+        <div className="mt-6">
+          <div className="text-[15px] font-semibold mb-3">小米互传</div>
+          <div onClick={() => fileRef.current.click()}
+               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+               onDragLeave={() => setDragOver(false)}
+               onDrop={(e) => {
+                 e.preventDefault(); setDragOver(false);
+                 if (e.dataTransfer.files?.length) onTransferDrop(e.dataTransfer.files[0]);
+                 else onTransferClick();
+               }}
+               className={`border-2 border-dashed rounded-lg p-11 text-center cursor-pointer transition-all
+                          ${dragOver ? 'bg-accent-light border-accent border-solid scale-[1.005]'
+                                     : 'border-accent bg-accent-bg text-accent'}`}>
+            <div className="text-[36px] mb-1.5">📤</div>
+            <div className="text-[14px] font-medium">拖拽文件到此处发送</div>
+            <div className="mt-1 text-[12px]">或点击选择文件</div>
+          </div>
+          <input ref={fileRef} type="file" multiple hidden
+                 onChange={(e) => {
+                   if (e.target.files?.length) onTransferDrop(e.target.files[0]);
+                   e.target.value = '';
+                 }} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CloudPhotoPage() {
+  return (
+    <div className="flex-1 flex bg-bg p-3.5 gap-3 overflow-hidden min-h-0">
+      <aside className="w-40 shrink-0 py-1.5 px-0.5 flex flex-col gap-4">
+        <div>
+          <div className="text-[15px] font-semibold px-2.5 pt-1 pb-2">云相册</div>
+          <NavItem icon="🖼" label="照片" />
+          <NavItem active icon="📚" label="相册" />
+          <NavItem icon="🎬" label="视频" />
+          <NavItem icon="🗑" label="最近删除" />
+        </div>
+      </aside>
+      <section className="flex-1 min-w-0 bg-surface border border-border rounded-lg flex flex-col overflow-hidden">
+        <div className="px-5 pt-4 pb-3 flex items-center justify-between shrink-0 border-b border-border">
+          <div className="text-[18px] font-semibold">26 个相册</div>
+          <div className="flex gap-1">
+            {[Icon.Plus, Icon.Upload, Icon.Download, Icon.Trash, Icon.Refresh].map((I, i) => (
+              <button key={i} className="w-7 h-7 rounded-md text-text-2 hover:bg-surface-2 hover:text-text flex items-center justify-center">
+                <I width="14" height="14" />
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4 grid gap-x-4 gap-y-4 content-start"
+             style={{ gridTemplateColumns:'repeat(auto-fill, minmax(120px, 1fr))' }}>
+          {ALBUMS.map((a, i) => (
+            <div key={i} className="flex flex-col gap-1.5 cursor-pointer group">
+              <div className={`aspect-square rounded-xl shadow-soft transition-transform group-hover:-translate-y-0.5 ${a.thumb} ${a.thumb==='thumb-empty' || a.thumb==='thumb-screen' ? 'border border-border bg-surface' : ''}`} />
+              <div className="text-[13px] font-medium truncate px-0.5">{a.name}</div>
+              <div className="text-[12px] text-text-3 px-0.5">{a.count}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function CloudNotePage() {
+  return (
+    <div className="flex-1 flex bg-bg p-3.5 gap-3 overflow-hidden min-h-0">
+      <aside className="w-40 shrink-0 py-1.5 px-0.5 flex flex-col gap-4 overflow-y-auto">
+        <div>
+          <div className="text-[15px] font-semibold px-2.5 pt-1 pb-2">笔记</div>
+          <NavItem active icon="📄" label="全部笔记" />
+          <NavItem icon="🗂️" label="未分类" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[13px] text-text-2 cursor-pointer hover:bg-black/[.04]">
+            <span className="text-text-3 text-[9px]">▸</span>
+            <span className="text-[13px] w-[16px] text-center text-text-3">📁</span>
+            <span>我的文件夹</span>
+            <span className="ml-auto text-text-3 text-[14px]">+</span>
+          </div>
+          <NavItem icon="🗑" label="最近删除" />
+        </div>
+        <div>
+          <div className="text-[15px] font-semibold px-2.5 pt-1 pb-2">待办</div>
+          <NavItem icon="☑" label="未完成" />
+          <NavItem icon="✖" label="已完成" />
+        </div>
+      </aside>
+
+      <section className="w-60 shrink-0 bg-surface border border-border rounded-lg flex flex-col overflow-hidden">
+        <div className="px-4 pt-4 pb-2.5 shrink-0">
+          <div className="text-[17px] font-semibold mb-3">全部笔记</div>
+          <div className="flex items-center gap-2 mb-2.5">
+            <div className="flex-1 bg-surface-3 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-[12.5px] text-text-3 truncate">
+              <span className="text-[12px]">🔍</span>
+              <span className="truncate">搜索全...</span>
+            </div>
+            <button className="w-[26px] h-[26px] rounded-full bg-accent text-white flex items-center justify-center shrink-0 hover:bg-[#3b5de7] transition-colors">
+              <Icon.Plus width="14" height="14" />
+            </button>
+          </div>
+          <div className="text-[11px] text-text-3 flex justify-between gap-1">
+            <span>共 110 条笔记</span>
+            <span className="cursor-pointer">按编辑时间 ▾</span>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 pb-3">
+          {NOTES_LIST.map((n, i) => (
+            <div key={i} className={`py-3 ${i < NOTES_LIST.length - 1 ? 'border-b border-border' : ''} cursor-pointer`}>
+              <div className={`text-[13px] font-semibold truncate mb-0.5 ${n.active ? 'text-accent' : 'text-text'}`}>{n.title}</div>
+              <div className="text-[12px] text-text-2 truncate mb-1.5">{n.preview}</div>
+              <div className="text-[11px] text-text-3">{n.date}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="flex-1 min-w-0 bg-surface border border-border rounded-lg flex flex-col overflow-hidden">
+        <div className="flex items-center gap-0.5 px-3.5 py-2.5 border-b border-border shrink-0">
+          {[Icon.Image, null, Icon.Highlight].map((I, i) => I ? <button key={i} className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text flex items-center justify-center"><I width="15" height="15" /></button> : <span key={i} className="text-border-strong mx-0.5 text-[12px]">|</span>)}
+          {['1','2','3'].map(n => (
+            <button key={n} className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text font-semibold text-[13px]">H<sub className="text-[9px] align-baseline">{n}</sub></button>
+          ))}
+          <button className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text">▾</button>
+          <span className="flex-1" />
+          <button className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text flex items-center justify-center"><Icon.History width="15" height="15" /></button>
+          <button className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text flex items-center justify-center"><Icon.Trash width="15" height="15" /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-7 py-5">
+          <h1 className="text-[20px] font-semibold tracking-tight mb-3.5">大理丽江行</h1>
+          {NOTE_BODY.map((p, i) => (
+            <p key={i} className="text-[13.5px] leading-[1.85]" dangerouslySetInnerHTML={{ __html: p }} />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function FindDevicePage() {
+  return (
+    <div className="flex-1 relative overflow-hidden">
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+        <rect width="1600" height="1000" fill="#eef1ea"/>
+        <path d="M0,0 L720,0 L520,260 Q340,220 0,320 Z" fill="#bdd9a8"/>
+        <path d="M380,0 L280,180 L60,300" stroke="#fff" strokeWidth="14" fill="none" opacity=".7"/>
+        <rect x="0" y="420" width="1600" height="54" fill="#f6f6f6"/>
+        <path d="M0,800 Q600,880 1200,800 T1600,780" stroke="#f6f6f6" strokeWidth="46" fill="none"/>
+        <rect x="920" y="0" width="44" height="1000" fill="#f6f6f6"/>
+        <g><rect x="640" y="180" width="250" height="380" fill="#d3d9df"/><rect x="640" y="180" width="250" height="18" fill="#c2cad1"/><text x="765" y="400" fontSize="28" fill="#7a7a7a" textAnchor="middle" fontWeight="500">F 栋</text></g>
+        <g><rect x="1100" y="140" width="320" height="300" fill="#d3d9df"/><rect x="1100" y="140" width="320" height="18" fill="#c2cad1"/><text x="1260" y="305" fontSize="28" fill="#7a7a7a" textAnchor="middle" fontWeight="500">G 栋</text></g>
+        <rect x="1180" y="480" width="280" height="120" fill="#d3d9df"/>
+        <g><rect x="1000" y="660" width="480" height="220" fill="#d3d9df"/><rect x="1000" y="660" width="480" height="18" fill="#c2cad1"/></g>
+        <g><rect x="1380" y="920" width="220" height="80" fill="#d3d9df"/><text x="1490" y="970" fontSize="24" fill="#7a7a7a" textAnchor="middle" fontWeight="500">B 栋</text></g>
+        <rect x="720" y="640" width="240" height="200" fill="#d3d9df"/>
+      </svg>
+
+      {/* POI labels */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[
+          { top:'19%', left:'77%', dot:'bg-[#e03a2f]', icon:'🍗', label:'KFC' },
+          { top:'27%', left:'72%', dot:'bg-[#ff8a3c]', icon:'☕', label:'肯悦咖啡' },
+          { top:'27%', right:'3%', dot:'bg-[#8257cc]', icon:'🏠', label:'小米之家' },
+          { top:'42%', left:'73%', dot:'bg-[#ff8a3c]', icon:'🍜', label:'超级碗 FOODBOWL' },
+          { top:'56%', left:'77%', dot:'bg-[#ff8a3c]', icon:'🍱', label:'村上一屋' },
+          { top:'54%', left:'87%', dot:'bg-[#0b7a42]', icon:'🍵', label:'星巴克' },
+          { top:'59%', left:'84%', dot:'bg-[#ff8a3c]', icon:'🧋', label:'喜茶' },
+          { top:'84%', left:'88%', dot:'bg-[#ff8a3c]', icon:'🍚', label:'小米食堂' },
+        ].map((p, i) => (
+          <div key={i} className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 text-[11px] text-[#4a4a46] poi-text" style={p}>
+            <span className={`w-[18px] h-[18px] rounded-full ${p.dot} text-white inline-flex items-center justify-center text-[11px] shadow-sm shrink-0`}>{p.icon}</span>
+            <span className="whitespace-nowrap">{p.label}</span>
+          </div>
+        ))}
+        <div className="absolute -translate-x-1/2 -translate-y-1/2 text-[10.5px] text-[#6b6b68] bg-white/50 px-1 rounded-sm" style={{ top:'54%', left:'70%' }}>全家便利店</div>
+        <div className="absolute -translate-x-1/2 -translate-y-1/2 text-[10.5px] text-[#6b6b68] bg-white/50 px-1 rounded-sm" style={{ top:'80%', left:'49%' }}>罗森便利店</div>
+        <div className="absolute -translate-x-1/2 flex items-center gap-1 max-w-[110px] text-[11px] text-[#4a4a46] poi-text" style={{ top:'86%', left:'70%' }}>
+          <span className="w-[18px] h-[18px] rounded-full bg-[#3a7bd5] text-white inline-flex items-center justify-center text-[11px] shadow-sm shrink-0">🏢</span>
+          <span className="leading-[1.25] font-medium">北京小米松果<br/>电子有限公司</span>
+        </div>
+        <div className="absolute -translate-x-1/2 -translate-y-1/2 text-[10.5px] text-[#6b6b68] bg-white/50 px-1 rounded-sm" style={{ top:'100%', left:'60%' }}>小米移动互联网产业园</div>
+      </div>
+
+      {/* Floating panel */}
+      <div className="absolute top-5 left-5 w-[330px] p-[18px_18px_14px] rounded-lg shadow-overlay backdrop-blur find-list-bg">
+        <div className="text-[22px] font-bold text-text mb-3.5">设备</div>
+        <div className="flex items-center gap-3 py-2 cursor-pointer">
+          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-soft shrink-0 overflow-hidden">
+            <div className="w-6 h-9 rounded phone-gradient relative">
+              <div className="absolute top-[3px] right-[3px] w-[5px] h-[5px] rounded-full phone-camera" />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px] font-semibold mb-1">Xiaomi MIX Flip 2</div>
+            <div className="text-[12px] text-text-2 leading-[1.5]">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-ok mr-1 align-middle" />
+              北京市 村上一屋(小米科技园店)小米移动互联网产业园 · 刚刚
+            </div>
+          </div>
+          <div className="text-text-3 text-[18px]">›</div>
+        </div>
+      </div>
+
+      {/* Map controls */}
+      <div className="absolute top-5 right-5 flex flex-col gap-2.5">
+        {[Icon.Layers, Icon.Crosshair].map((I, i) => (
+          <button key={i} className="w-9 h-9 rounded-lg text-text-2 hover:text-text bg-white/95 backdrop-blur shadow-card flex items-center justify-center">
+            <I width="16" height="16" />
+          </button>
+        ))}
+        <div className="flex flex-col bg-white/95 backdrop-blur rounded-lg shadow-card overflow-hidden">
+          <button className="w-9 h-9 text-[18px] text-text-2 hover:text-text">+</button>
+          <div className="border-t border-black/[.06]" />
+          <button className="w-9 h-9 text-[18px] text-text-2 hover:text-text">−</button>
+        </div>
+      </div>
+
+      {/* Center pin */}
+      <div className="absolute" style={{ top:'58%', left:'64%', transform:'translate(-50%,-50%)' }}>
+        <div className="relative w-[54px] h-[54px] flex items-center justify-center">
+          <div className="absolute rounded-full bg-[rgba(58,154,92,.28)] animate-pin" />
+          <div className="absolute rounded-full bg-[rgba(58,154,92,.28)] animate-pin" style={{ animationDelay:'1.2s' }} />
+          <div className="relative z-[3] w-[54px] h-[54px] rounded-full bg-white p-1 border-[3px] border-white shadow-modal flex items-center justify-center">
+            <div className="w-7 h-11 rounded phone-gradient relative">
+              <div className="absolute top-[11px] right-[11px] w-1.5 h-1.5 rounded-full phone-camera z-10" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Scale + brand */}
+      <div className="absolute bottom-4 right-[100px] text-[11px] text-text-2 tracking-wider">━━ 10 米</div>
+      <div className="absolute bottom-3.5 right-4 text-[11px] text-text-2"><span className="font-bold text-baidu">Baidu</span> 地图</div>
+    </div>
+  );
+}
+
+function DiscoverPage() {
+  const items = [
+    { icon:'🗺️', name:'高德地图',  desc:'路线规划、POI、实时路况',  tag:'15 tools' },
+    { icon:'📦', name:'快递 100',   desc:'快递查询、寄件下单',         tag:'5 tools' },
+    { icon:'🎨', name:'画布设计',   desc:'AI 生成海报、封面、卡片',    tag:'内置' },
+    { icon:'📊', name:'数据分析',   desc:'表格处理、图表生成',         tag:'8 tools' },
+    { icon:'✈️', name:'差旅助手',   desc:'机票酒店、行程规划',         tag:'12 tools' },
+    { icon:'🛠️', name:'本地工具',   desc:'截图、录屏、OCR、翻译',     tag:'8 tools' },
+  ];
+  return (
+    <>
+      <WsHeader action={<HdrBtn>管理已安装</HdrBtn>}>发现</WsHeader>
+      <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="text-[12px] text-text-3 mb-3.5">MCP + Skill 能力市场 · 扩展 AI 副驾的能力边界</div>
+        <div className="grid gap-2.5" style={{ gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))' }}>
+          {items.map((it, i) => (
+            <div key={i} className="bg-surface border border-border rounded-lg p-3.5 cursor-pointer hover:border-border-strong hover:shadow-soft transition-all">
+              <div className="text-[22px] mb-1.5">{it.icon}</div>
+              <div className="text-[13px] font-medium mb-0.5">{it.name}</div>
+              <div className="text-[12px] text-text-3">{it.desc}</div>
+              <div className="text-[11px] text-accent mt-1">{it.tag}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function FilesPage() {
+  const files = [
+    { icon:'🌐', name:'heart.html',           meta:'今天 17:30 · 2.3 KB' },
+    { icon:'📊', name:'周报_w19.xlsx',        meta:'今天 14:22 · 18.4 KB' },
+    { icon:'📄', name:'会议纪要_0511.pdf',    meta:'今天 10:05 · 45 KB' },
+    { icon:'📑', name:'产品方案_v2.docx',     meta:'昨天 20:41 · 32 KB' },
+  ];
+  return (
+    <>
+      <WsHeader action={<HdrBtn>按时间</HdrBtn>}>文件</WsHeader>
+      <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="text-[12px] text-text-3 mb-3.5">AI 产物归档 · 对话中生成的所有文件</div>
+        <div className="flex flex-col gap-0.5">
+          {files.map((f, i) => (
+            <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer hover:bg-surface-2 group">
+              <span className="text-[18px] shrink-0">{f.icon}</span>
+              <span className="flex-1 text-[13px]">{f.name}</span>
+              <span className="text-[12px] text-text-3">{f.meta}</span>
+              <span className="text-[12px] text-accent opacity-0 group-hover:opacity-100 transition-opacity">💬 查看对话</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CrossPage() {
+  return (
+    <>
+      <WsHeader>跨端执行</WsHeader>
+      <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="text-[12px] text-text-3 mb-4">设备协作的只读观察窗 · 操作请在 AI 副驾中 @ 设备发起</div>
+        <div className="flex flex-col gap-3.5">
+          {[
+            { icon:'💻', from:'Xiaomi Book Pro 14',  text:'@Xiaomi MIX Flip 2 帮我找一下昨天拍的小猫照片传过来', bg:'linear-gradient(135deg, #eef3ec, #c6dec1)' },
+            { icon:'📱', from:'Xiaomi MIX Flip 2',  text:'收到,正在翻找相册...', bg:'linear-gradient(135deg, #f7ede7, #e5c7b8)' },
+            { icon:'📱', from:'Xiaomi MIX Flip 2',  text:'找到了! 已发送 3 张小猫照片到 Xiaomi Book Pro 14 ✓', bg:'linear-gradient(135deg, #f7ede7, #e5c7b8)' },
+          ].map((m, i) => (
+            <div key={i} className="flex gap-2 items-start">
+              <div className="w-7 h-7 rounded-md flex items-center justify-center text-[14px] shrink-0" style={{ background:m.bg }}>{m.icon}</div>
+              <div>
+                <div className="text-[11px] text-text-3 mb-0.5">{m.from}</div>
+                <div className="bg-surface-2 border border-border rounded-lg px-3 py-2 text-[13px]">{m.text}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function SettingsPage() {
+  return (
+    <>
+      <WsHeader>设置</WsHeader>
+      <div className="flex-1 overflow-y-auto px-6 py-5 text-[13px] text-text-2 leading-[2.2]">
+        <div className="font-semibold text-text mb-1">账号</div>
+        <div>Yaki · 小米 ID: 2389984542</div>
+        <div className="font-semibold text-text mt-4 mb-1">通用</div>
+        <div>· 清除缓存</div>
+        <div>· 系统权限管理</div>
+        <div>· 隐私与安全</div>
+        <div className="font-semibold text-text mt-4 mb-1">AI 副驾</div>
+        <div>· 默认展开副驾面板: 开</div>
+        <div>· 快捷键唤起: ⌘K</div>
+      </div>
+    </>
+  );
+}
+
+/* ----------  Copilot / Fullscreen / Modals  ---------- */
+
+function ModelPicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+  useEffect(() => {
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('click', onDoc);
+    return () => document.removeEventListener('click', onDoc);
+  }, []);
+  return (
+    <div ref={ref} className="relative">
+      <div onClick={() => setOpen(o => !o)}
+           className="h-[26px] px-2.5 inline-flex items-center gap-1 border border-border bg-surface rounded-full cursor-pointer text-text-2 text-[12px] hover:bg-surface-2 hover:text-text hover:border-border-strong transition-all select-none">
+        <span>{value}</span>
+        <span className="text-[10px] text-text-3 leading-none">▾</span>
+      </div>
+      {open && (
+        <div className="absolute bottom-full left-0 mb-1.5 bg-surface border border-border rounded-lg shadow-card p-1 min-w-[108px] z-20">
+          {MODELS.map(m => (
+            <div key={m} onClick={() => { onChange(m); setOpen(false); }}
+                 className={`px-2.5 py-1.5 text-[12.5px] rounded cursor-pointer hover:bg-surface-2 whitespace-nowrap
+                            ${value===m ? 'text-accent font-medium' : 'text-text'}`}>{m}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChatInputCompact({ placeholder, model, onChangeModel }) {
+  return (
+    <div className="border border-border-strong rounded-xl p-2.5 px-3 bg-surface flex flex-col gap-2 text-[13px]">
+      <div className="text-text-3">{placeholder}</div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <button className="h-[26px] min-w-[26px] px-1.5 inline-flex items-center justify-center border border-border bg-surface rounded-full text-text-2 hover:bg-surface-2 hover:text-text hover:border-border-strong transition-all" title="上传文件">
+            <Icon.Paperclip width="14" height="14" />
+          </button>
+          <ModelPicker value={model} onChange={onChangeModel} />
+        </div>
+        <button className="w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center hover:bg-[#3b5de7]"><Icon.ArrowUp width="11" height="11" /></button>
+      </div>
+    </div>
+  );
+}
+
+function ChatInputFull({ placeholder, model, onChangeModel }) {
+  return (
+    <div className="w-full max-w-[700px] mx-auto border border-border-strong rounded-xl py-3 px-3.5 bg-surface flex flex-col gap-2.5 shadow-soft">
+      <div className="text-[13.5px] text-text-3">{placeholder}</div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <button className="h-[26px] min-w-[26px] px-1.5 inline-flex items-center justify-center border border-border bg-surface rounded-full text-text-2 hover:bg-surface-2 hover:text-text hover:border-border-strong transition-all" title="上传文件">
+            <Icon.Paperclip width="16" height="16" />
+          </button>
+          <ModelPicker value={model} onChange={onChangeModel} />
+        </div>
+        <button className="w-7 h-7 rounded-full bg-accent text-white flex items-center justify-center hover:bg-[#3b5de7]"><Icon.ArrowUp width="12" height="12" /></button>
+      </div>
+    </div>
+  );
+}
+
+function MessageList({ messages, compact }) {
+  return (
+    <div className={`flex-1 overflow-y-auto flex flex-col min-h-0 ${compact ? 'p-3.5 px-3 gap-3' : 'py-5 px-1 gap-[18px]'}`}>
+      {messages.map((m, i) => (
+        <div key={i} className={`flex gap-2.5 ${compact ? 'max-w-[90%]' : 'max-w-[80%]'} ${m.role==='user' ? 'self-end' : 'self-start'}`}>
+          {m.role === 'ai' && (
+            <div className={`${compact ? 'w-[22px] h-[22px] text-[11px]' : 'w-7 h-7 text-[13px]'} rounded-full copilot-avatar text-white flex items-center justify-center font-semibold shrink-0`}>✦</div>
+          )}
+          <div className={`rounded-xl shadow-soft whitespace-pre-wrap ${compact ? 'px-3 py-2 text-[12.5px] leading-[1.55]' : 'px-3.5 py-2.5 text-[13.5px] leading-[1.65]'}
+                          ${m.role === 'user'
+                            ? 'bg-accent text-white rounded-br'
+                            : 'bg-surface text-text border border-border rounded-bl'}`}>
+            {m.text.split('\n').map((line, j) => <React.Fragment key={j}>{line}{j < m.text.split('\n').length - 1 && <br />}</React.Fragment>)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WelcomeView({ prompts, fullscreen }) {
+  return fullscreen ? (
+    <div className="flex-1 flex flex-col items-center justify-center px-10 gap-1.5 min-h-0 py-5">
+      <div className="text-[46px] mb-3.5 text-grad">✦</div>
+      <div className="text-[24px] font-semibold tracking-tight text-text">Hi, 我是超级小爱</div>
+      <div className="text-[13.5px] text-text-2 text-center mb-6">你的全生态 AI 助手,能问、能做、能记住,有什么事情尽管交给我吧</div>
+      <div className="grid grid-cols-2 gap-2.5 w-full max-w-[480px]">
+        {prompts.map((p, i) => (
+          <div key={i} className="border border-border rounded-lg px-3.5 py-3 bg-surface text-[13px] text-text flex items-center gap-2 cursor-pointer hover:bg-accent-bg hover:border-accent">
+            <span className="text-[16px]">{p.emoji}</span><span>{p.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <div className="flex-1 overflow-y-auto p-7 px-4 flex flex-col items-center gap-1.5">
+      <div className="text-[36px] mb-2 text-grad">✦</div>
+      <div className="text-[18px] font-semibold tracking-tight">Hi, 我是超级小爱</div>
+      <div className="text-[12.5px] text-text-2 text-center max-w-[260px] leading-[1.55] mb-5">你的全生态 AI 助手,能问、能做、能记住,有什么事情尽管交给我吧</div>
+      <div className="grid grid-cols-2 gap-2 w-full">
+        {prompts.map((p, i) => (
+          <div key={i} className="border border-border rounded-md p-3 px-2.5 bg-surface text-[12.5px] text-text-2 flex flex-col gap-1 cursor-pointer hover:bg-accent-bg hover:border-accent hover:text-text">
+            <span className="text-[16px]">{p.emoji}</span><span className="text-[12px] leading-[1.4]">{p.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Copilot({ activeTab, mode, conv, onNewChat, onExpand, model, onChangeModel }) {
+  const prompts = [...(PROMPTS_BY_PAGE[activeTab] || PROMPTS_BY_PAGE.hub), ...FIXED_PROMPTS];
+  return (
+    <aside className="w-[300px] bg-surface border-l border-border flex flex-col shrink-0 overflow-hidden">
+      <div className="h-[54px] px-3.5 border-b border-border flex items-center gap-2 bg-surface-2 shrink-0">
+        <div className="w-6 h-6 rounded-md copilot-avatar flex items-center justify-center text-[12px] text-white">✦</div>
+        <div className="flex-1 text-[13px] font-medium truncate min-w-0">{mode==='conv' && conv ? conv.title : '超级小爱'}</div>
+        <div className="w-[22px] h-[22px] rounded text-text-3 flex items-center justify-center cursor-pointer hover:bg-black/[.05]" title="新建对话" onClick={onNewChat}>
+          <Icon.Compose width="15" height="15" />
+        </div>
+        <div className="w-[22px] h-[22px] rounded text-text-3 flex items-center justify-center cursor-pointer hover:bg-black/[.05]" title="展开为全屏对话" onClick={onExpand}>
+          <Icon.Maximize width="15" height="15" />
+        </div>
+      </div>
+
+      {mode === 'welcome'
+        ? <WelcomeView prompts={prompts} />
+        : <MessageList messages={conv?.messages || []} compact />
+      }
+
+      <div className="p-2.5 px-3.5 border-t border-border shrink-0">
+        <ChatInputCompact placeholder="问我任何事,或 @ 设备执行..." model={model} onChangeModel={onChangeModel} />
+      </div>
+    </aside>
+  );
+}
+
+function FullscreenChat({ visible, mode, conv, model, onChangeModel }) {
+  if (!visible) return null;
+  const prompts = [...PROMPTS_BY_PAGE.hub, ...FIXED_PROMPTS];
+  return (
+    <div className="flex-1 flex flex-col bg-surface min-w-0 relative">
+      {mode === 'welcome'
+        ? <WelcomeView prompts={prompts} fullscreen />
+        : (
+          <div className="flex-1 flex flex-col w-full max-w-[760px] mx-auto px-10 pb-1 overflow-hidden min-h-0">
+            <div className="flex items-center gap-2.5 py-2 pb-3.5 border-b border-border shrink-0">
+              <div className="text-[15px] font-semibold flex-1 truncate min-w-0">{conv?.title}</div>
+              <div className="text-[12px] text-text-3 shrink-0">超级小爱 · 历史对话</div>
+            </div>
+            <MessageList messages={conv?.messages || []} />
+          </div>
+        )}
+      <div className="px-6 pb-6 pt-4 shrink-0 flex justify-center">
+        <ChatInputFull placeholder="发消息或 @ 设备帮你做事" model={model} onChangeModel={onChangeModel} />
+      </div>
+    </div>
+  );
+}
+
+function ShareDialog({ file, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  if (!file) return null;
+  const ext = (file.name.split('.').pop() || '').toUpperCase() || 'FILE';
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.18] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-[380px] max-w-[90vw] rounded-[14px] overflow-hidden animate-popIn shadow-modal" style={{ background:'#f2efe8' }}>
+        <div className="px-5 pt-4 pb-1 text-[17px] font-semibold">发送</div>
+        <div className="flex flex-col items-center gap-0.5 px-5 pt-3 pb-5">
+          <div className="w-14 h-14 rounded-xl file-grad flex items-center justify-center text-[28px] mb-1.5">{iconForFile(file.name)}</div>
+          <div className="text-[14px] font-semibold max-w-[300px] truncate">{file.name}</div>
+          <div className="text-[12px] text-text-3">{ext} · {formatSize(file.size)}</div>
+        </div>
+        <div className="px-5 pt-3.5 pb-4 border-t border-black/[.06]">
+          <div className="text-[12px] text-text-2 mb-3">我的设备</div>
+          <div className="flex flex-wrap gap-5">
+            {[{ icon:'📱', name:'Xiaomi MIX Flip 2' }, { icon:'📲', name:'Xiaomi Pad 6S Pro' }].map((d, i) => (
+              <div key={i} onClick={onClose} className="flex flex-col items-center gap-1.5 cursor-pointer hover:scale-105 transition-transform w-[70px]">
+                <div className="w-12 h-12 rounded-full device-grad flex items-center justify-center text-[20px]">{d.icon}</div>
+                <div className="text-[11.5px] text-text text-center leading-[1.3]">{d.name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="px-5 pt-3.5 pb-4 border-t border-black/[.06]">
+          <div className="text-[12px] text-text-2 mb-3">其他设备</div>
+          <div className="text-[12px] text-text-3 text-center py-4">附近暂无可接收设备</div>
+        </div>
+        <div className="flex justify-end px-4 py-3 border-t border-black/[.06]">
+          <button onClick={onClose} className="bg-[#dcd9d2] hover:bg-[#ccc9c2] text-text text-[13px] px-4.5 py-1.5 rounded-lg transition-colors">取消</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddDeviceDialog({ open, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.18] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-[460px] max-w-[90vw] rounded-[14px] p-11 px-11 pb-5 animate-popIn shadow-modal flex flex-col items-center" style={{ background:'#f2efe8' }}>
+        <button onClick={onClose} className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-black/[.08] hover:bg-black/[.14] text-text-2 flex items-center justify-center">
+          <Icon.Close width="14" height="14" />
+        </button>
+        <div className="text-[22px] font-bold text-text mb-2.5 text-center">我的设备</div>
+        <div className="text-[13px] text-text-2 leading-[1.65] text-center max-w-[360px]">请确保小米手机在附近,手机系统已升级至小米澎湃 OS 3,并与 Mac 登录相同小米账号、连接相同网络</div>
+
+        <div className="relative w-[240px] h-[240px] my-10 mb-7 flex items-center justify-center">
+          <div className="absolute rounded-full bg-white/85 z-[2] shadow-soft" style={{ width:'44px', height:'44px' }} />
+          <div className="absolute rounded-full bg-white/50 animate-scan" />
+          <div className="absolute rounded-full bg-white/50 animate-scan" style={{ animationDelay:'1.2s' }} />
+        </div>
+
+        <div className="w-full max-w-[360px] py-3 rounded-full bg-black/[.05] text-text-3 text-[14px] font-medium text-center mb-3.5">搜索中...</div>
+        <div className="text-[12.5px] text-text-2 text-center">未搜索到小米手机或平板?尝试<a className="text-accent cursor-pointer ml-0.5 hover:underline">扫码添加</a></div>
+      </div>
+    </div>
+  );
+}
+
+/* ===========================  App  =========================== */
+
+function App() {
+  const [activeTab,    setActiveTab]    = useState('hub');
+  const [chatMode,     setChatMode]     = useState('off'); // 'off' | 'side' | 'full'
+  const [activeConvId, setActiveConvId] = useState(null);
+  const [share,        setShare]        = useState(null);  // file or null
+  const [addDeviceOpen,setAddDeviceOpen]= useState(false);
+  const [model,        setModel]        = useState('快速');
+
+  const conv = activeConvId ? CONVERSATIONS[activeConvId] : null;
+  const inFullscreen = chatMode === 'full';
+
+  const onSelectTab = (id) => { setActiveTab(id); setChatMode(prev => prev === 'full' ? 'off' : prev); };
+  const onSidebarNewChat = () => { setActiveConvId(null); setChatMode('full'); };
+  const onCopilotNewChat = () => { setActiveConvId(null); setChatMode(c => c === 'full' ? 'off' : c); };
+  const onOpenConv = (id) => { setActiveConvId(id); /* keep current chat mode */ };
+  const onExpand = () => setChatMode('full');
+
+  return (
+    <div className="max-w-[1280px] mx-auto px-5 py-6 pb-16">
+      <h1 className="text-[22px] font-semibold mb-1 tracking-tight">方案 4 · 工具主 + AI 副驾</h1>
+      <p className="text-text-2 text-[14px] mb-3">React + Tailwind 重写版 · 单文件原型(CDN)</p>
+
+      <div className="bg-accent-bg border-l-[3px] border-accent rounded-md px-3.5 py-2.5 text-[13px] text-text-2 mb-6 leading-[1.7]">
+        <b className="text-text">核心理念</b>:工具/设备/云服务为主界面,超级小爱作为右侧常驻副驾(可展开为全屏)。
+        <br />
+        <b className="text-text">试试</b>:左栏 <b>＋ 新建对话</b> → 全屏新建 · 副驾头部 <b>✏️ 新建对话</b> → 就地新建 · 历史对话保持当前模式 · 拖文件到「小米互传」弹发送框
+      </div>
+
+      <div className="bg-surface border border-border rounded-2xl shadow-lg overflow-hidden flex flex-col h-[680px] relative">
+        <TitleBar />
+        <div className="flex flex-1 min-h-0">
+          <Sidebar activeTab={activeTab}
+                   onSelectTab={onSelectTab}
+                   onNewChat={onSidebarNewChat}
+                   onOpenConv={onOpenConv} />
+
+          {!inFullscreen && (
+            <div className="flex-1 flex flex-col min-w-0 bg-surface">
+              {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} />}
+              {activeTab === 'cloud-photo' && <CloudPhotoPage />}
+              {activeTab === 'cloud-note'  && <CloudNotePage />}
+              {activeTab === 'find-device' && <FindDevicePage />}
+              {activeTab === 'discover'    && <DiscoverPage />}
+              {activeTab === 'files'       && <FilesPage />}
+              {activeTab === 'cross'       && <CrossPage />}
+              {activeTab === 'settings'    && <SettingsPage />}
+            </div>
+          )}
+
+          <FullscreenChat visible={inFullscreen}
+                          mode={activeConvId ? 'conv' : 'welcome'}
+                          conv={conv}
+                          model={model}
+                          onChangeModel={setModel} />
+
+          {!inFullscreen && (
+            <Copilot activeTab={activeTab}
+                     mode={activeConvId ? 'conv' : 'welcome'}
+                     conv={conv}
+                     onNewChat={onCopilotNewChat}
+                     onExpand={onExpand}
+                     model={model}
+                     onChangeModel={setModel} />
+          )}
+        </div>
+      </div>
+
+      <ShareDialog file={share} onClose={() => setShare(null)} />
+      <AddDeviceDialog open={addDeviceOpen} onClose={() => setAddDeviceOpen(false)} />
+
+      <div className="mt-5 p-4 px-5 bg-surface border border-border rounded-xl text-[13px] text-text-2 leading-[1.8]">
+        <b className="text-text">技术栈</b>:React 18 (UMD CDN) · Tailwind CSS (CDN, JIT) · Babel Standalone · 零构建,直接打开 HTML 即可。<br />
+        研发把这个文件迁到 Vite/Electron 项目时:把 `<script src="cdn">` 换成 npm 依赖,Tailwind config 已在 `tailwind.config.js` 直接复用,组件可按 `App` 内部拆分搬到 `src/components/*.tsx`。状态管理简单可改 Zustand。
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
