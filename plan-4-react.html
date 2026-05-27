@@ -610,34 +610,63 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onClos
 }
 
 function TransferPage() {
+  // mine: 同账号 → 显示"我的 xxx";sameLan: 是否同局域网,否则触发"加入热点"询问
   const devices = [
-    { id:'x17',  name: 'Xiaomi 17',       color: 'from-sky-200 to-sky-400' },
-    { id:'x17u', name: 'Xiaomi 17 Ultra', color: 'from-blue-300 to-indigo-400' },
-    { id:'pad7', name: 'Xiaomi Pad 7',    color: 'from-purple-200 to-pink-300' },
+    { id:'x17',  name: 'Xiaomi 17',       color: 'from-sky-200 to-sky-400',     mine:true,  sameLan:true  },
+    { id:'x17u', name: 'Xiaomi 17 Ultra', color: 'from-blue-300 to-indigo-400', mine:true,  sameLan:false },
+    { id:'pad7', name: 'Xiaomi Pad 7',    color: 'from-purple-200 to-pink-300', mine:false, sameLan:true  },
   ];
-  const [hoverDevice, setHoverDevice] = useState(null);    // 拖拽悬停高亮
-  const [pickerForDevice, setPickerForDevice] = useState(null); // 单设备文件选择
-  const [filePickerOpen, setFilePickerOpen] = useState(false);  // 通用文件选择(选完进多设备)
-  const [targetPickerOpen, setTargetPickerOpen] = useState(false); // 多设备目标选择
-  const [selectedTargets, setSelectedTargets] = useState([]);   // 多设备已勾选
-  const [sendingTo, setSendingTo] = useState([]);               // 正在发送给哪些设备
+  const displayName = (d) => d.mine ? `我的 ${d.name}` : d.name;
 
-  // 通用单设备发送弹窗(从拖拽 / 点设备球 触发)
-  const handleDeviceDrop = (dev) => { setHoverDevice(null); setPickerForDevice(dev); };
-  const handleDeviceClick = (dev) => { setPickerForDevice(dev); };
+  const [hoverDevice, setHoverDevice] = useState(null);
+  const [pickerForDevice, setPickerForDevice] = useState(null);
+  const [filePickerOpen, setFilePickerOpen] = useState(false);
+  const [targetPickerOpen, setTargetPickerOpen] = useState(false);
+  const [selectedTargets, setSelectedTargets] = useState([]);
+  const [sendingTo, setSendingTo] = useState([]);
+  const [hotspotPrompt, setHotspotPrompt] = useState(null); // {dev, next:'pickFile'|'multi'}
 
-  // 选完文件后,确认发送
+  // 进入单设备发送流程:若不在同局域网,先弹"加入热点"
+  const enterSingleFlow = (dev) => {
+    if (!dev.sameLan) { setHotspotPrompt({ dev, next:'pickFile' }); return; }
+    setPickerForDevice(dev);
+  };
+  const handleDeviceDrop = (dev) => { setHoverDevice(null); enterSingleFlow(dev); };
+  const handleDeviceClick = (dev) => { enterSingleFlow(dev); };
+
+  // 多设备:确认目标后,若有非同局域网设备,先逐一询问加入热点(简化处理:只对第一个非同网设备询问)
+  const confirmMultiSend = () => {
+    const targets = devices.filter(d => selectedTargets.includes(d.id));
+    const offline = targets.find(d => !d.sameLan);
+    if (offline) {
+      setTargetPickerOpen(false);
+      setHotspotPrompt({ dev: offline, next:'multi', queuedTargets: targets });
+      return;
+    }
+    setSendingTo(targets);
+    setTargetPickerOpen(false);
+    setSelectedTargets([]);
+    setTimeout(() => setSendingTo([]), 2200);
+  };
   const confirmSingleSend = () => {
     if (!pickerForDevice) return;
     setSendingTo([pickerForDevice]);
     setPickerForDevice(null);
     setTimeout(() => setSendingTo([]), 2200);
   };
-  const confirmMultiSend = () => {
-    setSendingTo(devices.filter(d => selectedTargets.includes(d.id)));
-    setTargetPickerOpen(false);
-    setSelectedTargets([]);
-    setTimeout(() => setSendingTo([]), 2200);
+
+  // 用户在"加入热点"弹窗的选择
+  const handleHotspotConfirm = () => {
+    const p = hotspotPrompt;
+    setHotspotPrompt(null);
+    if (!p) return;
+    if (p.next === 'pickFile') {
+      setPickerForDevice(p.dev);
+    } else if (p.next === 'multi') {
+      setSendingTo(p.queuedTargets);
+      setSelectedTargets([]);
+      setTimeout(() => setSendingTo([]), 2200);
+    }
   };
 
   return (
@@ -667,7 +696,8 @@ function TransferPage() {
                     {isSending && <span className="text-white text-[18px]">✓</span>}
                   </div>
                 </div>
-                <div className="text-[12px] text-text-2 group-hover:text-text">{d.name}</div>
+                <div className="text-[12px] text-text-2 group-hover:text-text">{displayName(d)}</div>
+                {!d.sameLan && <div className="text-[10px] text-text-3">不同局域网</div>}
                 {isSending && <div className="text-[11px] text-ok">已发送</div>}
               </div>
             );
@@ -684,11 +714,30 @@ function TransferPage() {
       {/* 单设备-文件选择弹窗(拖拽 / 点击设备球 触发) */}
       {pickerForDevice && (
         <FilePickerModal
-          title={`发送到 ${pickerForDevice.name}`}
+          title={`发送到 ${displayName(pickerForDevice)}`}
           onCancel={() => setPickerForDevice(null)}
           onConfirm={confirmSingleSend}
           confirmLabel="发送"
         />
+      )}
+
+      {/* 加入热点询问弹窗 */}
+      {hotspotPrompt && (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/[.22] backdrop-blur-sm" onClick={() => setHotspotPrompt(null)} />
+          <div className="relative w-[360px] bg-surface rounded-[14px] shadow-modal p-5 animate-popIn">
+            <div className="text-[15px] font-semibold mb-2">{displayName(hotspotPrompt.dev)} 不在同一局域网</div>
+            <div className="text-[12.5px] text-text-2 leading-relaxed mb-4">
+              是否加入「{hotspotPrompt.dev.name}」的热点以继续传输?加入后将自动建立连接。
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setHotspotPrompt(null)}
+                      className="px-4 py-1.5 rounded-md text-[13px] text-text-2 hover:bg-surface-2">取消</button>
+              <button onClick={handleHotspotConfirm}
+                      className="px-4 py-1.5 rounded-md bg-accent text-white text-[13px] font-medium hover:bg-[#3b5de7]">加入热点</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 通用-文件选择弹窗(点"发送文件"按钮触发) */}
@@ -722,7 +771,8 @@ function TransferPage() {
                         {sel && <span className="text-white text-[16px]">✓</span>}
                       </div>
                     </div>
-                    <div className="text-[11px] text-text-2 text-center max-w-[72px] leading-tight">{d.name}</div>
+                    <div className="text-[11px] text-text-2 text-center max-w-[80px] leading-tight">{displayName(d)}</div>
+                    {!d.sameLan && <div className="text-[10px] text-text-3">不同局域网</div>}
                   </div>
                 );
               })}
