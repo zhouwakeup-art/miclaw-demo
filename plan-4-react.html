@@ -579,7 +579,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
             <div className="flex gap-2.5 mb-6">
               <ActionChip>🔗 启用热点</ActionChip>
               <ActionChip>🔔 响铃查找</ActionChip>
-              <ActionChip disabled={!isConnected} onClick={() => isConnected && fileInputRef.current?.click()}>📤 文件传输</ActionChip>
+              <ActionChip onClick={() => fileInputRef.current?.click()}>📤 文件传输</ActionChip>
             </div>
             {/* 妙享桌面(未连接时禁用) */}
             <div className={`w-full bg-surface-2 border border-border rounded-xl p-4 ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -625,7 +625,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
             {/* 操作胶囊 */}
             <div className="flex gap-2.5 mb-6">
               <ActionChip>🔔 响铃查找</ActionChip>
-              <ActionChip disabled={!isConnected} onClick={() => isConnected && fileInputRef.current?.click()}>📤 文件传输</ActionChip>
+              <ActionChip onClick={() => fileInputRef.current?.click()}>📤 文件传输</ActionChip>
             </div>
             {/* 屏幕拓展(未连接禁用) */}
             <div className={`w-full bg-surface-2 border border-border rounded-xl p-4 ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
