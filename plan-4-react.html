@@ -1142,6 +1142,7 @@ function AiSettings({ llmLog, setLlmLog, detailLog, setDetailLog }) {
     { id:'skill', label:'技能' },
     { id:'mcp', label:'MCP' },
     { id:'auth', label:'应用授权' },
+    { id:'mihome', label:'米家' },
     { id:'lab', label:'实验室' },
   ];
   return (
@@ -1229,11 +1230,44 @@ function AiSettings({ llmLog, setLlmLog, detailLog, setDetailLog }) {
         </SettingsSection>
       )}
 
+      {aiTab === 'mihome' && (
+        <div>
+          <div className="text-[14px] font-semibold text-text mb-1.5">米家</div>
+          <div className="text-[12px] text-text-3 mb-5 leading-relaxed">选择允许 AI 助手访问的米家家庭。取消勾选的家庭将不会在对话中被使用。</div>
+          <div className="text-[13px] font-semibold text-text mb-2">家庭列表(已选 1/1)</div>
+          <div className="bg-white border-2 border-accent/40 rounded-xl p-3 flex items-center gap-3 mb-4">
+            <div className="w-5 h-5 rounded bg-accent/20 flex items-center justify-center shrink-0">
+              <span className="text-accent text-[12px] leading-none">✓</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-semibold text-text">2389984542</div>
+              <div className="text-[11px] text-text-3 mt-0.5">1 个房间 · ID: 765001311057</div>
+            </div>
+          </div>
+          <div className="text-[11px] text-text-3 flex items-start gap-1.5">
+            <span>💡</span>
+            <span>至少需要选择一个家庭。更改会立即生效,在下次对话中使用新的家庭配置。</span>
+          </div>
+        </div>
+      )}
+
       {aiTab === 'lab' && (
         <SettingsSection title="实验室">
-          <SettingsRow label="米家家庭" sub="已选 1/1" arrow />
-          <SettingsRow label="大模型日志跟踪" control={<Toggle value={llmLog} onChange={setLlmLog} />} />
-          <SettingsRow label="详细日志" control={<Toggle value={detailLog} onChange={setDetailLog} />} />
+          <SettingsRow
+            label="Xiaomi miclaw 日志收集"
+            sub="导出应用日志文件用于诊断和问题排查"
+            control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">导出日志</button>}
+          />
+          <SettingsRow
+            label="大模型日志跟踪"
+            sub="开启后将 LLM 请求/响应写入 llm.log,关闭后立即停止写入,重启后保持当前设置。"
+            control={<Toggle value={llmLog} onChange={setLlmLog} />}
+          />
+          <SettingsRow
+            label="打开详细日志"
+            sub="开启后日志将记录完整原始信息,可能包含敏感信息,请勿分享日志文件给他人。"
+            control={<Toggle value={detailLog} onChange={setDetailLog} />}
+          />
         </SettingsSection>
       )}
     </>
