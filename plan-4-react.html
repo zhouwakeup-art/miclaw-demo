@@ -1411,8 +1411,6 @@ function SettingsWindow({ open, onClose }) {
   const [feedbackModule, setFeedbackModule] = useState('');
   const [notifOn, setNotifOn] = useState(true);
   const [notifSound, setNotifSound] = useState(true);
-  const [llmLog, setLlmLog] = useState(false);
-  const [detailLog, setDetailLog] = useState(false);
   useEffect(() => { if (open) setPage('general'); }, [open]);
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -1551,16 +1549,6 @@ function SettingsWindow({ open, onClose }) {
                 label="日志收集"
                 sub="导出设备互联与超级小爱相关日志用于诊断和问题排查"
                 control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">导出日志</button>}
-              />
-              <SettingsRow
-                label="大模型日志跟踪"
-                sub="开启后将 LLM 请求/响应写入 llm.log,关闭后立即停止写入,重启后保持当前设置。"
-                control={<Toggle value={llmLog} onChange={setLlmLog} />}
-              />
-              <SettingsRow
-                label="打开详细日志"
-                sub="开启后日志将记录完整原始信息,可能包含敏感信息,请勿分享日志文件给他人。"
-                control={<Toggle value={detailLog} onChange={setDetailLog} />}
               />
             </SettingsSection>
           </>)}
