@@ -78,6 +78,15 @@
   .text-baidu { background: linear-gradient(135deg,#3677ed,#5b94ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
   /* POI 标签:白色发光背景 */
   .poi-text { text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
+  /* 小米互传:同心圆背景 */
+  .transfer-bg {
+    background:
+      radial-gradient(ellipse 80% 70% at 50% 60%, rgba(220,232,248,0.65), transparent 70%),
+      linear-gradient(180deg, #f4f7fb 0%, #e8eef6 100%);
+  }
+  /* 设备球内手机壁纸 */
+  .wp-blue { background: linear-gradient(160deg, #cfe2f3 0%, #6f9ec8 50%, #1f3a5a 100%); }
+  .wp-pad  { background: linear-gradient(135deg,#e8d8c0 0%, #b89878 45%, #5a3a28 100%); }
   /* 副驾 aurora 渐变背景 */
   .copilot-aurora {
     background:
@@ -612,9 +621,9 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onClos
 function TransferPage() {
   // mine: 同账号 → 显示"我的 xxx";sameLan: 是否同局域网,否则触发"加入热点"询问
   const devices = [
-    { id:'x17',  name: 'Xiaomi 17',       color: 'from-sky-200 to-sky-400',     mine:true,  sameLan:true  },
-    { id:'x17u', name: 'Xiaomi 17 Ultra', color: 'from-blue-300 to-indigo-400', mine:true,  sameLan:false },
-    { id:'pad7', name: 'Xiaomi Pad 7',    color: 'from-purple-200 to-pink-300', mine:false, sameLan:true  },
+    { id:'x17',  name: 'Xiaomi 17',       color: 'from-sky-200 to-sky-400',     wallpaper:'wp-blue',  mine:true,  sameLan:true  },
+    { id:'x17u', name: 'Xiaomi 17 Ultra', color: 'from-blue-300 to-indigo-400', wallpaper:'wp-blue',  mine:true,  sameLan:false },
+    { id:'pad7', name: 'Xiaomi Pad 7',    color: 'from-purple-200 to-pink-300', wallpaper:'wp-pad',   mine:false, sameLan:true  },
   ];
   const displayName = (d) => d.mine ? `我的 ${d.name}` : d.name;
 
@@ -648,36 +657,59 @@ function TransferPage() {
   return (
     <>
       <WsHeader>小米互传</WsHeader>
-      <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col items-center relative">
-        <div className="self-start mb-6">
+      <div className="flex-1 overflow-hidden flex flex-col relative transfer-bg">
+        <div className="px-6 pt-5 z-[1]">
           <div className="text-[22px] font-bold">倪妮的 Macbook Pro</div>
           <div className="text-[13px] text-text-3 mt-1">点击设备球选择或拖拽文件至设备球发送</div>
         </div>
-        {/* 设备球 */}
-        <div className="flex gap-8 items-center justify-center my-8">
-          {devices.map((d) => {
-            const isHover = hoverDevice === d.id;
-            const isSending = sendingTo.some(s => s.id === d.id);
-            return (
-              <div key={d.id}
-                   className="flex flex-col items-center gap-2 cursor-pointer group"
-                   onClick={() => handleDeviceClick(d)}
-                   onDragOver={(e) => { e.preventDefault(); setHoverDevice(d.id); }}
-                   onDragLeave={() => setHoverDevice(null)}
-                   onDrop={(e) => { e.preventDefault(); handleDeviceDrop(d); }}>
-                <div className={`w-[80px] h-[80px] rounded-full bg-gradient-to-br ${d.color} shadow-card flex items-center justify-center transition-all
-                                  ${isHover ? 'scale-110 ring-4 ring-accent/40' : 'group-hover:scale-105'}
-                                  ${isSending ? 'ring-4 ring-ok/60' : ''}`}>
-                  <div className="w-[50px] h-[50px] rounded-[12px] bg-white/30 backdrop-blur-sm flex items-center justify-center">
-                    {isSending && <span className="text-white text-[18px]">✓</span>}
+
+        {/* 同心圆背景 + 设备球 */}
+        <div className="flex-1 relative flex items-center justify-center">
+          {/* 同心圆 */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute rounded-full border border-white/70 bg-white/[0.18]" style={{ width:'820px', height:'820px' }} />
+            <div className="absolute rounded-full border border-white/70 bg-white/[0.30]" style={{ width:'620px', height:'620px' }} />
+            <div className="absolute rounded-full border border-white/80 bg-white/[0.45]" style={{ width:'430px', height:'430px' }} />
+            <div className="absolute rounded-full border border-white/90 bg-white/[0.65]" style={{ width:'260px', height:'260px' }} />
+          </div>
+
+          {/* 设备球 */}
+          <div className="relative flex items-center justify-center gap-2 z-[1]">
+            {devices.map((d, idx) => {
+              const isHover = hoverDevice === d.id;
+              const isSending = sendingTo.some(s => s.id === d.id);
+              const isCenter = idx === 1;
+              const ringSize = isCenter ? 180 : 120;
+              const phoneW = isCenter ? 64 : 44;
+              return (
+                <div key={d.id}
+                     className="flex flex-col items-center cursor-pointer group transition-transform"
+                     onClick={() => handleDeviceClick(d)}
+                     onDragOver={(e) => { e.preventDefault(); setHoverDevice(d.id); }}
+                     onDragLeave={() => setHoverDevice(null)}
+                     onDrop={(e) => { e.preventDefault(); handleDeviceDrop(d); }}>
+                  <div className={`relative rounded-full bg-white shadow-[0_8px_28px_rgba(120,160,210,0.25)] flex items-center justify-center transition-all
+                                    ${isHover ? 'scale-110 ring-4 ring-accent/40' : 'group-hover:scale-105'}
+                                    ${isSending ? 'ring-4 ring-ok/60' : ''}`}
+                       style={{ width: ringSize+'px', height: ringSize+'px' }}>
+                    {/* 手机外形 */}
+                    <div className="rounded-[14px] overflow-hidden shadow-[0_3px_10px_rgba(60,90,140,0.18)] bg-white"
+                         style={{ width: phoneW+'px', height: (phoneW * 1.6)+'px' }}>
+                      <div className={`w-full h-full ${d.wallpaper}`} />
+                    </div>
+                    {isSending && (
+                      <div className="absolute inset-0 rounded-full bg-ok/15 flex items-center justify-center">
+                        <span className="text-ok text-[24px] font-bold">✓</span>
+                      </div>
+                    )}
                   </div>
+                  <div className="text-[12px] text-text-2 mt-2 group-hover:text-text">{displayName(d)}</div>
+                  {!d.sameLan && <div className="text-[10px] text-text-3">不同局域网</div>}
+                  {isSending && <div className="text-[11px] text-ok">已发送</div>}
                 </div>
-                <div className="text-[12px] text-text-2 group-hover:text-text">{displayName(d)}</div>
-                {!d.sameLan && <div className="text-[10px] text-text-3">不同局域网</div>}
-                {isSending && <div className="text-[11px] text-ok">已发送</div>}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
