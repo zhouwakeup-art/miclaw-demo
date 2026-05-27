@@ -534,9 +534,13 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
               </div>
               <div className="text-[13px] text-text-3 mt-0.5 flex items-center gap-1.5">
                 <span className={`inline-block w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-ok' : 'bg-text-3'}`} />
-                {isConnected ? '局域网连接' : '未连接'}
-                {!isConnected && (
-                  <span onClick={() => setHelpOpen(true)} className="text-accent cursor-pointer hover:underline ml-1">查看连接帮助</span>
+                {isConnected ? '局域网连接' : (
+                  <span>
+                    未连接,
+                    <span onClick={() => setHelpOpen(true)} className="text-accent cursor-pointer hover:underline">查看连接帮助</span>
+                    或
+                    <span onClick={() => {/* 触发重新连接 */}} className="text-accent cursor-pointer hover:underline">重新连接</span>
+                  </span>
                 )}
               </div>
             </div>
@@ -572,9 +576,13 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
               </div>
               <div className="text-[13px] text-text-3 mt-0.5 flex items-center gap-1.5">
                 <span className={`inline-block w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-ok' : 'bg-text-3'}`} />
-                {isConnected ? '局域网连接' : '未连接'}
-                {!isConnected && (
-                  <span onClick={() => setHelpOpen(true)} className="text-accent cursor-pointer hover:underline ml-1">查看连接帮助</span>
+                {isConnected ? '局域网连接' : (
+                  <span>
+                    未连接,
+                    <span onClick={() => setHelpOpen(true)} className="text-accent cursor-pointer hover:underline">查看连接帮助</span>
+                    或
+                    <span onClick={() => {/* 触发重新连接 */}} className="text-accent cursor-pointer hover:underline">重新连接</span>
+                  </span>
                 )}
               </div>
             </div>
