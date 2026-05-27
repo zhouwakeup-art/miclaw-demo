@@ -798,14 +798,10 @@ function LoginDialog({ open, onClose, onLoggedIn }) {
               <div className="text-[12px] text-text-3 text-center leading-relaxed mb-8 px-4">
                 可使用小米手机或平板,点击设置 &gt; 小米账号后扫码登录,或使用其他扫码工具
               </div>
-              <div className="w-full flex items-start gap-2 text-[11.5px] text-text-2 mb-2 px-2">
-                <button onClick={() => setAgreed(a => !a)}
-                        className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreed ? 'bg-accent' : 'bg-text-3/40'}`}>
-                  {agreed && <span className="text-white text-[9px] leading-none">✓</span>}
-                </button>
-                <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米账号使用协议</a>和<a className="text-accent hover:underline cursor-pointer">小米账号隐私政策</a></span>
+              <div className="text-[11.5px] text-text-2 text-center mb-2 leading-relaxed">
+                扫码登录即代表同意<a className="text-accent hover:underline cursor-pointer">小米账号使用协议</a>和<a className="text-accent hover:underline cursor-pointer">小米账号隐私政策</a>
               </div>
-              <div className="w-full flex items-start gap-2 text-[11.5px] text-text-2 mb-5 px-2">
+              <div className="w-full flex items-start gap-2 text-[11.5px] text-text-2 mb-5 justify-center">
                 <button onClick={() => setAgreedAi(a => !a)}
                         className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedAi ? 'bg-accent' : 'bg-text-3/40'}`}>
                   {agreedAi && <span className="text-white text-[9px] leading-none">✓</span>}
