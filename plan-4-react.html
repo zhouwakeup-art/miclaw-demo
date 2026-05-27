@@ -1513,28 +1513,12 @@ function SettingsWindow({ open, onClose }) {
 
           {page === 'help' && <HelpSettings />}
 
-          {page === 'feedback' && (<>
-            <SettingsSection title="问题模块">
-              <SettingsRow label="首页连接小米设备" arrow onClick={() => { setFeedbackModule('首页连接小米设备'); setPage('feedback-form'); }} />
-              <SettingsRow label="小米互传" arrow onClick={() => { setFeedbackModule('小米互传'); setPage('feedback-form'); }} />
-              <SettingsRow label="妙享桌面" arrow onClick={() => { setFeedbackModule('妙享桌面'); setPage('feedback-form'); }} />
-              <SettingsRow label="跨设备解锁" arrow onClick={() => { setFeedbackModule('跨设备解锁'); setPage('feedback-form'); }} />
-              <SettingsRow label="查找设备" arrow onClick={() => { setFeedbackModule('查找设备'); setPage('feedback-form'); }} />
-              <SettingsRow label="连接小米手机热点" arrow onClick={() => { setFeedbackModule('连接小米手机热点'); setPage('feedback-form'); }} />
-              <SettingsRow label="屏幕扩展" arrow onClick={() => { setFeedbackModule('屏幕扩展'); setPage('feedback-form'); }} />
-              <SettingsRow label="超级小爱" arrow onClick={() => { setFeedbackModule('超级小爱'); setPage('feedback-form'); }} />
-            </SettingsSection>
-            <SettingsSection title="建议">
-              <SettingsRow label="功能建议" arrow onClick={() => { setFeedbackModule('功能建议'); setPage('suggestion-form'); }} />
-            </SettingsSection>
-            <SettingsSection title="日志">
-              <SettingsRow
-                label="日志收集"
-                sub="导出设备互联与超级小爱相关日志用于诊断和问题排查"
-                control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">导出日志</button>}
-              />
-            </SettingsSection>
-          </>)}
+          {page === 'feedback' && (
+            <FeedbackSettings
+              setFeedbackModule={setFeedbackModule}
+              setPage={setPage}
+            />
+          )}
 
           {page === 'feedback-form' && (<>
             <div className="mb-4">
@@ -1638,6 +1622,49 @@ function SettingsWindow({ open, onClose }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function FeedbackSettings({ setFeedbackModule, setPage }) {
+  const [tab, setTab] = useState('module');
+  const tabs = [
+    { id:'module',     label:'问题模块' },
+    { id:'suggestion', label:'建议' },
+    { id:'log',        label:'日志' },
+  ];
+  const modules = ['首页连接小米设备','小米互传','妙享桌面','跨设备解锁','查找设备','连接小米手机热点','屏幕扩展','超级小爱'];
+  return (
+    <>
+      <div className="flex gap-4 mb-5 border-b border-border pb-2">
+        {tabs.map(t => (
+          <span key={t.id} onClick={() => setTab(t.id)}
+                className={`text-[13px] pb-1 cursor-pointer ${tab === t.id ? 'font-semibold text-text border-b-2 border-text' : 'text-text-3 hover:text-text-2'}`}>{t.label}</span>
+        ))}
+      </div>
+      {tab === 'module' && (
+        <SettingsSection>
+          {modules.map(m => (
+            <SettingsRow key={m} label={m} arrow
+              onClick={() => { setFeedbackModule(m); setPage('feedback-form'); }} />
+          ))}
+        </SettingsSection>
+      )}
+      {tab === 'suggestion' && (
+        <SettingsSection>
+          <SettingsRow label="功能建议" arrow
+            onClick={() => { setFeedbackModule('功能建议'); setPage('suggestion-form'); }} />
+        </SettingsSection>
+      )}
+      {tab === 'log' && (
+        <SettingsSection>
+          <SettingsRow
+            label="日志收集"
+            sub="导出设备互联与超级小爱相关日志用于诊断和问题排查"
+            control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">导出日志</button>}
+          />
+        </SettingsSection>
+      )}
+    </>
   );
 }
 
