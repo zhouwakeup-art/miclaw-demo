@@ -765,13 +765,15 @@ function DeviceIllust({ kind }) {
 
 function LoginDialog({ open, onClose, onLoggedIn }) {
   const [mode, setMode] = useState('qr'); // 'qr' | 'phone'
-  const [phone, setPhone] = useState('');
-  const [code,  setCode]  = useState('');
+  const [account, setAccount] = useState('');
+  const [pwd, setPwd] = useState('');
+  const [pwdShow, setPwdShow] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[140] flex items-center justify-center animate-fadeIn">
       <div className="absolute inset-0 bg-black/[.30] backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-[400px] bg-[#f3f3f3] rounded-[14px] shadow-modal animate-popIn overflow-hidden">
+      <div className="relative w-[420px] bg-[#f3f3f3] rounded-[14px] shadow-modal animate-popIn overflow-hidden">
         {/* 红绿灯标题栏 */}
         <div className="h-9 bg-white flex items-center px-3 border-b border-black/[.06]">
           <button onClick={onClose} className="w-3 h-3 rounded-full bg-[#ff5f57] hover:opacity-80" />
@@ -780,7 +782,6 @@ function LoginDialog({ open, onClose, onLoggedIn }) {
         <div className="px-8 pt-8 pb-6 flex flex-col items-center">
           {mode === 'qr' ? (
             <>
-              {/* 二维码 */}
               <div className="w-[180px] h-[180px] bg-white rounded-xl shadow-soft flex items-center justify-center mb-3">
                 <FakeQR size={150} />
               </div>
@@ -793,22 +794,43 @@ function LoginDialog({ open, onClose, onLoggedIn }) {
             </>
           ) : (
             <>
-              {/* 手机号登录 */}
-              <div className="w-full mt-4 mb-2">
-                <input value={phone} onChange={(e) => setPhone(e.target.value)}
-                       placeholder="手机号"
-                       className="w-full px-3 py-2.5 mb-2.5 rounded-md border border-border bg-white text-[13px] focus:outline-none focus:border-accent" />
-                <div className="flex gap-2 mb-4">
-                  <input value={code} onChange={(e) => setCode(e.target.value)}
-                         placeholder="验证码"
-                         className="flex-1 px-3 py-2.5 rounded-md border border-border bg-white text-[13px] focus:outline-none focus:border-accent" />
-                  <button className="px-3 rounded-md text-[12px] text-accent border border-accent hover:bg-accent-bg">获取验证码</button>
-                </div>
-                <button onClick={onLoggedIn}
-                        className="w-full py-2.5 rounded-md bg-accent text-white text-[13px] font-semibold hover:bg-[#3b5de7]">登录</button>
+              {/* mi logo */}
+              <div className="w-[58px] h-[58px] rounded-[12px] bg-[#ff6700] flex items-center justify-center shadow-soft mb-7">
+                <span className="text-white text-[26px] font-bold tracking-tight italic">mi</span>
               </div>
-              <div className="text-[11.5px] text-text-2 text-center mt-4 mb-3">
-                登录即代表同意<a className="text-accent hover:underline cursor-pointer">小米账号使用协议</a>和<a className="text-accent hover:underline cursor-pointer">小米账号隐私政策</a>
+              {/* 账号 */}
+              <input value={account} onChange={(e) => setAccount(e.target.value)}
+                     placeholder="小米账号 / 手机号 / 邮箱"
+                     className="w-full px-4 py-3 mb-2 rounded-xl bg-[#e7e7e8] text-[13px] focus:outline-none placeholder:text-text-3" />
+              {/* 密码 */}
+              <div className="w-full relative mb-5">
+                <input value={pwd} onChange={(e) => setPwd(e.target.value)}
+                       type={pwdShow ? 'text' : 'password'}
+                       placeholder="密码"
+                       className="w-full px-4 py-3 pr-10 rounded-xl bg-[#e7e7e8] text-[13px] focus:outline-none placeholder:text-text-3" />
+                <button onClick={() => setPwdShow(s => !s)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-3 hover:text-text-2 text-[15px]">
+                  {pwdShow ? '🙈' : '👁'}
+                </button>
+              </div>
+              {/* 登录按钮 */}
+              <button onClick={onLoggedIn}
+                      className="w-full py-3 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] mb-4">登录</button>
+              {/* 链接行 */}
+              <div className="flex items-center gap-3 text-[12px] text-text-2 mb-7">
+                <a className="hover:text-text cursor-pointer">注册</a>
+                <span className="text-text-3/50">|</span>
+                <a className="hover:text-text cursor-pointer">忘记密码</a>
+                <span className="text-text-3/50">|</span>
+                <a className="hover:text-text cursor-pointer">手机号登录</a>
+              </div>
+              {/* 协议勾选 */}
+              <div className="flex items-start gap-2 text-[11.5px] text-text-2 mb-6">
+                <button onClick={() => setAgreed(a => !a)}
+                        className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreed ? 'bg-accent' : 'bg-text-3/40'}`}>
+                  {agreed && <span className="text-white text-[9px] leading-none">✓</span>}
+                </button>
+                <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米账号使用协议</a>和<a className="text-accent hover:underline cursor-pointer">小米账号隐私政策</a></span>
               </div>
             </>
           )}
@@ -820,14 +842,14 @@ function LoginDialog({ open, onClose, onLoggedIn }) {
             <div className="flex-1 h-px bg-text-3/30" />
           </div>
           <div className="flex gap-3">
-            <button onClick={() => mode === 'qr' ? onLoggedIn() : setMode('qr')}
+            <button onClick={() => setMode('qr')}
                     className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${mode === 'qr' ? 'bg-accent text-white shadow-soft' : 'bg-white border border-border text-text-2 hover:text-text'}`}
                     title="扫码登录">
               <span className="text-[18px]">⊟</span>
             </button>
-            <button onClick={() => mode === 'phone' ? onLoggedIn() : setMode('phone')}
+            <button onClick={() => setMode('phone')}
                     className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${mode === 'phone' ? 'bg-accent text-white shadow-soft' : 'bg-white border border-border text-text-2 hover:text-text'}`}
-                    title="手机号登录">
+                    title="账号密码登录">
               <span className="text-[18px]">📱</span>
             </button>
           </div>
