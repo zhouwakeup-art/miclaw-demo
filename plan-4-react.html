@@ -9,10 +9,10 @@
     theme: {
       extend: {
         colors: {
-          bg: '#f7f6f3',
+          bg: '#eef3f2',
           surface: '#ffffff',
-          'surface-2': '#fafaf9',
-          'surface-3': '#f2f1ec',
+          'surface-2': '#f4f7f7',
+          'surface-3': '#e7eded',
           border: '#e7e5e0',
           'border-strong': '#d4d2cc',
           text: '#1a1a1a',
@@ -48,7 +48,8 @@
   };
 </script>
 <style>
-  html, body { background: #f7f6f3; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  html, body { background: #eef3f2; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .app-bg { background: linear-gradient(120deg, #e6f1ea 0%, #ebeff4 45%, #efe9f1 80%, #f3ebf0 100%); }
   /* 手机渐变(妙享/查找设备图钉) */
   .phone-gradient { background: linear-gradient(140deg, #c8a981 0%, #e0c298 40%, #8b7149 100%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
   .phone-camera { background: radial-gradient(circle, #222 40%, #444 60%); }
@@ -77,6 +78,14 @@
   .text-baidu { background: linear-gradient(135deg,#3677ed,#5b94ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
   /* POI 标签:白色发光背景 */
   .poi-text { text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
+  /* 副驾 aurora 渐变背景 */
+  .copilot-aurora {
+    background:
+      radial-gradient(ellipse 120% 80% at 25% 12%, rgba(190,215,240,.5), transparent 62%),
+      radial-gradient(ellipse 100% 70% at 82% 28%, rgba(220,195,235,.5), transparent 62%),
+      radial-gradient(ellipse 110% 80% at 50% 95%, rgba(245,220,225,.4), transparent 66%),
+      linear-gradient(180deg, #ecedf6 0%, #f5edf3 100%);
+  }
 </style>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -131,19 +140,11 @@ const HISTORY_LIST = [
   { id: 'py',      title: 'Python 列表去重的写法' },
 ];
 
-const PROMPTS_BY_PAGE = {
-  hub:         [{ emoji:'💬', text:'打开手机微信' },         { emoji:'📲', text:'把手机上的照片传过来' }],
-  'cloud-photo': [{ emoji:'📷', text:'下载云相册照片到本地' }, { emoji:'🧹', text:'帮我清理重复照片' }],
-  'cloud-note':  [{ emoji:'📝', text:'把这篇笔记导出为 Word' },{ emoji:'🔍', text:'在笔记里搜索关键词' }],
-  'find-device': [{ emoji:'🔔', text:'让我的手机响铃' },       { emoji:'📍', text:'查看设备最近位置' }],
-  discover:    [{ emoji:'🗺️', text:'推荐好用的 MCP' },        { emoji:'📦', text:'安装快递 100 插件' }],
-  files:       [{ emoji:'🌐', text:'打开最近生成的网页' },    { emoji:'🧺', text:'清理一个月前的旧文件' }],
-  cross:       [{ emoji:'🔁', text:'查看上次跨端任务' },      { emoji:'📱', text:'让手机执行一个操作' }],
-  settings:    [{ emoji:'⚙️', text:'关闭 AI 副驾默认展开' },  { emoji:'🔐', text:'检查账号与隐私设置' }],
-};
-const FIXED_PROMPTS = [
-  { emoji:'🗂️', text:'整理桌面' },
+const WELCOME_PROMPTS = [
   { emoji:'🎨', text:'生成网页' },
+  { emoji:'🚀', text:'一键开工' },
+  { emoji:'📷', text:'帮我同步昨天拍的照片' },
+  { emoji:'🗂️', text:'整理桌面' },
 ];
 
 const ALBUMS = [
@@ -191,8 +192,6 @@ const NOTE_BODY = [
   '12.30 早八到东巴谷 牦牛坪 蓝月谷 云杉坪',
 ];
 
-const MODELS = ['快速','深度思考','专家','智能'];
-
 /* ===========================  utils  =========================== */
 
 function iconForFile(name) {
@@ -220,17 +219,15 @@ function formatSize(bytes) {
 
 const Icon = {
   Compose: (p) => (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <path d="M12.5 9v3.5A1.5 1.5 0 0 1 11 14H4a1.5 1.5 0 0 1-1.5-1.5V5.5A1.5 1.5 0 0 1 4 4h3.5"/>
-      <path d="M11.5 2.5l2 2-6 6H5.5V8z"/>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M3.5 3.5h9a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H8.5L5.5 13.7a.3.3 0 0 1-.5-.22V11.5h-1.5A1.5 1.5 0 0 1 2 10v-5A1.5 1.5 0 0 1 3.5 3.5z"/>
+      <path d="M8 5.7v3.6M6.2 7.5h3.6"/>
     </svg>
   ),
   Maximize: (p) => (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
-      <polyline points="10 2.5 13.5 2.5 13.5 6"/>
-      <line x1="8.5" y1="7.5" x2="13.5" y2="2.5"/>
-      <polyline points="6 13.5 2.5 13.5 2.5 10"/>
-      <line x1="7.5" y1="8.5" x2="2.5" y2="13.5"/>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" {...p}>
+      <rect x="2" y="3.5" width="12" height="9" rx="1.6"/>
+      <rect x="3.4" y="4.9" width="9.2" height="6.2" rx="0.6" fill="currentColor"/>
     </svg>
   ),
   Paperclip: (p) => (
@@ -310,6 +307,12 @@ const Icon = {
       <path d="M12.2 6.5A5 5 0 0 0 4.2 6M3.8 9.5a5 5 0 0 0 8 .5"/>
     </svg>
   ),
+  SidebarRight: (p) => (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <rect x="2" y="3" width="12" height="10" rx="1.5"/>
+      <line x1="10" y1="3" x2="10" y2="13"/>
+    </svg>
+  ),
 };
 
 /* ===========================  Components  =========================== */
@@ -348,33 +351,50 @@ function HistoryItem({ title, onClick }) {
   );
 }
 
+function SectionHeader({ label, collapsed, onToggle }) {
+  return (
+    <div onClick={onToggle}
+         className="flex items-center text-[11px] font-semibold text-text-3 px-2.5 pt-2 pb-1 tracking-wide cursor-pointer hover:text-text-2 select-none">
+      <span>{label}</span>
+      <span className={`ml-auto text-[13px] leading-none transition-transform ${collapsed ? '-rotate-90' : ''}`}>▾</span>
+    </div>
+  );
+}
+
 function Sidebar({ activeTab, onSelectTab, onNewChat, onOpenConv }) {
+  const [cloudCollapsed, setCloudCollapsed] = useState(false);
+  const [aiCollapsed, setAiCollapsed] = useState(false);
   return (
     <aside className="w-[200px] bg-surface-2 border-r border-border flex flex-col shrink-0">
       <div className="flex-1 min-h-0 overflow-y-auto py-2.5 px-2">
         <NavItem active={activeTab==='hub'} icon="🔗" label="设备互联" onClick={() => onSelectTab('hub')} />
+        <NavItem active={activeTab==='cross'} icon="🔄" label="跨端执行" onClick={() => onSelectTab('cross')} />
+        <NavItem active={activeTab==='transfer'} icon="📤" label="小米互传" onClick={() => onSelectTab('transfer')} />
 
         <div className="h-px bg-border my-2 mx-1.5" />
-        <div className="text-[11px] font-semibold text-text-3 px-2.5 pt-2 pb-1 tracking-wide">云服务</div>
-        <NavItem active={activeTab==='cloud-photo'} icon="📷" label="云相册"  onClick={() => onSelectTab('cloud-photo')} />
-        <NavItem active={activeTab==='cloud-note'}  icon="📝" label="云笔记"  onClick={() => onSelectTab('cloud-note')} />
-        <NavItem active={activeTab==='find-device'} icon="📍" label="查找设备" onClick={() => onSelectTab('find-device')} />
+        <SectionHeader label="云服务" collapsed={cloudCollapsed} onToggle={() => setCloudCollapsed(c => !c)} />
+        {!cloudCollapsed && <>
+        <NavItem active={activeTab==='cloud-photo'} icon="📷" label="相册"  onClick={() => onSelectTab('cloud-photo')} />
+        <NavItem active={activeTab==='cloud-note'}  icon="📝" label="笔记"  onClick={() => onSelectTab('cloud-note')} />
+        <NavItem active={activeTab==='find-device'} icon="📍" label="查找" onClick={() => onSelectTab('find-device')} />
+        </>}
 
         <div className="h-px bg-border my-2 mx-1.5" />
-        <div className="text-[11px] font-semibold text-text-3 px-2.5 pt-2 pb-1 tracking-wide">超级小爱</div>
+        <SectionHeader label="超级小爱" collapsed={aiCollapsed} onToggle={() => setAiCollapsed(c => !c)} />
+        {!aiCollapsed && <>
         <NavItem icon="＋" label="新建对话" onClick={onNewChat} />
-        <NavItem active={activeTab==='discover'} icon="💡" label="发现"      onClick={() => onSelectTab('discover')} />
-        <NavItem active={activeTab==='files'}    icon="🗂️" label="文件"      onClick={() => onSelectTab('files')} />
-        <NavItem active={activeTab==='cross'}    icon="🔄" label="跨端执行"  onClick={() => onSelectTab('cross')} />
+        <NavItem active={activeTab==='files'}    icon="🗂️" label="文件管理"      onClick={() => onSelectTab('files')} />
+        <NavItem active={activeTab==='discover'} icon="💡" label="灵感广场"  onClick={() => onSelectTab('discover')} />
+        </>}
 
-        <div className="h-px bg-border my-2 mx-1.5" />
-        <div className="text-[11px] font-semibold text-text-3 px-2.5 pt-2 pb-1 tracking-wide">历史对话</div>
+        <div className="text-[11px] font-semibold text-text-3 px-2.5 pt-5 pb-1 tracking-wide">历史对话</div>
         {HISTORY_LIST.map(h => (
           <HistoryItem key={h.id} title={h.title} onClick={() => onOpenConv(h.id)} />
         ))}
       </div>
-      <div className="shrink-0 border-t border-border bg-surface-2 py-1.5 px-2">
-        <NavItem active={activeTab==='settings'} icon="⚙️" label="设置" onClick={() => onSelectTab('settings')} />
+      <div className="shrink-0 border-t border-border bg-surface-2 py-2 px-2.5 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-300 to-purple-300 flex items-center justify-center text-[11px] text-white font-bold">倪</div>
+        <div className="text-[12px] text-text-2">181****3840</div>
       </div>
     </aside>
   );
@@ -398,9 +418,10 @@ function HdrBtn({ children, onClick }) {
   );
 }
 
-function ActionChip({ children, primary }) {
+function ActionChip({ children, primary, onClick }) {
   return (
-    <div className={`border rounded-full px-3 py-1 text-[12px] inline-flex items-center gap-1 cursor-pointer transition-colors
+    <div onClick={onClick}
+         className={`border rounded-full px-3 py-1 text-[12px] inline-flex items-center gap-1 cursor-pointer transition-colors
                      ${primary ? 'bg-accent text-white border-accent hover:bg-[#3b5de7]'
                                : 'bg-surface text-text-2 border-border hover:bg-text hover:text-white hover:border-text'}`}>
       {children}
@@ -421,86 +442,197 @@ function DeviceCard({ children }) {
   return <div className="bg-surface border border-border rounded-lg p-5 flex flex-col gap-3.5 transition-colors hover:border-border-strong hover:shadow-card">{children}</div>;
 }
 
+const PHONE_LIST = [
+  { name: 'Xiaomi 17 Pro' },
+  { name: 'Xiaomi 17 Ultra' },
+  { name: 'Xiaomi MIX Flip 2' },
+];
+const PAD_LIST = [
+  { name: 'Xiaomi Pad 7' },
+  { name: 'Xiaomi Pad 6S Pro' },
+];
+
 function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop }) {
-  const fileRef = useRef();
-  const [dragOver, setDragOver] = useState(false);
+  const [deviceTab, setDeviceTab] = useState('phone'); // 'phone' | 'pad'
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [selectedPhone, setSelectedPhone] = useState('Xiaomi 17 Pro');
+  const [selectedPad, setSelectedPad] = useState('Xiaomi Pad 7');
+  const fileInputRef = useRef(null);
+  const isPhone = deviceTab === 'phone';
+  const currentName = isPhone ? selectedPhone : selectedPad;
+  const setCurrentName = isPhone ? setSelectedPhone : setSelectedPad;
+  const currentList = isPhone ? PHONE_LIST : PAD_LIST;
+  const onPickFile = (e) => {
+    const f = e.target.files?.[0];
+    if (f) onTransferDrop(f);
+    e.target.value = '';
+  };
   return (
     <>
-      <WsHeader action={<HdrBtn onClick={onAddDevice}>＋ 添加设备</HdrBtn>}>设备互联</WsHeader>
+      <WsHeader action={
+        <div className="flex items-center gap-2">
+          <div className="flex bg-surface-2 border border-border rounded-lg p-0.5">
+            <button onClick={() => setDeviceTab('phone')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='phone' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>手机</button>
+            <button onClick={() => setDeviceTab('pad')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='pad' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>平板</button>
+          </div>
+        </div>
+      }>设备互联</WsHeader>
       <div className="flex-1 overflow-y-auto px-6 py-5">
-        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
-          {/* Phone */}
-          <DeviceCard>
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-surface-2 flex items-center justify-center text-[24px] shrink-0">📱</div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[14px] font-semibold">Xiaomi MIX Flip 2</div>
-                <div className="text-[12px] text-text-3 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-ok" />局域网连接
-                </div>
+        {deviceTab === 'phone' ? (
+          /* ===== 手机 Tab ===== */
+          <div className="max-w-[520px] mx-auto flex flex-col items-center">
+            <div className="self-start mb-1">
+              <div onClick={() => setPickerOpen(true)} className="text-[22px] font-bold cursor-pointer hover:text-text-2 inline-flex items-center gap-1 select-none">
+                {selectedPhone} <span className="text-text-3 text-[14px] font-normal">▾</span>
+              </div>
+              <div className="text-[13px] text-text-3 mt-0.5 flex items-center gap-1.5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-ok" />
+                局域网连接
               </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            {/* 设备图 */}
+            <div className="w-[140px] h-[200px] rounded-[24px] bg-gradient-to-br from-[#c8a981] to-[#8b7149] shadow-card flex items-center justify-center my-6">
+              <div className="w-[120px] h-[170px] rounded-[18px] bg-gradient-to-b from-sky-200 to-sky-400" />
+            </div>
+            {/* 操作胶囊 */}
+            <div className="flex gap-2.5 mb-6">
               <ActionChip>🔗 启用热点</ActionChip>
               <ActionChip>🔔 响铃查找</ActionChip>
+              <ActionChip onClick={() => fileInputRef.current?.click()}>📤 文件传输</ActionChip>
             </div>
-            <div className="flex flex-col gap-2 pt-3.5 border-t border-dashed border-border mt-0.5">
-              <div className="text-[15px] font-semibold">妙享桌面</div>
-              <div className="grid grid-cols-5 gap-1.5">
-                <AppItem icon="📱" name="主屏" />
-                <AppItem icon="💬" name="微信" />
-                <AppItem icon="📷" name="相机" />
-                <AppItem icon="🗺️" name="高德" />
-                <AppItem icon="🎵" name="网易云" />
+            {/* 妙享桌面 */}
+            <div className="w-full bg-surface-2 border border-border rounded-xl p-4">
+              <div className="text-[15px] font-semibold mb-1">妙享桌面</div>
+              <div className="text-[12px] text-text-3 mb-3">打开最近在小米手机使用的应用</div>
+              <div className="grid grid-cols-5 gap-2">
+                <AppItem icon="📱" name="妙享桌面" />
+                <AppItem icon="🖼️" name="相册" />
+                <AppItem icon="📁" name="文件" />
+                <AppItem icon="💬" name="QQ" />
+                <AppItem icon="🎬" name="爱奇艺" />
               </div>
             </div>
-          </DeviceCard>
-
-          {/* Pad */}
-          <DeviceCard>
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-surface-2 flex items-center justify-center text-[24px] shrink-0">📲</div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[14px] font-semibold">Xiaomi Pad 6S Pro 12.4</div>
-                <div className="text-[12px] text-text-3 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-ok" />局域网连接
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              <ActionChip>🔔 响铃查找</ActionChip>
-            </div>
-            <div className="flex flex-col gap-1.5 pt-3.5 border-t border-dashed border-border mt-0.5">
-              <div className="text-[15px] font-semibold">屏幕扩展</div>
-              <div className="text-[12.5px] text-text-2 mb-2.5">把小米平板当作 Mac 的扩展显示器</div>
-              <div className="text-center py-2 rounded-full bg-surface text-accent border border-accent text-[13px] font-medium cursor-pointer hover:bg-accent-bg transition-colors">开启</div>
-            </div>
-          </DeviceCard>
-        </div>
-
-        {/* Transfer */}
-        <div className="mt-6">
-          <div className="text-[15px] font-semibold mb-3">小米互传</div>
-          <div onClick={() => fileRef.current.click()}
-               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-               onDragLeave={() => setDragOver(false)}
-               onDrop={(e) => {
-                 e.preventDefault(); setDragOver(false);
-                 if (e.dataTransfer.files?.length) onTransferDrop(e.dataTransfer.files[0]);
-                 else onTransferClick();
-               }}
-               className={`border-2 border-dashed rounded-lg p-11 text-center cursor-pointer transition-all
-                          ${dragOver ? 'bg-accent-light border-accent border-solid scale-[1.005]'
-                                     : 'border-accent bg-accent-bg text-accent'}`}>
-            <div className="text-[36px] mb-1.5">📤</div>
-            <div className="text-[14px] font-medium">拖拽文件到此处发送</div>
-            <div className="mt-1 text-[12px]">或点击选择文件</div>
           </div>
-          <input ref={fileRef} type="file" multiple hidden
-                 onChange={(e) => {
-                   if (e.target.files?.length) onTransferDrop(e.target.files[0]);
-                   e.target.value = '';
-                 }} />
+        ) : (
+          /* ===== 平板 Tab ===== */
+          <div className="max-w-[520px] mx-auto flex flex-col items-center">
+            <div className="self-start mb-1">
+              <div onClick={() => setPickerOpen(true)} className="text-[22px] font-bold cursor-pointer hover:text-text-2 inline-flex items-center gap-1 select-none">
+                {selectedPad} <span className="text-text-3 text-[14px] font-normal">▾</span>
+              </div>
+              <div className="text-[13px] text-text-3 mt-0.5 flex items-center gap-1.5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-ok" />
+                局域网连接
+              </div>
+            </div>
+            {/* 设备图 */}
+            <div className="w-[220px] h-[160px] rounded-[16px] bg-gradient-to-br from-purple-300 to-orange-200 shadow-card flex items-center justify-center my-6">
+              <div className="w-[190px] h-[130px] rounded-[10px] bg-gradient-to-br from-purple-400 to-pink-300" />
+            </div>
+            {/* 操作胶囊 */}
+            <div className="flex gap-2.5 mb-6">
+              <ActionChip>🔔 响铃查找</ActionChip>
+              <ActionChip onClick={() => fileInputRef.current?.click()}>📤 文件传输</ActionChip>
+            </div>
+            {/* 屏幕拓展 */}
+            <div className="w-full bg-surface-2 border border-border rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[15px] font-semibold">屏幕拓展</div>
+                  <div className="text-[12px] text-text-3 mt-0.5">将此电脑用作显示屏扩展或镜像</div>
+                </div>
+                <button className="px-4 py-1.5 rounded-lg border border-border text-[13px] font-medium hover:bg-text hover:text-white hover:border-text transition-colors">开启</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <DevicePickerDialog open={pickerOpen}
+                          kind={isPhone ? 'phone' : 'pad'}
+                          devices={currentList}
+                          currentName={currentName}
+                          onSelect={(name) => { setCurrentName(name); setPickerOpen(false); }}
+                          onClose={() => setPickerOpen(false)} />
+      <input ref={fileInputRef} type="file" className="hidden" onChange={onPickFile} />
+    </>
+  );
+}
+
+function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.18] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-[440px] max-w-[90vw] rounded-[14px] p-7 pb-5 animate-popIn shadow-modal" style={{ background:'#f2efe8' }}>
+        <button onClick={onClose} className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-black/[.08] hover:bg-black/[.14] text-text-2 flex items-center justify-center">
+          <Icon.Close width="14" height="14" />
+        </button>
+        <div className="text-[22px] font-bold text-text mb-5 text-center">我的设备</div>
+        <div className="flex flex-col gap-2">
+          {devices.map((d) => {
+            const active = d.name === currentName;
+            return (
+              <div key={d.name} onClick={() => onSelect(d.name)}
+                   className={`flex items-center gap-3 px-3.5 py-3 rounded-xl cursor-pointer transition-colors
+                              ${active ? 'bg-accent-light' : 'bg-black/[.05] hover:bg-black/[.08]'}`}>
+                <div className="w-9 h-9 rounded-md bg-white flex items-center justify-center shadow-soft shrink-0">
+                  {kind === 'phone' ? (
+                    <div className="w-4 h-6 rounded phone-gradient relative">
+                      <div className="absolute top-[2px] right-[2px] w-1 h-1 rounded-full phone-camera" />
+                    </div>
+                  ) : (
+                    <div className="w-7 h-5 rounded phone-gradient" />
+                  )}
+                </div>
+                <div className={`flex-1 text-[15px] font-medium ${active ? 'text-accent' : 'text-text'}`}>{d.name}</div>
+                {active && (
+                  <div className="w-[22px] h-[22px] rounded-full bg-accent text-white flex items-center justify-center text-[12px] shrink-0">✓</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <button className="w-full mt-7 mb-3 py-3 rounded-full bg-black/[.05] hover:bg-black/[.08] text-text text-[14px] font-semibold text-center transition-colors">重新搜索</button>
+        <div className="text-[12.5px] text-text-2 text-center">未搜索到小米手机或平板?尝试<a className="text-accent cursor-pointer ml-0.5 hover:underline">扫码添加</a></div>
+      </div>
+    </div>
+  );
+}
+
+function TransferPage() {
+  return (
+    <>
+      <WsHeader>小米互传</WsHeader>
+      <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col items-center">
+        <div className="self-start mb-6">
+          <div className="text-[22px] font-bold">倪妮的 Macbook Pro</div>
+          <div className="text-[13px] text-text-3 mt-1">点击设备球选择或拖拽文件至设备球发送</div>
+        </div>
+        {/* 设备球 */}
+        <div className="flex gap-8 items-center justify-center my-8">
+          {[
+            { name: 'Xiaomi 17', color: 'from-sky-200 to-sky-400' },
+            { name: 'Xiaomi 17 Ultra', color: 'from-blue-300 to-indigo-400' },
+            { name: 'Xiaomi Pad 7', color: 'from-purple-200 to-pink-300' },
+          ].map((d, i) => (
+            <div key={i} className="flex flex-col items-center gap-2 cursor-pointer group">
+              <div className={`w-[80px] h-[80px] rounded-full bg-gradient-to-br ${d.color} shadow-card flex items-center justify-center transition-transform group-hover:scale-105`}>
+                <div className="w-[50px] h-[50px] rounded-[12px] bg-white/30 backdrop-blur-sm" />
+              </div>
+              <div className="text-[12px] text-text-2 group-hover:text-text">{d.name}</div>
+            </div>
+          ))}
+        </div>
+        {/* 底部操作 */}
+        <div className="flex items-center gap-4 mt-auto pt-6 text-[12px] text-text-3">
+          <span className="cursor-pointer hover:text-text">ⓘ 找不到设备?</span>
+          <span className="cursor-pointer hover:text-text">📂 查看接收文件</span>
+          <button className="ml-4 px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-[#3b5de7] transition-colors shadow-soft">📤 发送文件</button>
         </div>
       </div>
     </>
@@ -740,7 +872,7 @@ function DiscoverPage() {
   const visible = active === '全部' ? items : items.filter(i => i.cat === active);
   return (
     <div className="flex-1 overflow-y-auto px-9 py-8">
-      <div className="inline-block bg-accent-bg text-accent text-[13px] font-medium px-3.5 py-1 rounded-full mb-3">发现</div>
+      <div className="inline-block bg-accent-bg text-accent text-[13px] font-medium px-3.5 py-1 rounded-full mb-3">灵感广场</div>
       <h2 className="text-[26px] font-bold tracking-tight mb-1.5">探索 MiClaw 能做什么</h2>
       <div className="text-[14px] text-text-2 mb-7">点击任意灵感卡片,即刻开始一段新对话</div>
 
@@ -842,61 +974,44 @@ function SettingsPage() {
 
 /* ----------  Copilot / Fullscreen / Modals  ---------- */
 
-function ModelPicker({ value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef();
-  useEffect(() => {
-    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('click', onDoc);
-    return () => document.removeEventListener('click', onDoc);
-  }, []);
+function ChatInputCompact({ placeholder, value, onChange }) {
   return (
-    <div ref={ref} className="relative">
-      <div onClick={() => setOpen(o => !o)}
-           className="h-[26px] px-2.5 inline-flex items-center gap-1 border border-border bg-surface rounded-full cursor-pointer text-text-2 text-[12px] hover:bg-surface-2 hover:text-text hover:border-border-strong transition-all select-none">
-        <span>{value}</span>
-        <span className="text-[10px] text-text-3 leading-none">▾</span>
-      </div>
-      {open && (
-        <div className="absolute bottom-full left-0 mb-1.5 bg-surface border border-border rounded-lg shadow-card p-1 min-w-[108px] z-20">
-          {MODELS.map(m => (
-            <div key={m} onClick={() => { onChange(m); setOpen(false); }}
-                 className={`px-2.5 py-1.5 text-[12.5px] rounded cursor-pointer hover:bg-surface-2 whitespace-nowrap
-                            ${value===m ? 'text-accent font-medium' : 'text-text'}`}>{m}</div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ChatInputCompact({ placeholder, model, onChangeModel }) {
-  return (
-    <div className="border border-border-strong rounded-xl p-2.5 px-3 bg-surface flex flex-col gap-2 text-[13px]">
-      <div className="text-text-3">{placeholder}</div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <button className="h-[26px] min-w-[26px] px-1.5 inline-flex items-center justify-center border border-border bg-surface rounded-full text-text-2 hover:bg-surface-2 hover:text-text hover:border-border-strong transition-all" title="上传文件">
-            <Icon.Paperclip width="14" height="14" />
-          </button>
-          <ModelPicker value={model} onChange={onChangeModel} />
-        </div>
-        <button className="w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center hover:bg-[#3b5de7]"><Icon.ArrowUp width="11" height="11" /></button>
+    <div className="border border-border-strong rounded-2xl p-3 px-3.5 bg-surface flex flex-col gap-2.5 text-[13px]">
+      <textarea
+        className="text-text bg-transparent border-0 focus:outline-none resize-none min-h-[36px] placeholder:text-text-3 w-full block leading-[1.5]"
+        placeholder={placeholder}
+        value={value || ''}
+        onChange={(e) => onChange?.(e.target.value)}
+        rows={2}
+      />
+      <div className="flex items-center gap-1">
+        <button className="w-7 h-7 inline-flex items-center justify-center text-text-2 hover:text-text rounded-md hover:bg-black/[.04]" title="附件">
+          <Icon.Paperclip width="16" height="16" />
+        </button>
+        <span className="flex-1" />
+        <button className="w-8 h-8 rounded-full bg-text text-white flex items-center justify-center hover:bg-black transition-colors">
+          <Icon.ArrowUp width="13" height="13" />
+        </button>
       </div>
     </div>
   );
 }
 
-function ChatInputFull({ placeholder, model, onChangeModel }) {
+function ChatInputFull({ placeholder, value, onChange }) {
   return (
     <div className="w-full max-w-[700px] mx-auto border border-border-strong rounded-xl py-3 px-3.5 bg-surface flex flex-col gap-2.5 shadow-soft">
-      <div className="text-[13.5px] text-text-3">{placeholder}</div>
+      <textarea
+        className="text-text bg-transparent border-0 focus:outline-none resize-none min-h-[40px] placeholder:text-text-3 w-full block text-[13.5px] leading-[1.55]"
+        placeholder={placeholder}
+        value={value || ''}
+        onChange={(e) => onChange?.(e.target.value)}
+        rows={2}
+      />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <button className="h-[26px] min-w-[26px] px-1.5 inline-flex items-center justify-center border border-border bg-surface rounded-full text-text-2 hover:bg-surface-2 hover:text-text hover:border-border-strong transition-all" title="上传文件">
             <Icon.Paperclip width="16" height="16" />
           </button>
-          <ModelPicker value={model} onChange={onChangeModel} />
         </div>
         <button className="w-7 h-7 rounded-full bg-accent text-white flex items-center justify-center hover:bg-[#3b5de7]"><Icon.ArrowUp width="12" height="12" /></button>
       </div>
@@ -924,7 +1039,7 @@ function MessageList({ messages, compact }) {
   );
 }
 
-function WelcomeView({ prompts, fullscreen }) {
+function WelcomeView({ prompts, fullscreen, onPromptClick }) {
   return fullscreen ? (
     <div className="flex-1 flex flex-col items-center justify-center px-10 gap-1.5 min-h-0 py-5">
       <div className="text-[46px] mb-3.5 text-grad">✦</div>
@@ -932,62 +1047,69 @@ function WelcomeView({ prompts, fullscreen }) {
       <div className="text-[13.5px] text-text-2 text-center mb-6">你的全生态 AI 助手,能问、能做、能记住,有什么事情尽管交给我吧</div>
       <div className="grid grid-cols-2 gap-2.5 w-full max-w-[480px]">
         {prompts.map((p, i) => (
-          <div key={i} className="border border-border rounded-lg px-3.5 py-3 bg-surface text-[13px] text-text flex items-center gap-2 cursor-pointer hover:bg-accent-bg hover:border-accent">
+          <div key={i} onClick={() => onPromptClick?.(p.text)}
+               className="border border-border rounded-lg px-3.5 py-3 bg-surface text-[13px] text-text flex items-center gap-2 cursor-pointer hover:bg-accent-bg hover:border-accent">
             <span className="text-[16px]">{p.emoji}</span><span>{p.text}</span>
           </div>
         ))}
       </div>
     </div>
   ) : (
-    <div className="flex-1 overflow-y-auto p-7 px-4 flex flex-col items-center gap-1.5">
-      <div className="text-[36px] mb-2 text-grad">✦</div>
-      <div className="text-[18px] font-semibold tracking-tight">Hi, 我是超级小爱</div>
-      <div className="text-[12.5px] text-text-2 text-center max-w-[260px] leading-[1.55] mb-5">你的全生态 AI 助手,能问、能做、能记住,有什么事情尽管交给我吧</div>
-      <div className="grid grid-cols-2 gap-2 w-full">
-        {prompts.map((p, i) => (
-          <div key={i} className="border border-border rounded-md p-3 px-2.5 bg-surface text-[12.5px] text-text-2 flex flex-col gap-1 cursor-pointer hover:bg-accent-bg hover:border-accent hover:text-text">
-            <span className="text-[16px]">{p.emoji}</span><span className="text-[12px] leading-[1.4]">{p.text}</span>
-          </div>
+    <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
+      <div className="text-[18px] font-semibold tracking-tight text-text mb-2.5 px-1">Hi,我是超级小爱</div>
+      <div className="flex flex-col gap-1 items-start">
+        {prompts.slice(0, 4).map((p, i) => (
+          <button key={i}
+                  onClick={() => onPromptClick?.(p.text)}
+                  className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
+            {p.text}
+          </button>
         ))}
       </div>
     </div>
   );
 }
 
-function Copilot({ activeTab, mode, conv, onNewChat, onExpand, model, onChangeModel }) {
-  const prompts = [...(PROMPTS_BY_PAGE[activeTab] || PROMPTS_BY_PAGE.hub), ...FIXED_PROMPTS];
+function Copilot({ mode, conv, onNewChat, onExpand }) {
+  const [inputValue, setInputValue] = useState('');
+  const prompts = WELCOME_PROMPTS;
   return (
-    <aside className="w-[300px] bg-surface border-l border-border flex flex-col shrink-0 overflow-hidden">
-      <div className="h-[54px] px-3.5 border-b border-border flex items-center gap-2 bg-surface-2 shrink-0">
-        <div className="w-6 h-6 rounded-md copilot-avatar flex items-center justify-center text-[12px] text-white">✦</div>
-        <div className="flex-1 text-[13px] font-medium truncate min-w-0">{mode==='conv' && conv ? conv.title : '超级小爱'}</div>
-        <div className="w-[22px] h-[22px] rounded text-text-3 flex items-center justify-center cursor-pointer hover:bg-black/[.05]" title="新建对话" onClick={onNewChat}>
-          <Icon.Compose width="15" height="15" />
+    <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden copilot-aurora">
+      <div className="h-[48px] px-3.5 flex items-center gap-1 shrink-0">
+        <div className="flex-1 text-[14px] font-semibold truncate min-w-0 text-text">
+          {mode==='conv' && conv ? conv.title : '新对话'}
         </div>
-        <div className="w-[22px] h-[22px] rounded text-text-3 flex items-center justify-center cursor-pointer hover:bg-black/[.05]" title="展开为全屏对话" onClick={onExpand}>
+        <button className="w-7 h-7 rounded-md text-text-2 hover:text-text flex items-center justify-center hover:bg-black/[.05]" title="新建对话" onClick={onNewChat}>
+          <Icon.Compose width="16" height="16" />
+        </button>
+        <button className="w-7 h-7 rounded-md text-text-2 hover:text-text flex items-center justify-center hover:bg-black/[.05]" title="展开为全屏对话" onClick={onExpand}>
           <Icon.Maximize width="15" height="15" />
-        </div>
+        </button>
+        <button className="w-7 h-7 rounded-md text-text-2 hover:text-text flex items-center justify-center hover:bg-black/[.05]" title="收起侧栏">
+          <Icon.SidebarRight width="15" height="15" />
+        </button>
       </div>
 
       {mode === 'welcome'
-        ? <WelcomeView prompts={prompts} />
+        ? <WelcomeView prompts={prompts} onPromptClick={setInputValue} />
         : <MessageList messages={conv?.messages || []} compact />
       }
 
-      <div className="p-2.5 px-3.5 border-t border-border shrink-0">
-        <ChatInputCompact placeholder="问我任何事,或 @ 设备执行..." model={model} onChangeModel={onChangeModel} />
+      <div className="p-3 shrink-0">
+        <ChatInputCompact placeholder="和小爱对话,或 @ 设备帮你做事" value={inputValue} onChange={setInputValue} />
       </div>
     </aside>
   );
 }
 
-function FullscreenChat({ visible, mode, conv, model, onChangeModel }) {
+function FullscreenChat({ visible, mode, conv }) {
+  const [inputValue, setInputValue] = useState('');
   if (!visible) return null;
-  const prompts = [...PROMPTS_BY_PAGE.hub, ...FIXED_PROMPTS];
+  const prompts = WELCOME_PROMPTS;
   return (
     <div className="flex-1 flex flex-col bg-surface min-w-0 relative">
       {mode === 'welcome'
-        ? <WelcomeView prompts={prompts} fullscreen />
+        ? <WelcomeView prompts={prompts} fullscreen onPromptClick={setInputValue} />
         : (
           <div className="flex-1 flex flex-col w-full max-w-[760px] mx-auto px-10 pb-1 overflow-hidden min-h-0">
             <div className="flex items-center gap-2.5 py-2 pb-3.5 border-b border-border shrink-0">
@@ -998,7 +1120,7 @@ function FullscreenChat({ visible, mode, conv, model, onChangeModel }) {
           </div>
         )}
       <div className="px-6 pb-6 pt-4 shrink-0 flex justify-center">
-        <ChatInputFull placeholder="发消息或 @ 设备帮你做事" model={model} onChangeModel={onChangeModel} />
+        <ChatInputFull placeholder="发消息或 @ 设备帮你做事" value={inputValue} onChange={setInputValue} />
       </div>
     </div>
   );
@@ -1083,10 +1205,10 @@ function App() {
   const [activeConvId, setActiveConvId] = useState(null);
   const [share,        setShare]        = useState(null);  // file or null
   const [addDeviceOpen,setAddDeviceOpen]= useState(false);
-  const [model,        setModel]        = useState('快速');
 
   const conv = activeConvId ? CONVERSATIONS[activeConvId] : null;
   const inFullscreen = chatMode === 'full';
+  const isImmersive = ['cloud-photo', 'cloud-note', 'find-device'].includes(activeTab);
 
   const onSelectTab = (id) => { setActiveTab(id); setChatMode(prev => prev === 'full' ? 'off' : prev); };
   const onSidebarNewChat = () => { setActiveConvId(null); setChatMode('full'); };
@@ -1105,17 +1227,27 @@ function App() {
         <b className="text-text">试试</b>:左栏 <b>＋ 新建对话</b> → 全屏新建 · 副驾头部 <b>✏️ 新建对话</b> → 就地新建 · 历史对话保持当前模式 · 拖文件到「小米互传」弹发送框
       </div>
 
-      <div className="bg-surface border border-border rounded-2xl shadow-lg overflow-hidden flex flex-col h-[680px] relative">
+      <div className="app-bg border border-border rounded-2xl shadow-lg overflow-hidden flex flex-col h-[680px] relative">
         <TitleBar />
         <div className="flex flex-1 min-h-0">
-          <Sidebar activeTab={activeTab}
-                   onSelectTab={onSelectTab}
-                   onNewChat={onSidebarNewChat}
-                   onOpenConv={onOpenConv} />
+          {!isImmersive && (
+            <Sidebar activeTab={activeTab}
+                     onSelectTab={onSelectTab}
+                     onNewChat={onSidebarNewChat}
+                     onOpenConv={onOpenConv} />
+          )}
 
           {!inFullscreen && (
-            <div className="flex-1 flex flex-col min-w-0 bg-surface">
+            <div className="flex-1 flex flex-col min-w-0">
+              {isImmersive && (
+                <div className="h-[40px] px-4 border-b border-border flex items-center gap-2 shrink-0 bg-surface-2">
+                  <button onClick={() => setActiveTab('hub')} className="text-[13px] text-text-2 hover:text-text flex items-center gap-1 cursor-pointer">
+                    <span>←</span> 返回
+                  </button>
+                </div>
+              )}
               {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} />}
+              {activeTab === 'transfer'    && <TransferPage />}
               {activeTab === 'cloud-photo' && <CloudPhotoPage />}
               {activeTab === 'cloud-note'  && <CloudNotePage />}
               {activeTab === 'find-device' && <FindDevicePage />}
@@ -1128,18 +1260,13 @@ function App() {
 
           <FullscreenChat visible={inFullscreen}
                           mode={activeConvId ? 'conv' : 'welcome'}
-                          conv={conv}
-                          model={model}
-                          onChangeModel={setModel} />
+                          conv={conv} />
 
           {!inFullscreen && (
-            <Copilot activeTab={activeTab}
-                     mode={activeConvId ? 'conv' : 'welcome'}
+            <Copilot mode={activeConvId ? 'conv' : 'welcome'}
                      conv={conv}
                      onNewChat={onCopilotNewChat}
-                     onExpand={onExpand}
-                     model={model}
-                     onChangeModel={setModel} />
+                     onExpand={onExpand} />
           )}
         </div>
       </div>
