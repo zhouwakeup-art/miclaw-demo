@@ -1402,6 +1402,11 @@ function SettingsWindow({ open, onClose }) {
                 control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">导出日志</button>}
               />
               <SettingsRow
+                label="设备互联日志收集"
+                sub="导出设备互联相关日志用于诊断连接问题"
+                control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">导出日志</button>}
+              />
+              <SettingsRow
                 label="大模型日志跟踪"
                 sub="开启后将 LLM 请求/响应写入 llm.log,关闭后立即停止写入,重启后保持当前设置。"
                 control={<Toggle value={llmLog} onChange={setLlmLog} />}
