@@ -620,34 +620,17 @@ function TransferPage() {
 
   const [hoverDevice, setHoverDevice] = useState(null);
   const [pickerForDevice, setPickerForDevice] = useState(null);
-  const [filePickerOpen, setFilePickerOpen] = useState(false);
-  const [targetPickerOpen, setTargetPickerOpen] = useState(false);
-  const [selectedTargets, setSelectedTargets] = useState([]);
   const [sendingTo, setSendingTo] = useState([]);
-  const [hotspotPrompt, setHotspotPrompt] = useState(null); // {dev, next:'pickFile'|'multi'}
+  const [hotspotPrompt, setHotspotPrompt] = useState(null);
 
   // 进入单设备发送流程:若不在同局域网,先弹"加入热点"
   const enterSingleFlow = (dev) => {
-    if (!dev.sameLan) { setHotspotPrompt({ dev, next:'pickFile' }); return; }
+    if (!dev.sameLan) { setHotspotPrompt({ dev }); return; }
     setPickerForDevice(dev);
   };
   const handleDeviceDrop = (dev) => { setHoverDevice(null); enterSingleFlow(dev); };
   const handleDeviceClick = (dev) => { enterSingleFlow(dev); };
 
-  // 多设备:确认目标后,若有非同局域网设备,先逐一询问加入热点(简化处理:只对第一个非同网设备询问)
-  const confirmMultiSend = () => {
-    const targets = devices.filter(d => selectedTargets.includes(d.id));
-    const offline = targets.find(d => !d.sameLan);
-    if (offline) {
-      setTargetPickerOpen(false);
-      setHotspotPrompt({ dev: offline, next:'multi', queuedTargets: targets });
-      return;
-    }
-    setSendingTo(targets);
-    setTargetPickerOpen(false);
-    setSelectedTargets([]);
-    setTimeout(() => setSendingTo([]), 2200);
-  };
   const confirmSingleSend = () => {
     if (!pickerForDevice) return;
     setSendingTo([pickerForDevice]);
@@ -655,18 +638,11 @@ function TransferPage() {
     setTimeout(() => setSendingTo([]), 2200);
   };
 
-  // 用户在"加入热点"弹窗的选择
+  // 同意加入热点 → 进入文件选择
   const handleHotspotConfirm = () => {
     const p = hotspotPrompt;
     setHotspotPrompt(null);
-    if (!p) return;
-    if (p.next === 'pickFile') {
-      setPickerForDevice(p.dev);
-    } else if (p.next === 'multi') {
-      setSendingTo(p.queuedTargets);
-      setSelectedTargets([]);
-      setTimeout(() => setSendingTo([]), 2200);
-    }
+    if (p) setPickerForDevice(p.dev);
   };
 
   return (
@@ -703,12 +679,6 @@ function TransferPage() {
             );
           })}
         </div>
-        {/* 拖拽提示遮罩(任意位置 dragover 时给个软提示) */}
-        {/* 底部操作 */}
-        <div className="flex items-center gap-4 mt-auto pt-6 text-[12px] text-text-3">
-          <button onClick={() => setFilePickerOpen(true)}
-                  className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-[#3b5de7] transition-colors shadow-soft">📤 发送文件</button>
-        </div>
       </div>
 
       {/* 单设备-文件选择弹窗(拖拽 / 点击设备球 触发) */}
@@ -740,54 +710,6 @@ function TransferPage() {
         </div>
       )}
 
-      {/* 通用-文件选择弹窗(点"发送文件"按钮触发) */}
-      {filePickerOpen && (
-        <FilePickerModal
-          title="选择要发送的文件"
-          onCancel={() => setFilePickerOpen(false)}
-          onConfirm={() => { setFilePickerOpen(false); setTargetPickerOpen(true); }}
-          confirmLabel="下一步"
-        />
-      )}
-
-      {/* 多设备目标选择 */}
-      {targetPickerOpen && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/[.18] backdrop-blur-sm" onClick={() => setTargetPickerOpen(false)} />
-          <div className="relative w-[380px] bg-surface rounded-[14px] shadow-modal p-5 animate-popIn">
-            <div className="text-[15px] font-semibold mb-1">选择目标设备</div>
-            <div className="text-[12px] text-text-3 mb-4">支持选择多个设备同时发送</div>
-            <div className="flex gap-3 justify-center my-3">
-              {devices.map(d => {
-                const sel = selectedTargets.includes(d.id);
-                return (
-                  <div key={d.id} onClick={() => setSelectedTargets(sel
-                                              ? selectedTargets.filter(x => x !== d.id)
-                                              : [...selectedTargets, d.id])}
-                       className="flex flex-col items-center gap-1.5 cursor-pointer">
-                    <div className={`w-[64px] h-[64px] rounded-full bg-gradient-to-br ${d.color} flex items-center justify-center transition-all
-                                      ${sel ? 'ring-4 ring-accent/60 scale-105' : 'opacity-80 hover:opacity-100'}`}>
-                      <div className="w-[40px] h-[40px] rounded-[10px] bg-white/30 backdrop-blur-sm flex items-center justify-center">
-                        {sel && <span className="text-white text-[16px]">✓</span>}
-                      </div>
-                    </div>
-                    <div className="text-[11px] text-text-2 text-center max-w-[80px] leading-tight">{displayName(d)}</div>
-                    {!d.sameLan && <div className="text-[10px] text-text-3">不同局域网</div>}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => setTargetPickerOpen(false)}
-                      className="px-4 py-1.5 rounded-md text-[13px] text-text-2 hover:bg-surface-2">取消</button>
-              <button onClick={confirmMultiSend} disabled={selectedTargets.length === 0}
-                      className="px-4 py-1.5 rounded-md bg-accent text-white text-[13px] font-medium hover:bg-[#3b5de7] disabled:opacity-40 disabled:cursor-not-allowed">
-                发送 ({selectedTargets.length})
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
