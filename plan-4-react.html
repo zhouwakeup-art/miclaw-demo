@@ -2408,7 +2408,7 @@ function App() {
 
   const conv = activeConvId ? CONVERSATIONS[activeConvId] : null;
   const inFullscreen = chatMode === 'full';
-  const isImmersive = ['cloud-photo', 'find-device'].includes(activeTab);
+  const isImmersive = false;
 
   const onSelectTab = (id) => { setActiveTab(id); setChatMode(prev => prev === 'full' ? 'off' : prev); };
   const onSidebarNewChat = () => { setActiveConvId(null); setChatMode('full'); };
