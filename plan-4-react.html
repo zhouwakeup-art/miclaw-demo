@@ -1136,14 +1136,13 @@ function McpSettings() {
   );
 }
 
-function AiSettings({ llmLog, setLlmLog, detailLog, setDetailLog }) {
+function AiSettings() {
   const [aiTab, setAiTab] = useState('skill');
   const tabs = [
     { id:'skill', label:'技能' },
     { id:'mcp', label:'MCP' },
     { id:'auth', label:'应用授权' },
     { id:'mihome', label:'米家' },
-    { id:'lab', label:'实验室' },
   ];
   return (
     <>
@@ -1251,25 +1250,6 @@ function AiSettings({ llmLog, setLlmLog, detailLog, setDetailLog }) {
         </div>
       )}
 
-      {aiTab === 'lab' && (
-        <SettingsSection title="实验室">
-          <SettingsRow
-            label="Xiaomi miclaw 日志收集"
-            sub="导出应用日志文件用于诊断和问题排查"
-            control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">导出日志</button>}
-          />
-          <SettingsRow
-            label="大模型日志跟踪"
-            sub="开启后将 LLM 请求/响应写入 llm.log,关闭后立即停止写入,重启后保持当前设置。"
-            control={<Toggle value={llmLog} onChange={setLlmLog} />}
-          />
-          <SettingsRow
-            label="打开详细日志"
-            sub="开启后日志将记录完整原始信息,可能包含敏感信息,请勿分享日志文件给他人。"
-            control={<Toggle value={detailLog} onChange={setDetailLog} />}
-          />
-        </SettingsSection>
-      )}
     </>
   );
 }
@@ -1380,7 +1360,7 @@ function SettingsWindow({ open, onClose }) {
             </SettingsSection>
           </>)}
 
-          {page === 'ai' && <AiSettings llmLog={llmLog} setLlmLog={setLlmLog} detailLog={detailLog} setDetailLog={setDetailLog} />}
+          {page === 'ai' && <AiSettings />}
 
           {page === 'help' && (<>
             <div className="flex gap-4 mb-5 border-b border-border pb-2">
@@ -1416,7 +1396,21 @@ function SettingsWindow({ open, onClose }) {
               <SettingsRow label="功能建议" arrow onClick={() => { setFeedbackModule('功能建议'); setPage('suggestion-form'); }} />
             </SettingsSection>
             <SettingsSection title="日志">
-              <SettingsRow label="生成日志" arrow />
+              <SettingsRow
+                label="Xiaomi miclaw 日志收集"
+                sub="导出应用日志文件用于诊断和问题排查"
+                control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">导出日志</button>}
+              />
+              <SettingsRow
+                label="大模型日志跟踪"
+                sub="开启后将 LLM 请求/响应写入 llm.log,关闭后立即停止写入,重启后保持当前设置。"
+                control={<Toggle value={llmLog} onChange={setLlmLog} />}
+              />
+              <SettingsRow
+                label="打开详细日志"
+                sub="开启后日志将记录完整原始信息,可能包含敏感信息,请勿分享日志文件给他人。"
+                control={<Toggle value={detailLog} onChange={setDetailLog} />}
+              />
             </SettingsSection>
           </>)}
 
