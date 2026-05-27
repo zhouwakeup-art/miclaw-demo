@@ -527,7 +527,7 @@ const PAD_LIST = [
   { name: 'Xiaomi Pad 6S Pro', status: 'offline'   },
 ];
 
-function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState, setHubState }) {
+function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState, setHubState, onLoggedIn }) {
   const [deviceTab, setDeviceTab] = useState('phone');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -701,7 +701,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
                        }
                        setScanOpen(false);
                      }} />
-      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={() => { setLoginOpen(false); setHubState(s => ({ ...s, loggedIn: true })); }} />
+      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={onLoggedIn} />
       {removeConfirm && (
         <ConfirmDialog
           title={`移除后会断开 Mac 与 ${removeConfirm.kind === 'phone' ? '小米手机' : '小米平板'} 的连接,可以通过"扫码添加"再次连接,确认移除?`}
@@ -801,13 +801,15 @@ function LoginDialog({ open, onClose, onLoggedIn }) {
               <div className="text-[11.5px] text-text-2 text-center mb-2 leading-relaxed">
                 扫码登录即代表同意<a className="text-accent hover:underline cursor-pointer">小米账号使用协议</a>和<a className="text-accent hover:underline cursor-pointer">小米账号隐私政策</a>
               </div>
-              <div className="w-full flex items-start gap-2 text-[11.5px] text-text-2 mb-5 justify-center">
+              <div className="w-full flex items-start gap-2 text-[11.5px] text-text-2 mb-3 justify-center">
                 <button onClick={() => setAgreedAi(a => !a)}
                         className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedAi ? 'bg-accent' : 'bg-text-3/40'}`}>
                   {agreedAi && <span className="text-white text-[9px] leading-none">✓</span>}
                 </button>
                 <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">超级小爱使用协议</a>和<a className="text-accent hover:underline cursor-pointer">超级小爱隐私政策</a></span>
               </div>
+              <button onClick={() => onLoggedIn?.({ aiAgreed: agreedAi })}
+                      className="w-full py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors mb-3">[ 演示用 ] 模拟扫码成功</button>
             </>
           ) : (
             <>
@@ -831,7 +833,7 @@ function LoginDialog({ open, onClose, onLoggedIn }) {
                 </button>
               </div>
               {/* 登录按钮 */}
-              <button onClick={onLoggedIn}
+              <button onClick={() => onLoggedIn?.({ aiAgreed: agreedAi })}
                       className="w-full py-3 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] mb-4">登录</button>
               {/* 链接行 */}
               <div className="flex items-center gap-3 text-[12px] text-text-2 mb-7">
@@ -970,6 +972,37 @@ function ScanAddDialog({ open, kind, onClose, onSuccess }) {
         ) : (
           <div className="text-[12px] text-accent text-center font-medium">扫码成功,正在连接 {fakeName}…</div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function AiAgreementDialog({ open, onCancel, onConfirm }) {
+  const [agreed, setAgreed] = useState(false);
+  useEffect(() => { if (!open) setAgreed(false); }, [open]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.30] backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative w-[400px] bg-surface rounded-[14px] shadow-modal p-6 animate-popIn">
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#a894ff] to-[#7c3aed] mx-auto mb-3 flex items-center justify-center text-white text-[20px]">✦</div>
+        <div className="text-[16px] font-semibold text-center mb-2">使用超级小爱前,请先同意以下协议</div>
+        <div className="text-[12.5px] text-text-2 leading-relaxed mb-4 text-center">
+          为提供 AI 对话与设备协同能力,我们需要处理你的输入、设备上下文等信息。
+        </div>
+        <div className="flex items-start gap-2 text-[12px] text-text-2 mb-5">
+          <button onClick={() => setAgreed(a => !a)}
+                  className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreed ? 'bg-accent' : 'bg-text-3/40'}`}>
+            {agreed && <span className="text-white text-[9px] leading-none">✓</span>}
+          </button>
+          <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">超级小爱使用协议</a>和<a className="text-accent hover:underline cursor-pointer">超级小爱隐私政策</a></span>
+        </div>
+        <div className="flex justify-end gap-2">
+          <button onClick={onCancel}
+                  className="px-4 py-1.5 rounded-md text-[13px] text-text-2 hover:bg-surface-2">取消</button>
+          <button onClick={onConfirm} disabled={!agreed}
+                  className="px-4 py-1.5 rounded-md bg-accent text-white text-[13px] font-medium hover:bg-[#3b5de7] disabled:opacity-40 disabled:cursor-not-allowed">同意并继续</button>
+        </div>
       </div>
     </div>
   );
@@ -2171,7 +2204,8 @@ function Toggle({ value, onChange }) {
 
 /* ----------  Copilot / Fullscreen / Modals  ---------- */
 
-function ChatInputCompact({ placeholder, value, onChange }) {
+function ChatInputCompact({ placeholder, value, onChange, onSend }) {
+  const handleSend = () => { if (!(value || '').trim()) return; onSend?.(value); };
   return (
     <div className="border border-border-strong rounded-2xl p-3 px-3.5 bg-surface flex flex-col gap-2.5 text-[13px]">
       <textarea
@@ -2179,6 +2213,7 @@ function ChatInputCompact({ placeholder, value, onChange }) {
         placeholder={placeholder}
         value={value || ''}
         onChange={(e) => onChange?.(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
         rows={2}
       />
       <div className="flex items-center gap-1">
@@ -2186,7 +2221,7 @@ function ChatInputCompact({ placeholder, value, onChange }) {
           <Icon.Paperclip width="16" height="16" />
         </button>
         <span className="flex-1" />
-        <button className="w-8 h-8 rounded-full bg-text text-white flex items-center justify-center hover:bg-black transition-colors">
+        <button onClick={handleSend} className="w-8 h-8 rounded-full bg-text text-white flex items-center justify-center hover:bg-black transition-colors">
           <Icon.ArrowUp width="13" height="13" />
         </button>
       </div>
@@ -2194,7 +2229,8 @@ function ChatInputCompact({ placeholder, value, onChange }) {
   );
 }
 
-function ChatInputFull({ placeholder, value, onChange }) {
+function ChatInputFull({ placeholder, value, onChange, onSend }) {
+  const handleSend = () => { if (!(value || '').trim()) return; onSend?.(value); };
   return (
     <div className="w-full max-w-[700px] mx-auto border border-border-strong rounded-xl py-3 px-3.5 bg-surface flex flex-col gap-2.5 shadow-soft">
       <textarea
@@ -2202,6 +2238,7 @@ function ChatInputFull({ placeholder, value, onChange }) {
         placeholder={placeholder}
         value={value || ''}
         onChange={(e) => onChange?.(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
         rows={2}
       />
       <div className="flex items-center justify-between">
@@ -2210,7 +2247,7 @@ function ChatInputFull({ placeholder, value, onChange }) {
             <Icon.Paperclip width="16" height="16" />
           </button>
         </div>
-        <button className="w-7 h-7 rounded-full bg-accent text-white flex items-center justify-center hover:bg-[#3b5de7]"><Icon.ArrowUp width="12" height="12" /></button>
+        <button onClick={handleSend} className="w-7 h-7 rounded-full bg-accent text-white flex items-center justify-center hover:bg-[#3b5de7]"><Icon.ArrowUp width="12" height="12" /></button>
       </div>
     </div>
   );
@@ -2267,9 +2304,13 @@ function WelcomeView({ prompts, fullscreen, onPromptClick }) {
   );
 }
 
-function Copilot({ mode, conv, onNewChat, onExpand, onCollapse }) {
+function Copilot({ mode, conv, onNewChat, onExpand, onCollapse, onSend }) {
   const [inputValue, setInputValue] = useState('');
   const prompts = WELCOME_PROMPTS;
+  const handleSend = (text) => {
+    const ok = onSend?.(text);
+    if (ok !== false) setInputValue('');
+  };
   return (
     <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden copilot-aurora">
       <div className="h-[48px] px-3.5 flex items-center gap-1 shrink-0">
@@ -2293,14 +2334,18 @@ function Copilot({ mode, conv, onNewChat, onExpand, onCollapse }) {
       }
 
       <div className="p-3 shrink-0">
-        <ChatInputCompact placeholder="和小爱对话,或 @ 设备帮你做事" value={inputValue} onChange={setInputValue} />
+        <ChatInputCompact placeholder="和小爱对话,或 @ 设备帮你做事" value={inputValue} onChange={setInputValue} onSend={handleSend} />
       </div>
     </aside>
   );
 }
 
-function FullscreenChat({ visible, mode, conv }) {
+function FullscreenChat({ visible, mode, conv, onSend }) {
   const [inputValue, setInputValue] = useState('');
+  const handleSend = (text) => {
+    const ok = onSend?.(text);
+    if (ok !== false) setInputValue('');
+  };
   if (!visible) return null;
   const prompts = WELCOME_PROMPTS;
   return (
@@ -2317,7 +2362,7 @@ function FullscreenChat({ visible, mode, conv }) {
           </div>
         )}
       <div className="px-6 pb-6 pt-4 shrink-0 flex justify-center">
-        <ChatInputFull placeholder="发消息或 @ 设备帮你做事" value={inputValue} onChange={setInputValue} />
+        <ChatInputFull placeholder="发消息或 @ 设备帮你做事" value={inputValue} onChange={setInputValue} onSend={handleSend} />
       </div>
     </div>
   );
@@ -2404,6 +2449,23 @@ function App() {
   const [addDeviceOpen,setAddDeviceOpen]= useState(false);
   const [copilotCollapsed, setCopilotCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [aiAgreed, setAiAgreed] = useState(false);
+  const [aiAgreementOpen, setAiAgreementOpen] = useState(false);
+  const pendingSendRef = useRef('');
+  const tryAiSend = (text) => {
+    if (!aiAgreed) {
+      pendingSendRef.current = text;
+      setAiAgreementOpen(true);
+      return false;
+    }
+    return true;
+  };
+  const onAiAgreementConfirm = () => {
+    setAiAgreed(true);
+    setAiAgreementOpen(false);
+    // 演示用:这里就当作"发送成功",真实场景会走对话注入
+    pendingSendRef.current = '';
+  };
   const [hubState, setHubState] = useState({
     loggedIn: true,
     phoneList: PHONE_LIST,
@@ -2476,7 +2538,7 @@ function App() {
                   </button>
                 </div>
               )}
-              {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} hubState={hubState} setHubState={setHubState} />}
+              {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} hubState={hubState} setHubState={setHubState} onLoggedIn={({ aiAgreed: ai }) => { setHubState(s => ({ ...s, loggedIn: true })); if (ai) setAiAgreed(true); }} />}
               {activeTab === 'transfer'    && <TransferPage />}
               {activeTab === 'cloud-photo' && <CloudPhotoPage />}
               {activeTab === 'cloud-note'  && <CloudNotePage />}
@@ -2490,14 +2552,16 @@ function App() {
 
           <FullscreenChat visible={inFullscreen}
                           mode={activeConvId ? 'conv' : 'welcome'}
-                          conv={conv} />
+                          conv={conv}
+                          onSend={tryAiSend} />
 
           {!inFullscreen && !copilotCollapsed && (
             <Copilot mode={activeConvId ? 'conv' : 'welcome'}
                      conv={conv}
                      onNewChat={onCopilotNewChat}
                      onExpand={onExpand}
-                     onCollapse={() => setCopilotCollapsed(true)} />
+                     onCollapse={() => setCopilotCollapsed(true)}
+                     onSend={tryAiSend} />
           )}
         </div>
       </div>
@@ -2505,6 +2569,9 @@ function App() {
       <ShareDialog file={share} onClose={() => setShare(null)} />
       <AddDeviceDialog open={addDeviceOpen} onClose={() => setAddDeviceOpen(false)} />
       <SettingsWindow open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <AiAgreementDialog open={aiAgreementOpen}
+                         onCancel={() => setAiAgreementOpen(false)}
+                         onConfirm={onAiAgreementConfirm} />
 
       <div className="mt-5 p-4 px-5 bg-surface border border-border rounded-xl text-[13px] text-text-2 leading-[1.8]">
         <b className="text-text">技术栈</b>:React 18 (UMD CDN) · Tailwind CSS (CDN, JIT) · Babel Standalone · 零构建,直接打开 HTML 即可。<br />
