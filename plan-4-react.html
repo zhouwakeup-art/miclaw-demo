@@ -610,35 +610,183 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onClos
 }
 
 function TransferPage() {
+  const devices = [
+    { id:'x17',  name: 'Xiaomi 17',       color: 'from-sky-200 to-sky-400' },
+    { id:'x17u', name: 'Xiaomi 17 Ultra', color: 'from-blue-300 to-indigo-400' },
+    { id:'pad7', name: 'Xiaomi Pad 7',    color: 'from-purple-200 to-pink-300' },
+  ];
+  const [hoverDevice, setHoverDevice] = useState(null);    // 拖拽悬停高亮
+  const [pickerForDevice, setPickerForDevice] = useState(null); // 单设备文件选择
+  const [filePickerOpen, setFilePickerOpen] = useState(false);  // 通用文件选择(选完进多设备)
+  const [targetPickerOpen, setTargetPickerOpen] = useState(false); // 多设备目标选择
+  const [selectedTargets, setSelectedTargets] = useState([]);   // 多设备已勾选
+  const [sendingTo, setSendingTo] = useState([]);               // 正在发送给哪些设备
+
+  // 通用单设备发送弹窗(从拖拽 / 点设备球 触发)
+  const handleDeviceDrop = (dev) => { setHoverDevice(null); setPickerForDevice(dev); };
+  const handleDeviceClick = (dev) => { setPickerForDevice(dev); };
+
+  // 选完文件后,确认发送
+  const confirmSingleSend = () => {
+    if (!pickerForDevice) return;
+    setSendingTo([pickerForDevice]);
+    setPickerForDevice(null);
+    setTimeout(() => setSendingTo([]), 2200);
+  };
+  const confirmMultiSend = () => {
+    setSendingTo(devices.filter(d => selectedTargets.includes(d.id)));
+    setTargetPickerOpen(false);
+    setSelectedTargets([]);
+    setTimeout(() => setSendingTo([]), 2200);
+  };
+
   return (
     <>
       <WsHeader>小米互传</WsHeader>
-      <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col items-center">
+      <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col items-center relative">
         <div className="self-start mb-6">
           <div className="text-[22px] font-bold">倪妮的 Macbook Pro</div>
           <div className="text-[13px] text-text-3 mt-1">点击设备球选择或拖拽文件至设备球发送</div>
         </div>
         {/* 设备球 */}
         <div className="flex gap-8 items-center justify-center my-8">
-          {[
-            { name: 'Xiaomi 17', color: 'from-sky-200 to-sky-400' },
-            { name: 'Xiaomi 17 Ultra', color: 'from-blue-300 to-indigo-400' },
-            { name: 'Xiaomi Pad 7', color: 'from-purple-200 to-pink-300' },
-          ].map((d, i) => (
-            <div key={i} className="flex flex-col items-center gap-2 cursor-pointer group">
-              <div className={`w-[80px] h-[80px] rounded-full bg-gradient-to-br ${d.color} shadow-card flex items-center justify-center transition-transform group-hover:scale-105`}>
-                <div className="w-[50px] h-[50px] rounded-[12px] bg-white/30 backdrop-blur-sm" />
+          {devices.map((d) => {
+            const isHover = hoverDevice === d.id;
+            const isSending = sendingTo.some(s => s.id === d.id);
+            return (
+              <div key={d.id}
+                   className="flex flex-col items-center gap-2 cursor-pointer group"
+                   onClick={() => handleDeviceClick(d)}
+                   onDragOver={(e) => { e.preventDefault(); setHoverDevice(d.id); }}
+                   onDragLeave={() => setHoverDevice(null)}
+                   onDrop={(e) => { e.preventDefault(); handleDeviceDrop(d); }}>
+                <div className={`w-[80px] h-[80px] rounded-full bg-gradient-to-br ${d.color} shadow-card flex items-center justify-center transition-all
+                                  ${isHover ? 'scale-110 ring-4 ring-accent/40' : 'group-hover:scale-105'}
+                                  ${isSending ? 'ring-4 ring-ok/60' : ''}`}>
+                  <div className="w-[50px] h-[50px] rounded-[12px] bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                    {isSending && <span className="text-white text-[18px]">✓</span>}
+                  </div>
+                </div>
+                <div className="text-[12px] text-text-2 group-hover:text-text">{d.name}</div>
+                {isSending && <div className="text-[11px] text-ok">已发送</div>}
               </div>
-              <div className="text-[12px] text-text-2 group-hover:text-text">{d.name}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+        {/* 拖拽提示遮罩(任意位置 dragover 时给个软提示) */}
         {/* 底部操作 */}
         <div className="flex items-center gap-4 mt-auto pt-6 text-[12px] text-text-3">
-          <button className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-[#3b5de7] transition-colors shadow-soft">📤 发送文件</button>
+          <button onClick={() => setFilePickerOpen(true)}
+                  className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-[#3b5de7] transition-colors shadow-soft">📤 发送文件</button>
         </div>
       </div>
+
+      {/* 单设备-文件选择弹窗(拖拽 / 点击设备球 触发) */}
+      {pickerForDevice && (
+        <FilePickerModal
+          title={`发送到 ${pickerForDevice.name}`}
+          onCancel={() => setPickerForDevice(null)}
+          onConfirm={confirmSingleSend}
+          confirmLabel="发送"
+        />
+      )}
+
+      {/* 通用-文件选择弹窗(点"发送文件"按钮触发) */}
+      {filePickerOpen && (
+        <FilePickerModal
+          title="选择要发送的文件"
+          onCancel={() => setFilePickerOpen(false)}
+          onConfirm={() => { setFilePickerOpen(false); setTargetPickerOpen(true); }}
+          confirmLabel="下一步"
+        />
+      )}
+
+      {/* 多设备目标选择 */}
+      {targetPickerOpen && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/[.18] backdrop-blur-sm" onClick={() => setTargetPickerOpen(false)} />
+          <div className="relative w-[380px] bg-surface rounded-[14px] shadow-modal p-5 animate-popIn">
+            <div className="text-[15px] font-semibold mb-1">选择目标设备</div>
+            <div className="text-[12px] text-text-3 mb-4">支持选择多个设备同时发送</div>
+            <div className="flex gap-3 justify-center my-3">
+              {devices.map(d => {
+                const sel = selectedTargets.includes(d.id);
+                return (
+                  <div key={d.id} onClick={() => setSelectedTargets(sel
+                                              ? selectedTargets.filter(x => x !== d.id)
+                                              : [...selectedTargets, d.id])}
+                       className="flex flex-col items-center gap-1.5 cursor-pointer">
+                    <div className={`w-[64px] h-[64px] rounded-full bg-gradient-to-br ${d.color} flex items-center justify-center transition-all
+                                      ${sel ? 'ring-4 ring-accent/60 scale-105' : 'opacity-80 hover:opacity-100'}`}>
+                      <div className="w-[40px] h-[40px] rounded-[10px] bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                        {sel && <span className="text-white text-[16px]">✓</span>}
+                      </div>
+                    </div>
+                    <div className="text-[11px] text-text-2 text-center max-w-[72px] leading-tight">{d.name}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setTargetPickerOpen(false)}
+                      className="px-4 py-1.5 rounded-md text-[13px] text-text-2 hover:bg-surface-2">取消</button>
+              <button onClick={confirmMultiSend} disabled={selectedTargets.length === 0}
+                      className="px-4 py-1.5 rounded-md bg-accent text-white text-[13px] font-medium hover:bg-[#3b5de7] disabled:opacity-40 disabled:cursor-not-allowed">
+                发送 ({selectedTargets.length})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
+  );
+}
+
+function FilePickerModal({ title, onCancel, onConfirm, confirmLabel }) {
+  // 模拟 Finder 风格的文件选择器
+  const sidebar = ['通用','AirDrop','最近使用','应用程序','桌面','文稿','下载','iCloud Drive','网络'];
+  const files = [
+    { name:'设计稿.fig',     icon:'🎨' },
+    { name:'演示.key',       icon:'📊' },
+    { name:'报告.pdf',       icon:'📄' },
+    { name:'截图.png',       icon:'🖼' },
+    { name:'视频.mp4',       icon:'🎬' },
+    { name:'数据.xlsx',      icon:'📈' },
+    { name:'笔记.md',        icon:'📝' },
+    { name:'压缩包.zip',     icon:'🗜' },
+  ];
+  const [selected, setSelected] = useState('设计稿.fig');
+  return (
+    <div className="absolute inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/[.20] backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative w-[560px] h-[400px] bg-surface rounded-[12px] shadow-modal animate-popIn flex flex-col overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-border text-[13px] font-medium">{title}</div>
+        <div className="flex-1 flex overflow-hidden">
+          <div className="w-[140px] shrink-0 bg-surface-2 border-r border-border py-2 overflow-y-auto">
+            {sidebar.map((s, i) => (
+              <div key={s} className={`px-3 py-1.5 text-[12px] cursor-pointer ${i === 4 ? 'bg-accent/10 text-accent font-medium' : 'text-text-2 hover:bg-black/[.04]'}`}>{s}</div>
+            ))}
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 grid gap-2" style={{ gridTemplateColumns:'repeat(4, 1fr)' }}>
+            {files.map(f => (
+              <div key={f.name} onClick={() => setSelected(f.name)}
+                   className={`flex flex-col items-center gap-1 p-2 rounded-md cursor-pointer transition-colors
+                              ${selected === f.name ? 'bg-accent/15' : 'hover:bg-black/[.04]'}`}>
+                <span className="text-[28px] leading-none">{f.icon}</span>
+                <span className="text-[11px] text-text truncate max-w-full">{f.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="px-4 py-2.5 border-t border-border flex items-center justify-between">
+          <div className="text-[11px] text-text-3 truncate">已选: {selected}</div>
+          <div className="flex gap-2">
+            <button onClick={onCancel} className="px-3 py-1 rounded-md text-[12px] text-text-2 hover:bg-surface-2">Cancel</button>
+            <button onClick={onConfirm} className="px-3 py-1 rounded-md bg-accent text-white text-[12px] font-medium hover:bg-[#3b5de7]">{confirmLabel}</button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
