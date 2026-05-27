@@ -78,6 +78,15 @@
   .text-baidu { background: linear-gradient(135deg,#3677ed,#5b94ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
   /* POI 标签:白色发光背景 */
   .poi-text { text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
+  /* 设备互联 spinner */
+  @keyframes mc-spin { to { transform: rotate(360deg); } }
+  .mc-spin > i {
+    position: absolute; left: 50%; top: 0;
+    width: 2px; height: 28%; border-radius: 1px;
+    background: currentColor;
+    transform-origin: 50% 180%;
+    opacity: .25;
+  }
   /* 小米互传:同心圆背景(与 bg-bg #eef3f2 同色系) */
   .transfer-bg {
     background:
@@ -432,6 +441,18 @@ function HdrBtn({ children, onClick }) {
   );
 }
 
+function Spinner({ size = 14 }) {
+  // 8 段苹果风格 spinner,旋转
+  const bars = Array.from({ length: 8 });
+  return (
+    <span className="mc-spin inline-block relative shrink-0 text-text-3" style={{ width:size, height:size, animation:'mc-spin 0.9s steps(8) infinite' }}>
+      {bars.map((_, i) => (
+        <i key={i} style={{ transform:`translateX(-50%) rotate(${i * 45}deg)`, opacity: 0.15 + i * 0.1 }} />
+      ))}
+    </span>
+  );
+}
+
 function ActionChip({ children, primary, disabled, onClick }) {
   return (
     <div onClick={disabled ? undefined : onClick}
@@ -474,6 +495,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
   const [helpOpen, setHelpOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
   const [removeConfirm, setRemoveConfirm] = useState(null);
+  const [reconnecting, setReconnecting] = useState(false);
   const { phoneList, padList, selectedPhone, selectedPad } = hubState;
   const setPhoneList = (v) => setHubState(s => ({ ...s, phoneList: typeof v === 'function' ? v(s.phoneList) : v }));
   const setPadList   = (v) => setHubState(s => ({ ...s, padList:   typeof v === 'function' ? v(s.padList)   : v }));
@@ -534,12 +556,17 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
               </div>
               <div className="text-[13px] text-text-3 mt-0.5 flex items-center gap-1.5">
                 <span className={`inline-block w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-ok' : 'bg-text-3'}`} />
-                {isConnected ? '局域网连接' : (
+                {isConnected ? '局域网连接' : reconnecting ? (
+                  <span className="inline-flex items-center gap-1.5 text-text-3">
+                    <Spinner size={14} />
+                    连接中
+                  </span>
+                ) : (
                   <span>
                     未连接,
                     <span onClick={() => setHelpOpen(true)} className="text-accent cursor-pointer hover:underline">查看连接帮助</span>
                     或
-                    <span onClick={() => {/* 触发重新连接 */}} className="text-accent cursor-pointer hover:underline">重新连接</span>
+                    <span onClick={() => { setReconnecting(true); setTimeout(() => setReconnecting(false), 2400); }} className="text-accent cursor-pointer hover:underline">重新连接</span>
                   </span>
                 )}
               </div>
@@ -576,12 +603,17 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
               </div>
               <div className="text-[13px] text-text-3 mt-0.5 flex items-center gap-1.5">
                 <span className={`inline-block w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-ok' : 'bg-text-3'}`} />
-                {isConnected ? '局域网连接' : (
+                {isConnected ? '局域网连接' : reconnecting ? (
+                  <span className="inline-flex items-center gap-1.5 text-text-3">
+                    <Spinner size={14} />
+                    连接中
+                  </span>
+                ) : (
                   <span>
                     未连接,
                     <span onClick={() => setHelpOpen(true)} className="text-accent cursor-pointer hover:underline">查看连接帮助</span>
                     或
-                    <span onClick={() => {/* 触发重新连接 */}} className="text-accent cursor-pointer hover:underline">重新连接</span>
+                    <span onClick={() => { setReconnecting(true); setTimeout(() => setReconnecting(false), 2400); }} className="text-accent cursor-pointer hover:underline">重新连接</span>
                   </span>
                 )}
               </div>
