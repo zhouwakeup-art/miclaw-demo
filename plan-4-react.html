@@ -729,7 +729,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[15px] font-semibold">屏幕扩展</div>
-                  <div className="text-[12px] text-text-3 mt-0.5">把小米平板当作 Mac 的扩展显示器</div>
+                  <div className="text-[12px] text-text-3 mt-0.5">把小米平板当作电脑的扩展显示器</div>
                 </div>
                 <button className="px-4 py-1.5 rounded-lg border border-border text-[13px] font-medium hover:bg-text hover:text-white hover:border-text transition-colors">开启</button>
               </div>
@@ -773,7 +773,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
         onAgree={({ aiAgreed: ai }) => { setPrivacyAgreed(true); if (ai) onLoggedIn?.({ aiAgreed: true, privacyOnly: true }); }} />
       {removeConfirm && (
         <ConfirmDialog
-          title={`移除后会断开 Mac 与 ${removeConfirm.kind === 'phone' ? '小米手机' : '小米平板'} 的连接,可以通过"扫码添加"再次连接,确认移除?`}
+          title={`移除后会断开电脑与 ${removeConfirm.kind === 'phone' ? '小米手机' : '小米平板'} 的连接,可以通过"扫码添加"再次连接,确认移除?`}
           confirmLabel="移除"
           onConfirm={() => doRemove(removeConfirm.name)}
           onCancel={() => setRemoveConfirm(null)}
@@ -1047,11 +1047,11 @@ function ConnectHelpDialog({ open, onClose, onScan }) {
         <div className="space-y-3">
           <div onClick={onScan} className="bg-surface-2 hover:bg-surface-3 rounded-xl p-4 cursor-pointer transition-colors">
             <div className="text-[14px] font-semibold mb-1">扫码添加</div>
-            <div className="text-[12px] text-text-3 leading-relaxed">请确保小米手机/平板在附近,已升级至小米澎湃 OS 3,并与 Mac 登录相同小米账号、连接相同网络。可使用小米手机/平板相机扫描二维码添加</div>
+            <div className="text-[12px] text-text-3 leading-relaxed">请确保小米手机/平板在附近,已升级至小米澎湃 OS 3,并与电脑登录相同小米账号、连接相同网络。可使用小米手机/平板相机扫描二维码添加</div>
           </div>
           <div className="bg-surface-2 hover:bg-surface-3 rounded-xl p-4 cursor-pointer transition-colors">
             <div className="text-[14px] font-semibold mb-1">热点连接</div>
-            <div className="text-[12px] text-text-3 leading-relaxed">通过首页"启用热点"入口,使 Mac 与 小米手机/小米平板 加入同一局域网,或在此点击"热点连接"</div>
+            <div className="text-[12px] text-text-3 leading-relaxed">通过首页"启用热点"入口,使电脑与 小米手机/小米平板 加入同一局域网,或在此点击"热点连接"</div>
           </div>
         </div>
       </div>
@@ -1316,7 +1316,7 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemo
             {!hasDevices && (
               <div className="text-[12.5px] text-text-2 leading-[1.8]">
                 <div>1. 请确保小米手机或小米平板系统已升级至 Hyper OS 3</div>
-                <div>2. 与 Mac 均处于同一网络,登录同一小米账号</div>
+                <div>2. 与电脑均处于同一网络,登录同一小米账号</div>
               </div>
             )}
           </div>
@@ -1421,7 +1421,7 @@ function TransferPage() {
       <WsHeader>小米互传</WsHeader>
       <div className="flex-1 overflow-hidden flex flex-col relative transfer-bg">
         <div className="px-6 pt-5 z-[1]">
-          <div className="text-[22px] font-bold">倪妮的 Macbook Pro</div>
+          <div className="text-[22px] font-bold">倪妮的电脑</div>
           <div className="text-[13px] text-text-3 mt-1">点击设备球选择或拖拽文件至设备球发送</div>
         </div>
 
@@ -2458,7 +2458,7 @@ function HelpSettings() {
   ];
   const items = {
     transfer: ['如何与小米设备互传文件'],
-    connect:  ['如何连接 Mac 与小米手机','如何一键连接小米手机热点','如何在 Mac 上查看和使用小米手机','如何将 Mac 屏幕扩展到小米平板'],
+    connect:  ['如何连接电脑与小米手机','如何一键连接小米手机热点','如何在电脑上查看和使用小米手机','如何将电脑屏幕扩展到小米平板'],
     find:     ['如何查找小米设备'],
   };
   return (
@@ -2732,7 +2732,7 @@ function AddDeviceDialog({ open, onClose }) {
           <Icon.Close width="14" height="14" />
         </button>
         <div className="text-[22px] font-bold text-text mb-2.5 text-center">我的设备</div>
-        <div className="text-[13px] text-text-2 leading-[1.65] text-center max-w-[360px]">请确保小米手机在附近,手机系统已升级至小米澎湃 OS 3,并与 Mac 登录相同小米账号、连接相同网络</div>
+        <div className="text-[13px] text-text-2 leading-[1.65] text-center max-w-[360px]">请确保小米手机在附近,手机系统已升级至小米澎湃 OS 3,并与电脑登录相同小米账号、连接相同网络</div>
 
         <div className="relative w-[240px] h-[240px] my-10 mb-7 flex items-center justify-center">
           <div className="absolute rounded-full bg-white/85 z-[2] shadow-soft" style={{ width:'44px', height:'44px' }} />
