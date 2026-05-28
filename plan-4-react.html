@@ -1112,11 +1112,13 @@ function SwipeableDeviceRow({ device, kind, active, onSelect, onRemove }) {
 
   return (
     <div className="relative overflow-hidden rounded-xl">
-      {/* 底层红色移除按钮 */}
-      <button onClick={() => { setOffset(0); onRemove(); }}
-              className="absolute top-0 right-0 bottom-0 w-[88px] bg-[#ff453a] hover:bg-[#e63a30] text-white text-[14px] font-semibold flex items-center justify-center">
-        移除
-      </button>
+      {/* 底层红色移除按钮(仅在滑开时存在) */}
+      {offset < 0 && (
+        <button onClick={() => { setOffset(0); onRemove(); }}
+                className="absolute top-0 right-0 bottom-0 w-[88px] bg-[#ff453a] hover:bg-[#e63a30] text-white text-[14px] font-semibold flex items-center justify-center">
+          移除
+        </button>
+      )}
       {/* 顶层卡片 */}
       <div
         onMouseDown={onMouseDown}
