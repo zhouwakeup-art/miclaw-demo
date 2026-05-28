@@ -770,7 +770,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
       <input ref={fileInputRef} type="file" className="hidden" onChange={onPickFile} />
       <MacSendNotification notif={sendNotif} onClose={() => { clearInterval(sendTimerRef.current); setSendNotif(null); }} />
       {addedToast && (
-        <div className="absolute top-3 right-3 z-[200] animate-fadeIn px-4 py-2 rounded-full bg-surface shadow-modal flex items-center gap-2 border border-border">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[200] animate-fadeIn px-4 py-2 rounded-full bg-surface shadow-modal flex items-center gap-2 border border-border">
           <span className="w-[20px] h-[20px] rounded-full bg-accent flex items-center justify-center text-white text-[12px] font-bold">✓</span>
           <span className="text-[13px] text-text font-medium">添加成功</span>
         </div>
