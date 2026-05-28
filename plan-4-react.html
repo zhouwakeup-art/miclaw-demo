@@ -578,7 +578,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
         <div className="flex items-center gap-2">
           <div className="flex bg-surface-2 border border-border rounded-lg p-0.5">
             <button onClick={() => setDeviceTab('phone')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='phone' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>手机</button>
-            <button onClick={() => setDeviceTab('pad')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='pad' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>{padList.length === 0 ? '+ 添加平板' : '平板'}</button>
+            <button onClick={() => setDeviceTab('pad')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='pad' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>{loggedIn && padList.length === 0 ? '+ 添加平板' : '平板'}</button>
           </div>
         </div>
       }>设备互联</WsHeader>
