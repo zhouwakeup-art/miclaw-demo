@@ -525,7 +525,7 @@ const INTRO_SLIDES = [
   { title:'超级小爱',  sub:'你的电脑 AI 助手,可以和小爱聊天,还能一句话满足互联需求',         illust:'ai' },
   { title:'妙享桌面',  sub:'在 Mac 上像操作 Mac 应用一样,自由使用手机里的相册、文件和应用', illust:'phone' },
   { title:'手机通知',  sub:'不再错过任何重要消息,打开妙享桌面直接回复',                     illust:'notify' },
-  { title:'屏幕扩展',  sub:'把小米平板变成 Mac 副屏',                                          illust:'pad' },
+  { title:'小米互传',  sub:'拖拽文件到设备球,一秒发送到手机或平板',                           illust:'transfer' },
 ];
 
 // 设备记录:status 'connected' | 'offline'(局域网未发现,但有记录)
@@ -831,6 +831,16 @@ function DeviceIllust({ kind }) {
     <div className="relative">
       <div className="w-[150px] h-[100px] rounded-md bg-gradient-to-br from-slate-300 to-slate-500 shadow-card" />
       <div className="absolute -bottom-2 -right-6 w-[80px] h-[58px] rounded bg-gradient-to-br from-purple-300 to-purple-500 shadow-card" />
+    </div>
+  );
+  if (kind === 'transfer') return (
+    <div className="relative w-[200px] h-[110px] flex items-center justify-center">
+      {/* Mac */}
+      <div className="absolute left-2 top-1 w-[110px] h-[80px] rounded-md bg-gradient-to-br from-slate-300 to-slate-500 shadow-card" />
+      {/* 飞行的文件 */}
+      <div className="absolute left-[88px] top-[18px] w-[34px] h-[42px] rounded bg-white shadow-card flex items-center justify-center text-[18px] rotate-[-8deg]">📄</div>
+      {/* 手机 */}
+      <div className="absolute right-1 top-3 w-[44px] h-[68px] rounded-lg bg-gradient-to-br from-sky-300 to-sky-500 shadow-card" />
     </div>
   );
   // ai
