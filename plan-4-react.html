@@ -713,11 +713,11 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
               <ActionChip>🔔 响铃查找</ActionChip>
               <ActionChip onClick={() => fileInputRef.current?.click()}>📤 文件传输</ActionChip>
             </div>
-            {/* 屏幕拓展(未连接禁用) */}
+            {/* 屏幕扩展(未连接禁用) */}
             <div className={`w-full bg-surface-2 border border-border rounded-xl p-4 ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[15px] font-semibold">屏幕拓展</div>
+                  <div className="text-[15px] font-semibold">屏幕扩展</div>
                   <div className="text-[12px] text-text-3 mt-0.5">将此电脑用作显示屏扩展或镜像</div>
                 </div>
                 <button className="px-4 py-1.5 rounded-lg border border-border text-[13px] font-medium hover:bg-text hover:text-white hover:border-text transition-colors">开启</button>
