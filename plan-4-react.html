@@ -1231,6 +1231,7 @@ function SwipeableDeviceRow({ device, kind, active, onSelect, onRemove }) {
 
 function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemove, onScan, onClose }) {
   const [searching, setSearching] = useState(false);
+  const [searchedOnce, setSearchedOnce] = useState(false);
   const searchTimerRef = useRef(null);
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -1238,19 +1239,33 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemo
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      // 无设备打开 → 自动启动搜索动画
+      if (devices.length === 0) {
+        setSearching(true);
+        setSearchedOnce(false);
+        clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = setTimeout(() => { setSearching(false); setSearchedOnce(true); }, 2000);
+      } else {
+        setSearching(false);
+        setSearchedOnce(false);
+      }
+    } else {
       setSearching(false);
+      setSearchedOnce(false);
       clearTimeout(searchTimerRef.current);
     }
-  }, [open]);
+  }, [open]); // eslint-disable-line
   const triggerSearch = () => {
     setSearching(true);
+    setSearchedOnce(false);
     clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => setSearching(false), 2000);
+    searchTimerRef.current = setTimeout(() => { setSearching(false); setSearchedOnce(true); }, 2000);
   };
   if (!open) return null;
   const hasDevices = devices.length > 0;
-  const showSearchingView = searching || !hasDevices;
+  const showSearchingView = searching;
+  const showNotFoundView = !searching && !hasDevices && searchedOnce;
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fadeIn">
       <div className="absolute inset-0 bg-black/[.22] backdrop-blur-sm" onClick={onClose} />
@@ -1288,6 +1303,18 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemo
                    style={{ animation: 'mc-bounce 1.6s ease-in-out 1s infinite' }} />
             </div>
             <div className="text-[14px] text-text-3">正在搜索...</div>
+          </div>
+        ) : showNotFoundView ? (
+          <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+            <div className="relative w-[64px] h-[80px] mb-3">
+              {/* 手机轮廓 */}
+              <div className="absolute inset-0 border-[2.5px] border-text-3/40 rounded-[10px]" />
+              {/* 警告小圆 */}
+              <div className="absolute -bottom-1 -right-1 w-[26px] h-[26px] rounded-full bg-text-3/70 flex items-center justify-center text-white text-[15px] font-bold">!</div>
+            </div>
+            <div className="text-[14px] text-text-3 mb-5">未搜索到设备</div>
+            <button onClick={triggerSearch}
+                    className="px-7 py-2 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] shadow-soft">重新搜索</button>
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto px-7 pb-3">
