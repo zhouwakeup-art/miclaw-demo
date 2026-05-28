@@ -574,21 +574,21 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
 
   return (
     <>
-      <WsHeader action={
+      <WsHeader action={loggedIn && hasRecord ? (
         <div className="flex items-center gap-2">
           <div className="flex bg-surface-2 border border-border rounded-lg p-0.5">
             <button onClick={() => setDeviceTab('phone')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='phone' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>手机</button>
-            <button onClick={() => setDeviceTab('pad')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='pad' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>{loggedIn && padList.length === 0 ? '+ 添加平板' : '平板'}</button>
+            <button onClick={() => setDeviceTab('pad')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='pad' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>{padList.length === 0 ? '+ 添加平板' : '平板'}</button>
           </div>
         </div>
-      }>设备互联</WsHeader>
+      ) : null}>设备互联</WsHeader>
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {!loggedIn ? (
           /* ===== 未登录态(走轮播引导 + 登录按钮) ===== */
           <DeviceLoggedOut isPhoneTab={isPhone} onLogin={() => setLoginOpen(true)} />
         ) : !hasRecord ? (
           /* ===== 暂无设备(无记录) ===== */
-          <DeviceEmptyState kind={isPhone ? 'phone' : 'pad'} onAdd={() => setPickerOpen(true)} />
+          <DeviceEmptyState onAdd={() => setPickerOpen(true)} />
         ) : isPhone ? (
           /* ===== 手机 Tab(有记录) ===== */
           <div className="max-w-[520px] mx-auto flex flex-col items-center">
@@ -885,15 +885,13 @@ function LoginDialog({ open, onClose, onLoggedIn }) {
   );
 }
 
-function DeviceEmptyState({ kind, onAdd }) {
-  const slides = kind === 'phone' ? [
+function DeviceEmptyState({ onAdd }) {
+  // 无设备态:不区分手机/平板 tab,统一展示融合后的能力轮播
+  const slides = [
     { title: '在 Mac 使用小米手机', sub: '打开"妙享桌面",在 Mac 上无缝操作小米手机', illust: 'phone' },
-    { title: 'Mac 接收小米手机通知', sub: '开启"通知流转",可在 Mac 上查看和回复消息',  illust: 'notify' },
-  ] : [
     { title: 'Mac 拓展屏幕到小米平板', sub: '开启"屏幕扩展",将小米平板作为 Mac 的副屏', illust: 'pad' },
   ];
   const [idx, setIdx] = useState(0);
-  const label = kind === 'phone' ? '小米手机' : '小米平板';
   return (
     <div className="max-w-[520px] mx-auto flex flex-col items-center pt-2">
       <div className="w-[280px] h-[180px] rounded-2xl bg-surface-2 flex items-center justify-center mb-5">
@@ -908,7 +906,7 @@ function DeviceEmptyState({ kind, onAdd }) {
         ))}
       </div>
       <button onClick={onAdd}
-              className="w-[260px] py-2.5 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] shadow-soft">连接{label}</button>
+              className="w-[260px] py-2.5 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] shadow-soft">添加设备</button>
     </div>
   );
 }
