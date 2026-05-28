@@ -1210,24 +1210,19 @@ function SwipeableDeviceRow({ device, kind, active, onSelect, onRemove }) {
         onMouseDown={onMouseDown}
         onClick={handleClick}
         style={{ transform:`translateX(${offset}px)`, transition: startXRef.current ? 'none' : 'transform 0.22s ease' }}
-        className={`relative flex items-center gap-3 px-3.5 py-3 cursor-pointer select-none
-                   ${active ? 'bg-accent-light' : 'bg-black/[.05] hover:bg-black/[.08]'}`}
+        className={`relative flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer select-none transition-colors
+                   ${active ? 'bg-accent-bg' : 'bg-surface-2 hover:bg-surface-3'}`}
       >
-        <div className="w-9 h-9 rounded-md bg-white flex items-center justify-center shadow-soft shrink-0 pointer-events-none">
-          {kind === 'phone' ? (
-            <div className="w-4 h-6 rounded phone-gradient relative">
-              <div className="absolute top-[2px] right-[2px] w-1 h-1 rounded-full phone-camera" />
-            </div>
-          ) : (
-            <div className="w-7 h-5 rounded phone-gradient" />
-          )}
+        <div className="w-10 h-12 rounded-md flex items-center justify-center shrink-0 pointer-events-none overflow-hidden bg-white shadow-soft"
+             style={{ background:'linear-gradient(180deg, #cfe2f3 0%, #6f9ec8 50%, #1f3a5a 100%)' }}>
+          {/* 设备图(用渐变模拟手机壁纸) */}
         </div>
         <div className="flex-1 min-w-0 pointer-events-none">
           <div className={`text-[15px] font-medium truncate ${active ? 'text-accent' : 'text-text'}`}>{device.name}</div>
-          <div className="text-[11px] text-text-3 mt-0.5">{connected ? '已连接' : '未连接'}</div>
+          {connected && <div className="text-[12px] text-accent/70 mt-0.5">已连接</div>}
         </div>
         {active && (
-          <div className="w-[22px] h-[22px] rounded-full bg-accent text-white flex items-center justify-center text-[12px] shrink-0 pointer-events-none">✓</div>
+          <div className="w-[26px] h-[26px] rounded-full bg-accent text-white flex items-center justify-center text-[14px] shrink-0 pointer-events-none">✓</div>
         )}
       </div>
     </div>
@@ -1241,7 +1236,7 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemo
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
   if (!open) return null;
-  const empty = devices.length === 0;
+  const hasDevices = devices.length > 0;
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fadeIn">
       <div className="absolute inset-0 bg-black/[.22] backdrop-blur-sm" onClick={onClose} />
@@ -1249,18 +1244,42 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemo
         <button onClick={onClose} className="absolute top-4 right-4 w-7 h-7 rounded-md text-text-3 hover:text-text hover:bg-black/[.05] flex items-center justify-center z-10">
           <Icon.Close width="16" height="16" />
         </button>
-        <div className="px-7 pt-6 pb-3">
-          <div className="text-[20px] font-bold text-text mb-2">添加设备</div>
-          <div className="text-[12.5px] text-text-2 leading-[1.8]">
-            <div>1. 请确保小米手机或小米平板系统已升级至 Hyper OS 3</div>
-            <div>2. 与 Mac 均处于同一网络,登录同一小米账号</div>
-          </div>
-        </div>
-        <div className="flex-1 flex flex-col items-center justify-center min-h-0">
-          {empty ? (
-            <>
+
+        {hasDevices ? (
+          <>
+            <div className="px-7 pt-6 pb-4">
+              <div className="text-[20px] font-bold text-text">我的设备</div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-7 pb-3">
+              <div className="flex flex-col gap-2">
+                {devices.map((d) => (
+                  <SwipeableDeviceRow key={d.name}
+                    device={d}
+                    kind={kind}
+                    active={d.name === currentName}
+                    onSelect={() => onSelect(d.name)}
+                    onRemove={() => onRemove?.(d)} />
+                ))}
+              </div>
+            </div>
+            <div className="px-7 py-3 border-t border-border flex items-center justify-between">
+              <div className="text-[12.5px] text-text-3">
+                未搜索到小米设备?可尝试 <a onClick={onScan} className="text-accent cursor-pointer hover:underline">扫码添加</a>
+              </div>
+              <button className="px-4 py-1.5 rounded-full bg-surface-2 hover:bg-surface-3 text-[13px] text-text font-medium">重新搜索</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="px-7 pt-6 pb-3">
+              <div className="text-[20px] font-bold text-text mb-2">添加设备</div>
+              <div className="text-[12.5px] text-text-2 leading-[1.8]">
+                <div>1. 请确保小米手机或小米平板系统已升级至 Hyper OS 3</div>
+                <div>2. 与 Mac 均处于同一网络,登录同一小米账号</div>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center min-h-0">
               <div className="relative w-[110px] h-[80px] mb-4">
-                {/* 三个彩色圆球 */}
                 <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-[#ff8a8a] opacity-90"
                      style={{ animation: 'mc-bounce 1.6s ease-in-out infinite' }} />
                 <div className="absolute right-0 top-3 w-7 h-7 rounded-full bg-[#9c8aff] opacity-90"
@@ -1269,23 +1288,12 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemo
                      style={{ animation: 'mc-bounce 1.6s ease-in-out 1s infinite' }} />
               </div>
               <div className="text-[14px] text-text-3">正在搜索...</div>
-            </>
-          ) : (
-            <div className="w-full max-w-[480px] px-7 flex flex-col gap-2">
-              {devices.map((d) => (
-                <SwipeableDeviceRow key={d.name}
-                  device={d}
-                  kind={kind}
-                  active={d.name === currentName}
-                  onSelect={() => onSelect(d.name)}
-                  onRemove={() => onRemove?.(d)} />
-              ))}
             </div>
-          )}
-        </div>
-        <div className="px-7 pb-6 text-center text-[12.5px] text-text-3">
-          未搜索到小米设备?可尝试 <a onClick={onScan} className="text-accent cursor-pointer hover:underline">扫码添加</a>
-        </div>
+            <div className="px-7 pb-6 text-center text-[12.5px] text-text-3">
+              未搜索到小米设备?可尝试 <a onClick={onScan} className="text-accent cursor-pointer hover:underline">扫码添加</a>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
