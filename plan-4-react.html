@@ -1051,7 +1051,7 @@ function AiAgreementDialog({ open, onCancel, onConfirm }) {
           <button onClick={onCancel}
                   className="px-4 py-1.5 rounded-md text-[13px] text-text-2 hover:bg-surface-2">取消</button>
           <button onClick={onConfirm} disabled={!agreed}
-                  className="px-4 py-1.5 rounded-md bg-accent text-white text-[13px] font-medium hover:bg-[#3b5de7] disabled:opacity-40 disabled:cursor-not-allowed">同意并继续</button>
+                  className={`px-4 py-1.5 rounded-md text-white text-[13px] font-medium transition-colors ${agreed ? 'bg-accent hover:bg-[#3b5de7]' : 'bg-accent/40 cursor-not-allowed'}`}>同意并继续</button>
         </div>
       </div>
     </div>
