@@ -534,7 +534,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
   const [scanOpen, setScanOpen] = useState(false);
   const [removeConfirm, setRemoveConfirm] = useState(null);
   const [reconnecting, setReconnecting] = useState(false);
-  const { loggedIn, phoneList, padList, selectedPhone, selectedPad } = hubState;
+  const { loggedIn, phoneList, padList, selectedPhone, selectedPad, firstKind = 'phone' } = hubState;
   const [loginOpen, setLoginOpen] = useState(false);
   const privacyAgreed = !!hubState.privacyAgreed;
   const setPrivacyAgreed = (v) => setHubState(s => ({ ...s, privacyAgreed: v }));
@@ -576,14 +576,26 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
 
   return (
     <>
-      <WsHeader action={loggedIn && hasRecord ? (
-        <div className="flex items-center gap-2">
-          <div className="flex bg-surface-2 border border-border rounded-lg p-0.5">
-            <button onClick={() => setDeviceTab('phone')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='phone' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>手机</button>
-            <button onClick={() => setDeviceTab('pad')} className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab==='pad' ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>{padList.length === 0 ? '+ 添加平板' : '平板'}</button>
+      <WsHeader action={loggedIn && hasRecord ? (() => {
+        // tab 顺序由 firstKind(首个被添加的类型)决定
+        const order = firstKind === 'pad' ? ['pad', 'phone'] : ['phone', 'pad'];
+        const labelOf = (k) => {
+          if (k === 'phone') return phoneList.length === 0 ? '+ 添加手机' : '手机';
+          return padList.length === 0 ? '+ 添加平板' : '平板';
+        };
+        return (
+          <div className="flex items-center gap-2">
+            <div className="flex bg-surface-2 border border-border rounded-lg p-0.5">
+              {order.map(k => (
+                <button key={k} onClick={() => setDeviceTab(k)}
+                        className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab===k ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>
+                  {labelOf(k)}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      ) : null}>设备互联</WsHeader>
+        );
+      })() : null}>设备互联</WsHeader>
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {!loggedIn ? (
           /* ===== 未登录态(走轮播引导 + 登录按钮) ===== */
@@ -694,13 +706,18 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
       <ScanAddDialog open={scanOpen}
                      kind={isPhone ? 'phone' : 'pad'}
                      onClose={() => setScanOpen(false)}
-                     onSuccess={(name) => {
+                     onSuccess={({ name, kind: scannedKind }) => {
                        const newDev = { name, status:'connected' };
-                       if (isPhone) {
-                         setHubState(s => ({ ...s, phoneList: [newDev, ...s.phoneList.filter(d => d.name !== name)], selectedPhone: name }));
-                       } else {
-                         setHubState(s => ({ ...s, padList: [newDev, ...s.padList.filter(d => d.name !== name)], selectedPad: name }));
-                       }
+                       setHubState(s => {
+                         // 第一次添加任何设备 → 用扫到的类型作为 firstKind
+                         const noRecord = s.phoneList.length === 0 && s.padList.length === 0;
+                         const firstKind = noRecord ? scannedKind : s.firstKind;
+                         if (scannedKind === 'phone') {
+                           return { ...s, firstKind, phoneList: [newDev, ...s.phoneList.filter(d => d.name !== name)], selectedPhone: name };
+                         }
+                         return { ...s, firstKind, padList: [newDev, ...s.padList.filter(d => d.name !== name)], selectedPad: name };
+                       });
+                       setDeviceTab(scannedKind);
                        setScanOpen(false);
                      }} />
       <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={onLoggedIn} presetAgreed={privacyAgreed} />
@@ -1016,11 +1033,15 @@ function ScanAddDialog({ open, kind, onClose, onSuccess }) {
         {!scanned ? (
           <>
             <div className="text-[12px] text-text-3 text-center mb-3">打开小米手机或平板的相机 App,扫描上方二维码添加设备</div>
-            <button onClick={() => { setScanned(true); setTimeout(() => onSuccess?.(fakeName), 800); }}
-                    className="w-full py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors">[ 演示用 ] 模拟扫码成功</button>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => { setScanned('phone'); setTimeout(() => onSuccess?.({ name:'Xiaomi 17 Ultra', kind:'phone' }), 800); }}
+                      className="py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors">[ 演示 ] 扫到手机</button>
+              <button onClick={() => { setScanned('pad'); setTimeout(() => onSuccess?.({ name:'Xiaomi Pad 7', kind:'pad' }), 800); }}
+                      className="py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors">[ 演示 ] 扫到平板</button>
+            </div>
           </>
         ) : (
-          <div className="text-[12px] text-accent text-center font-medium">扫码成功,正在连接 {fakeName}…</div>
+          <div className="text-[12px] text-accent text-center font-medium">扫码成功,正在连接 {scanned === 'phone' ? 'Xiaomi 17 Ultra' : 'Xiaomi Pad 7'}…</div>
         )}
       </div>
     </div>
@@ -2569,17 +2590,18 @@ function App() {
   const [hubState, setHubState] = useState({
     privacyAgreed: true,
     loggedIn: true,
+    firstKind: 'phone', // 第一个被添加的设备类型,决定 tab 顺序
     phoneList: PHONE_LIST,
     padList:   PAD_LIST,
     selectedPhone: 'Xiaomi 17 Pro',
     selectedPad:   'Xiaomi Pad 7',
   });
   const setHubDemo = (mode) => {
-    if (mode === 'no-privacy') setHubState({ privacyAgreed:false, loggedIn:false, phoneList: [], padList: [], selectedPhone:'', selectedPad:'' });
-    else if (mode === 'logged-out') setHubState({ privacyAgreed:true, loggedIn: false, phoneList: PHONE_LIST, padList: PAD_LIST, selectedPhone: PHONE_LIST[0].name, selectedPad: PAD_LIST[0].name });
-    else if (mode === 'connected') setHubState({ privacyAgreed:true, loggedIn:true, phoneList: PHONE_LIST.map((d,i) => i===0 ? {...d, status:'connected'} : d), padList: PAD_LIST, selectedPhone: PHONE_LIST[0].name, selectedPad: PAD_LIST[0].name });
-    else if (mode === 'offline') setHubState({ privacyAgreed:true, loggedIn:true, phoneList: PHONE_LIST.map(d => ({...d, status:'offline'})), padList: PAD_LIST.map(d => ({...d, status:'offline'})), selectedPhone: PHONE_LIST[0].name, selectedPad: PAD_LIST[0].name });
-    else if (mode === 'empty') setHubState({ privacyAgreed:true, loggedIn:true, phoneList: [], padList: [], selectedPhone: '', selectedPad: '' });
+    if (mode === 'no-privacy') setHubState({ privacyAgreed:false, loggedIn:false, firstKind:'phone', phoneList: [], padList: [], selectedPhone:'', selectedPad:'' });
+    else if (mode === 'logged-out') setHubState({ privacyAgreed:true, loggedIn: false, firstKind:'phone', phoneList: PHONE_LIST, padList: PAD_LIST, selectedPhone: PHONE_LIST[0].name, selectedPad: PAD_LIST[0].name });
+    else if (mode === 'connected') setHubState({ privacyAgreed:true, loggedIn:true, firstKind:'phone', phoneList: PHONE_LIST.map((d,i) => i===0 ? {...d, status:'connected'} : d), padList: PAD_LIST, selectedPhone: PHONE_LIST[0].name, selectedPad: PAD_LIST[0].name });
+    else if (mode === 'offline') setHubState({ privacyAgreed:true, loggedIn:true, firstKind:'phone', phoneList: PHONE_LIST.map(d => ({...d, status:'offline'})), padList: PAD_LIST.map(d => ({...d, status:'offline'})), selectedPhone: PHONE_LIST[0].name, selectedPad: PAD_LIST[0].name });
+    else if (mode === 'empty') setHubState({ privacyAgreed:true, loggedIn:true, firstKind:'phone', phoneList: [], padList: [], selectedPhone: '', selectedPad: '' });
   };
 
   const conv = activeConvId ? CONVERSATIONS[activeConvId] : null;
