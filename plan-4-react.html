@@ -2781,7 +2781,7 @@ function App() {
     else if (mode === 'connected') setHubState(base);
     else if (mode === 'offline') setHubState({ ...base, phoneList: PHONE_LIST.map(d => ({...d, status:'offline'})), padList: PAD_LIST.map(d => ({...d, status:'offline'})) });
     else if (mode === 'empty') setHubState({ ...base, phoneList: [], padList: [], selectedPhone:'', selectedPad:'' });
-    else if (mode === 'intl') setHubState({ ...base, locale:'intl' });
+    else if (mode === 'intl') setHubState({ ...base, loggedIn:false, locale:'cn', pendingLocale:'intl', phoneList: PHONE_LIST, padList: PAD_LIST });
   };
 
   const conv = activeConvId ? CONVERSATIONS[activeConvId] : null;
@@ -2855,7 +2855,10 @@ function App() {
                   </button>
                 </div>
               )}
-              {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} hubState={hubState} setHubState={setHubState} onLoggedIn={({ aiAgreed: ai, privacyOnly }) => { if (!privacyOnly) setHubState(s => ({ ...s, loggedIn: true })); if (ai) setAiAgreed(true); }} />}
+              {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} hubState={hubState} setHubState={setHubState} onLoggedIn={({ aiAgreed: ai, privacyOnly }) => {
+                if (!privacyOnly) setHubState(s => ({ ...s, loggedIn: true, locale: s.pendingLocale || s.locale, pendingLocale: undefined }));
+                if (ai) setAiAgreed(true);
+              }} />}
               {activeTab === 'transfer'    && <TransferPage />}
               {activeTab === 'cloud-photo' && <CloudPhotoPage />}
               {activeTab === 'cloud-note'  && <CloudNotePage />}
