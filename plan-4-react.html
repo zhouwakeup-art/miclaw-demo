@@ -767,7 +767,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
                        setTimeout(() => setAddedToast(false), 2200);
                      }}
                      onBack={() => { setScanOpen(false); setPickerOpen(true); }} />
-      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={onLoggedIn} presetAgreed={privacyAgreed} />
+      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={(payload) => { setLoginOpen(false); onLoggedIn?.(payload); }} presetAgreed={privacyAgreed} />
       <PrivacyConsentDialog
         open={!privacyAgreed}
         onAgree={({ aiAgreed: ai }) => { setPrivacyAgreed(true); if (ai) onLoggedIn?.({ aiAgreed: true, privacyOnly: true }); }} />
