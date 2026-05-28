@@ -536,6 +536,8 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
   const [reconnecting, setReconnecting] = useState(false);
   const { loggedIn, phoneList, padList, selectedPhone, selectedPad } = hubState;
   const [loginOpen, setLoginOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const setPhoneList = (v) => setHubState(s => ({ ...s, phoneList: typeof v === 'function' ? v(s.phoneList) : v }));
   const setPadList   = (v) => setHubState(s => ({ ...s, padList:   typeof v === 'function' ? v(s.padList)   : v }));
   const setSelectedPhone = (v) => setHubState(s => ({ ...s, selectedPhone: v }));
@@ -585,7 +587,10 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {!loggedIn ? (
           /* ===== 未登录态(走轮播引导 + 登录按钮) ===== */
-          <DeviceLoggedOut isPhoneTab={isPhone} onLogin={() => setLoginOpen(true)} />
+          <DeviceLoggedOut isPhoneTab={isPhone} onLogin={() => {
+            if (privacyAgreed) setLoginOpen(true);
+            else setPrivacyOpen(true);
+          }} />
         ) : !hasRecord ? (
           /* ===== 暂无设备(无记录) ===== */
           <DeviceEmptyState onAdd={() => setPickerOpen(true)} />
@@ -701,7 +706,11 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
                        }
                        setScanOpen(false);
                      }} />
-      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={onLoggedIn} />
+      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={onLoggedIn} presetAgreed={privacyAgreed} />
+      <PrivacyConsentDialog
+        open={privacyOpen}
+        onAgree={(agreedAll) => { setPrivacyAgreed(agreedAll); setPrivacyOpen(false); setLoginOpen(true); }}
+        onDisagree={() => setPrivacyOpen(false)} />
       {removeConfirm && (
         <ConfirmDialog
           title={`移除后会断开 Mac 与 ${removeConfirm.kind === 'phone' ? '小米手机' : '小米平板'} 的连接,可以通过"扫码添加"再次连接,确认移除?`}
@@ -772,13 +781,59 @@ function DeviceIllust({ kind }) {
   );
 }
 
-function LoginDialog({ open, onClose, onLoggedIn }) {
+function PrivacyConsentDialog({ open, onAgree, onDisagree }) {
+  const [agreedMain, setAgreedMain] = useState(false);
+  const [agreedPlan, setAgreedPlan] = useState(true); // 用户体验改进计划默认勾选
+  useEffect(() => { if (open) { setAgreedMain(false); setAgreedPlan(true); } }, [open]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[160] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.30] backdrop-blur-sm" />
+      <div className="relative w-[380px] bg-surface rounded-[18px] shadow-modal animate-popIn p-7">
+        {/* App Icon */}
+        <div className="w-[64px] h-[64px] rounded-[14px] mx-auto mb-4 flex items-center justify-center"
+             style={{ background: 'radial-gradient(circle at 30% 30%, #b89cff 0%, transparent 50%), radial-gradient(circle at 70% 30%, #6ee895 0%, transparent 50%), radial-gradient(circle at 30% 70%, #ffb39c 0%, transparent 50%), radial-gradient(circle at 70% 70%, #4a6cf7 0%, transparent 50%), white' }}>
+        </div>
+        <div className="text-[18px] font-semibold text-center mb-3">小米互联服务</div>
+        <div className="text-[12.5px] text-text-2 leading-relaxed mb-5">
+          欢迎您使用小米互联互通服务,本服务为您提供在不同设备之间进行文件互传、数据流转和桌面共享等跨端协同和控制功能
+        </div>
+        <div className="space-y-2.5 mb-6">
+          <div className="flex items-start gap-2 text-[12px] text-text-2">
+            <button onClick={() => setAgreedMain(a => !a)}
+                    className={`w-[16px] h-[16px] rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedMain ? 'bg-accent' : 'bg-text-3/30'}`}>
+              {agreedMain && <span className="text-white text-[10px] leading-none">✓</span>}
+            </button>
+            <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米操作系统用户协议</a>和<a className="text-accent hover:underline cursor-pointer">小米互联服务隐私政策</a></span>
+          </div>
+          <div className="flex items-start gap-2 text-[12px] text-text-2">
+            <button onClick={() => setAgreedPlan(a => !a)}
+                    className={`w-[16px] h-[16px] rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedPlan ? 'bg-accent' : 'bg-text-3/30'}`}>
+              {agreedPlan && <span className="text-white text-[10px] leading-none">✓</span>}
+            </button>
+            <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米互联服务用户体验改进计划</a></span>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={onDisagree}
+                  className="flex-1 py-2.5 rounded-md bg-surface-2 text-text text-[13px] font-medium hover:bg-surface-3">不同意</button>
+          <button onClick={() => agreedMain && onAgree(true)}
+                  disabled={!agreedMain}
+                  className="flex-1 py-2.5 rounded-md bg-text-3/40 text-white text-[13px] font-medium disabled:cursor-not-allowed enabled:bg-accent enabled:hover:bg-[#3b5de7]">同意</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LoginDialog({ open, onClose, onLoggedIn, presetAgreed = false }) {
   const [mode, setMode] = useState('qr'); // 'qr' | 'phone'
   const [account, setAccount] = useState('');
   const [pwd, setPwd] = useState('');
   const [pwdShow, setPwdShow] = useState(false);
-  const [agreed, setAgreed] = useState(false);
+  const [agreed, setAgreed] = useState(presetAgreed);
   const [agreedAi, setAgreedAi] = useState(false);
+  useEffect(() => { if (open) setAgreed(presetAgreed); }, [open, presetAgreed]);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[140] flex items-center justify-center animate-fadeIn">
@@ -798,17 +853,10 @@ function LoginDialog({ open, onClose, onLoggedIn }) {
               <div className="text-[12px] text-text-3 text-center leading-relaxed mb-8 px-4">
                 可使用小米手机或平板,点击设置 &gt; 小米账号后扫码登录,或使用其他扫码工具
               </div>
-              <div className="text-[11.5px] text-text-2 text-center mb-2 leading-relaxed">
+              <div className="text-[11.5px] text-text-2 text-center mb-5 leading-relaxed">
                 扫码登录即代表同意<a className="text-accent hover:underline cursor-pointer">小米账号使用协议</a>和<a className="text-accent hover:underline cursor-pointer">小米账号隐私政策</a>
               </div>
-              <div className="w-full flex items-start gap-2 text-[11.5px] text-text-2 mb-3 justify-center">
-                <button onClick={() => setAgreedAi(a => !a)}
-                        className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedAi ? 'bg-accent' : 'bg-text-3/40'}`}>
-                  {agreedAi && <span className="text-white text-[9px] leading-none">✓</span>}
-                </button>
-                <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">超级小爱使用协议</a>和<a className="text-accent hover:underline cursor-pointer">超级小爱隐私政策</a></span>
-              </div>
-              <button onClick={() => onLoggedIn?.({ aiAgreed: agreedAi })}
+              <button onClick={() => onLoggedIn?.({ aiAgreed: false })}
                       className="w-full py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors mb-3">[ 演示用 ] 模拟扫码成功</button>
             </>
           ) : (
