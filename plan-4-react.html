@@ -706,7 +706,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
       <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={onLoggedIn} presetAgreed={privacyAgreed} />
       <PrivacyConsentDialog
         open={!privacyAgreed}
-        onAgree={() => setPrivacyAgreed(true)} />
+        onAgree={({ aiAgreed: ai }) => { setPrivacyAgreed(true); if (ai) onLoggedIn?.({ aiAgreed: true, privacyOnly: true }); }} />
       {removeConfirm && (
         <ConfirmDialog
           title={`移除后会断开 Mac 与 ${removeConfirm.kind === 'phone' ? '小米手机' : '小米平板'} 的连接,可以通过"扫码添加"再次连接,确认移除?`}
@@ -779,8 +779,9 @@ function DeviceIllust({ kind }) {
 
 function PrivacyConsentDialog({ open, onAgree }) {
   const [agreedMain, setAgreedMain] = useState(false);
+  const [agreedAi, setAgreedAi] = useState(false);
   const [agreedPlan, setAgreedPlan] = useState(true); // 用户体验改进计划默认勾选
-  useEffect(() => { if (open) { setAgreedMain(false); setAgreedPlan(true); } }, [open]);
+  useEffect(() => { if (open) { setAgreedMain(false); setAgreedAi(false); setAgreedPlan(true); } }, [open]);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[160] flex items-center justify-center animate-fadeIn">
@@ -803,6 +804,13 @@ function PrivacyConsentDialog({ open, onAgree }) {
             <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米操作系统用户协议</a>和<a className="text-accent hover:underline cursor-pointer">小米互联服务隐私政策</a></span>
           </div>
           <div className="flex items-start gap-2 text-[12px] text-text-2">
+            <button onClick={() => setAgreedAi(a => !a)}
+                    className={`w-[16px] h-[16px] rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedAi ? 'bg-accent' : 'bg-text-3/30'}`}>
+              {agreedAi && <span className="text-white text-[10px] leading-none">✓</span>}
+            </button>
+            <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">超级小爱使用协议</a>和<a className="text-accent hover:underline cursor-pointer">超级小爱隐私政策</a></span>
+          </div>
+          <div className="flex items-start gap-2 text-[12px] text-text-2">
             <button onClick={() => setAgreedPlan(a => !a)}
                     className={`w-[16px] h-[16px] rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedPlan ? 'bg-accent' : 'bg-text-3/30'}`}>
               {agreedPlan && <span className="text-white text-[10px] leading-none">✓</span>}
@@ -813,7 +821,7 @@ function PrivacyConsentDialog({ open, onAgree }) {
         <div className="flex gap-3">
           <button onClick={() => alert('不同意将无法使用小米互联服务,应用将退出')}
                   className="flex-1 py-2.5 rounded-md bg-surface-2 text-text text-[13px] font-medium hover:bg-surface-3">不同意</button>
-          <button onClick={() => agreedMain && onAgree(true)}
+          <button onClick={() => agreedMain && onAgree({ aiAgreed: agreedAi })}
                   disabled={!agreedMain}
                   className="flex-1 py-2.5 rounded-md bg-text-3/40 text-white text-[13px] font-medium disabled:cursor-not-allowed enabled:bg-accent enabled:hover:bg-[#3b5de7]">同意</button>
         </div>
@@ -2583,7 +2591,7 @@ function App() {
                   </button>
                 </div>
               )}
-              {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} hubState={hubState} setHubState={setHubState} onLoggedIn={({ aiAgreed: ai }) => { setHubState(s => ({ ...s, loggedIn: true })); if (ai) setAiAgreed(true); }} />}
+              {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} hubState={hubState} setHubState={setHubState} onLoggedIn={({ aiAgreed: ai, privacyOnly }) => { if (!privacyOnly) setHubState(s => ({ ...s, loggedIn: true })); if (ai) setAiAgreed(true); }} />}
               {activeTab === 'transfer'    && <TransferPage />}
               {activeTab === 'cloud-photo' && <CloudPhotoPage />}
               {activeTab === 'cloud-note'  && <CloudNotePage />}
