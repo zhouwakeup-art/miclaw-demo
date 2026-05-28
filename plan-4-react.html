@@ -554,27 +554,24 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
   const isConnected = current?.status === 'connected';
 
   const [sendNotif, setSendNotif] = useState(null); // {fileName, size, progress}
+  const [dragOver, setDragOver] = useState(false);
   const sendTimerRef = useRef(null);
+  const startSend = (f) => {
+    if (!f || !currentName) return;
+    const sizeStr = f.size > 1024 * 1024 * 1024
+      ? (f.size / 1024 / 1024 / 1024).toFixed(1) + 'GB'
+      : (f.size / 1024 / 1024).toFixed(1) + 'MB';
+    setSendNotif({ fileName: f.name, size: sizeStr, progress: 0 });
+    let p = 0;
+    clearInterval(sendTimerRef.current);
+    sendTimerRef.current = setInterval(() => {
+      p += 8 + Math.random() * 6;
+      if (p >= 100) { p = 100; clearInterval(sendTimerRef.current); setTimeout(() => setSendNotif(null), 1200); }
+      setSendNotif(s => s ? { ...s, progress: Math.min(100, p) } : s);
+    }, 220);
+  };
   const onPickFile = (e) => {
-    const f = e.target.files?.[0];
-    if (f && currentName) {
-      const sizeMB = (f.size / 1024 / 1024).toFixed(1);
-      const sizeStr = f.size > 1024 * 1024 * 1024
-        ? (f.size / 1024 / 1024 / 1024).toFixed(1) + 'GB'
-        : sizeMB + 'MB';
-      setSendNotif({ fileName: f.name, size: sizeStr, progress: 0 });
-      let p = 0;
-      clearInterval(sendTimerRef.current);
-      sendTimerRef.current = setInterval(() => {
-        p += 8 + Math.random() * 6;
-        if (p >= 100) {
-          p = 100;
-          clearInterval(sendTimerRef.current);
-          setTimeout(() => setSendNotif(null), 1200);
-        }
-        setSendNotif(s => s ? { ...s, progress: Math.min(100, p) } : s);
-      }, 220);
-    }
+    startSend(e.target.files?.[0]);
     e.target.value = '';
   };
 
@@ -615,7 +612,23 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
           </div>
         );
       })() : null}>设备互联</WsHeader>
-      <div className="flex-1 overflow-y-auto px-6 py-5">
+      <div
+        className="flex-1 overflow-y-auto px-6 py-5 relative"
+        onDragOver={(e) => { if (loggedIn && hasRecord) { e.preventDefault(); setDragOver(true); } }}
+        onDragLeave={(e) => {
+          // 只有真正离开容器才取消高亮(避免子元素触发)
+          if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          startSend(e.dataTransfer.files?.[0]);
+        }}>
+        {dragOver && (
+          <div className="absolute inset-3 z-[150] rounded-2xl border-2 border-dashed border-accent bg-accent/[0.06] flex items-center justify-center pointer-events-none">
+            <div className="text-[16px] font-semibold text-text-2">将文件拖放到此区域发送</div>
+          </div>
+        )}
         {!loggedIn ? (
           /* ===== 未登录态(走轮播引导 + 登录按钮) ===== */
           <DeviceLoggedOut isPhoneTab={isPhone} onLogin={() => setLoginOpen(true)} />
