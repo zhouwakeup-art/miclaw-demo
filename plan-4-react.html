@@ -536,7 +536,6 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
   const [reconnecting, setReconnecting] = useState(false);
   const { loggedIn, phoneList, padList, selectedPhone, selectedPad } = hubState;
   const [loginOpen, setLoginOpen] = useState(false);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
   const privacyAgreed = !!hubState.privacyAgreed;
   const setPrivacyAgreed = (v) => setHubState(s => ({ ...s, privacyAgreed: v }));
   const setPhoneList = (v) => setHubState(s => ({ ...s, phoneList: typeof v === 'function' ? v(s.phoneList) : v }));
@@ -588,10 +587,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
       <div className="flex-1 overflow-y-auto px-6 py-5">
         {!loggedIn ? (
           /* ===== 未登录态(走轮播引导 + 登录按钮) ===== */
-          <DeviceLoggedOut isPhoneTab={isPhone} onLogin={() => {
-            if (privacyAgreed) setLoginOpen(true);
-            else setPrivacyOpen(true);
-          }} />
+          <DeviceLoggedOut isPhoneTab={isPhone} onLogin={() => setLoginOpen(true)} />
         ) : !hasRecord ? (
           /* ===== 暂无设备(无记录) ===== */
           <DeviceEmptyState onAdd={() => setPickerOpen(true)} />
@@ -709,9 +705,8 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
                      }} />
       <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={onLoggedIn} presetAgreed={privacyAgreed} />
       <PrivacyConsentDialog
-        open={privacyOpen}
-        onAgree={(agreedAll) => { setPrivacyAgreed(agreedAll); setPrivacyOpen(false); setLoginOpen(true); }}
-        onDisagree={() => setPrivacyOpen(false)} />
+        open={!privacyAgreed}
+        onAgree={() => setPrivacyAgreed(true)} />
       {removeConfirm && (
         <ConfirmDialog
           title={`移除后会断开 Mac 与 ${removeConfirm.kind === 'phone' ? '小米手机' : '小米平板'} 的连接,可以通过"扫码添加"再次连接,确认移除?`}
@@ -782,7 +777,7 @@ function DeviceIllust({ kind }) {
   );
 }
 
-function PrivacyConsentDialog({ open, onAgree, onDisagree }) {
+function PrivacyConsentDialog({ open, onAgree }) {
   const [agreedMain, setAgreedMain] = useState(false);
   const [agreedPlan, setAgreedPlan] = useState(true); // 用户体验改进计划默认勾选
   useEffect(() => { if (open) { setAgreedMain(false); setAgreedPlan(true); } }, [open]);
@@ -816,7 +811,7 @@ function PrivacyConsentDialog({ open, onAgree, onDisagree }) {
           </div>
         </div>
         <div className="flex gap-3">
-          <button onClick={onDisagree}
+          <button onClick={() => alert('不同意将无法使用小米互联服务,应用将退出')}
                   className="flex-1 py-2.5 rounded-md bg-surface-2 text-text text-[13px] font-medium hover:bg-surface-3">不同意</button>
           <button onClick={() => agreedMain && onAgree(true)}
                   disabled={!agreedMain}
