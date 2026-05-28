@@ -539,7 +539,7 @@ const PAD_LIST = [
   { name: 'Xiaomi Pad 6S Pro', status: 'offline'   },
 ];
 
-function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState, setHubState, onLoggedIn }) {
+function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState, setHubState, onLoggedIn, onRequestLogin }) {
   const [deviceTab, setDeviceTab] = useState('phone');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -547,9 +547,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
   const [removeConfirm, setRemoveConfirm] = useState(null);
   const [reconnecting, setReconnecting] = useState(false);
   const { loggedIn, phoneList, padList, selectedPhone, selectedPad, firstKind = 'phone' } = hubState;
-  const [loginOpen, setLoginOpen] = useState(false);
   const privacyAgreed = !!hubState.privacyAgreed;
-  const setPrivacyAgreed = (v) => setHubState(s => ({ ...s, privacyAgreed: v }));
   const setPhoneList = (v) => setHubState(s => ({ ...s, phoneList: typeof v === 'function' ? v(s.phoneList) : v }));
   const setPadList   = (v) => setHubState(s => ({ ...s, padList:   typeof v === 'function' ? v(s.padList)   : v }));
   const setSelectedPhone = (v) => setHubState(s => ({ ...s, selectedPhone: v }));
@@ -644,7 +642,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
         )}
         {!loggedIn ? (
           /* ===== 未登录态(走轮播引导 + 登录按钮) ===== */
-          <DeviceLoggedOut isPhoneTab={isPhone} onLogin={() => setLoginOpen(true)} />
+          <DeviceLoggedOut isPhoneTab={isPhone} onLogin={onRequestLogin} />
         ) : !hasRecord ? (
           /* ===== 暂无设备(无记录) ===== */
           <DeviceEmptyState onAdd={() => setPickerOpen(true)} />
@@ -767,10 +765,6 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
                        setTimeout(() => setAddedToast(false), 2200);
                      }}
                      onBack={() => { setScanOpen(false); setPickerOpen(true); }} />
-      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={(payload) => { setLoginOpen(false); onLoggedIn?.(payload); }} presetAgreed={privacyAgreed} />
-      <PrivacyConsentDialog
-        open={!privacyAgreed}
-        onAgree={({ aiAgreed: ai }) => { setPrivacyAgreed(true); if (ai) onLoggedIn?.({ aiAgreed: true, privacyOnly: true }); }} />
       {removeConfirm && (
         <ConfirmDialog
           title={`移除后会断开电脑与 ${removeConfirm.kind === 'phone' ? '小米手机' : '小米平板'} 的连接,可以通过"扫码添加"再次连接,确认移除?`}
@@ -1391,29 +1385,55 @@ function TransferPage() {
 
   const [hoverDevice, setHoverDevice] = useState(null);
   const [pickerForDevice, setPickerForDevice] = useState(null);
-  const [sendingTo, setSendingTo] = useState([]);
+  // sending: { [deviceId]: { fileName, progress, done } }
+  const [sending, setSending] = useState({});
+  const sendTimersRef = useRef({});
   const [hotspotPrompt, setHotspotPrompt] = useState(null);
+
+  const startProgress = (deviceId, fileName) => {
+    setSending(s => ({ ...s, [deviceId]: { fileName, progress: 0, done: false } }));
+    clearInterval(sendTimersRef.current[deviceId]);
+    let p = 0;
+    sendTimersRef.current[deviceId] = setInterval(() => {
+      p += 6 + Math.random() * 6;
+      if (p >= 100) {
+        p = 100;
+        clearInterval(sendTimersRef.current[deviceId]);
+        setSending(s => ({ ...s, [deviceId]: { ...s[deviceId], progress: 100, done: true } }));
+        setTimeout(() => setSending(s => { const { [deviceId]: _, ...rest } = s; return rest; }), 1400);
+      } else {
+        setSending(s => ({ ...s, [deviceId]: { ...s[deviceId], progress: Math.min(100, p) } }));
+      }
+    }, 220);
+  };
 
   // 进入单设备发送流程:若不在同局域网,先弹"加入热点"
   const enterSingleFlow = (dev) => {
     if (!dev.sameLan) { setHotspotPrompt({ dev }); return; }
     setPickerForDevice(dev);
   };
-  const handleDeviceDrop = (dev) => { setHoverDevice(null); enterSingleFlow(dev); };
+  // 拖拽:文件已带,直接发
+  const handleDeviceDrop = (dev, e) => {
+    setHoverDevice(null);
+    if (!dev.sameLan) { setHotspotPrompt({ dev, file: e.dataTransfer?.files?.[0] }); return; }
+    const f = e.dataTransfer?.files?.[0];
+    startProgress(dev.id, f ? f.name : '设计稿.fig');
+  };
   const handleDeviceClick = (dev) => { enterSingleFlow(dev); };
 
-  const confirmSingleSend = () => {
+  const confirmSingleSend = (fileName) => {
     if (!pickerForDevice) return;
-    setSendingTo([pickerForDevice]);
+    startProgress(pickerForDevice.id, fileName || '设计稿.fig');
     setPickerForDevice(null);
-    setTimeout(() => setSendingTo([]), 2200);
   };
 
-  // 同意加入热点 → 进入文件选择
+  // 同意加入热点 → 拖拽场景直接发,点击场景进入文件选择
   const handleHotspotConfirm = () => {
     const p = hotspotPrompt;
     setHotspotPrompt(null);
-    if (p) setPickerForDevice(p.dev);
+    if (!p) return;
+    if (p.file) startProgress(p.dev.id, p.file.name);
+    else setPickerForDevice(p.dev);
   };
 
   return (
@@ -1439,34 +1459,52 @@ function TransferPage() {
           <div className="relative flex items-center justify-center gap-2 z-[1]">
             {devices.map((d, idx) => {
               const isHover = hoverDevice === d.id;
-              const isSending = sendingTo.some(s => s.id === d.id);
+              const sendState = sending[d.id];
+              const isSending = !!sendState;
+              const progress = sendState?.progress || 0;
+              const isDone = sendState?.done;
               const isCenter = idx === 1;
               const ringSize = isCenter ? 180 : 120;
               const phoneW = isCenter ? 64 : 44;
+              const r = ringSize / 2 - 4;
+              const c = 2 * Math.PI * r;
               return (
                 <div key={d.id}
                      className="flex flex-col items-center cursor-pointer group transition-transform"
-                     onClick={() => handleDeviceClick(d)}
+                     onClick={() => !isSending && handleDeviceClick(d)}
                      onDragOver={(e) => { e.preventDefault(); setHoverDevice(d.id); }}
                      onDragLeave={() => setHoverDevice(null)}
-                     onDrop={(e) => { e.preventDefault(); handleDeviceDrop(d); }}>
+                     onDrop={(e) => { e.preventDefault(); handleDeviceDrop(d, e); }}>
                   <div className={`relative rounded-full bg-white shadow-[0_8px_28px_rgba(120,160,210,0.25)] flex items-center justify-center transition-all
-                                    ${isHover ? 'scale-110 ring-4 ring-accent/40' : 'group-hover:scale-105'}
-                                    ${isSending ? 'ring-4 ring-ok/60' : ''}`}
+                                    ${isHover ? 'scale-110 ring-4 ring-accent/40' : 'group-hover:scale-105'}`}
                        style={{ width: ringSize+'px', height: ringSize+'px' }}>
                     {/* 手机外形 */}
-                    <div className="rounded-[14px] overflow-hidden shadow-[0_3px_10px_rgba(60,90,140,0.18)] bg-white"
+                    <div className={`rounded-[14px] overflow-hidden shadow-[0_3px_10px_rgba(60,90,140,0.18)] bg-white transition-opacity ${isSending ? 'opacity-60' : ''}`}
                          style={{ width: phoneW+'px', height: (phoneW * 1.6)+'px' }}>
                       <div className={`w-full h-full ${d.wallpaper}`} />
                     </div>
+                    {/* 进度圆环(SVG) */}
                     {isSending && (
-                      <div className="absolute inset-0 rounded-full bg-ok/15 flex items-center justify-center">
-                        <span className="text-ok text-[24px] font-bold">✓</span>
+                      <svg className="absolute inset-0 -rotate-90" width={ringSize} height={ringSize}>
+                        <circle cx={ringSize/2} cy={ringSize/2} r={r} fill="none" stroke="rgba(74,108,247,0.18)" strokeWidth="4" />
+                        <circle cx={ringSize/2} cy={ringSize/2} r={r} fill="none" stroke={isDone ? '#3a9a5c' : '#4a6cf7'} strokeWidth="4" strokeLinecap="round"
+                                strokeDasharray={c} strokeDashoffset={c * (1 - progress / 100)}
+                                style={{ transition:'stroke-dashoffset 0.2s linear, stroke 0.3s' }} />
+                      </svg>
+                    )}
+                    {/* 完成对勾 */}
+                    {isDone && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-[36%] h-[36%] rounded-full bg-ok flex items-center justify-center text-white text-[20px] font-bold">✓</div>
                       </div>
                     )}
                   </div>
                   <div className="text-[12px] text-text-2 mt-2 group-hover:text-text">{displayName(d)}</div>
-                  {isSending && <div className="text-[11px] text-ok">已发送</div>}
+                  {isSending && (
+                    <div className="text-[11px] text-text-3 mt-0.5 max-w-[140px] truncate">
+                      {isDone ? '已发送' : `${Math.round(progress)}% · ${sendState.fileName}`}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1507,8 +1545,8 @@ function TransferPage() {
   );
 }
 
-function FilePickerModal({ title, onCancel, onConfirm, confirmLabel }) {
-  // 模拟 Finder 风格的文件选择器
+function FilePickerModal({ title, onCancel, onConfirm, confirmLabel = '发送' }) {
+  // 模拟 macOS Finder 风格的文件选择器
   const sidebar = ['通用','AirDrop','最近使用','应用程序','桌面','文稿','下载','iCloud Drive','网络'];
   const files = [
     { name:'设计稿.fig',     icon:'🎨' },
@@ -1524,30 +1562,38 @@ function FilePickerModal({ title, onCancel, onConfirm, confirmLabel }) {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/[.20] backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative w-[560px] h-[400px] bg-surface rounded-[12px] shadow-modal animate-popIn flex flex-col overflow-hidden">
-        <div className="px-4 py-2.5 border-b border-border text-[13px] font-medium">{title}</div>
-        <div className="flex-1 flex overflow-hidden">
-          <div className="w-[140px] shrink-0 bg-surface-2 border-r border-border py-2 overflow-y-auto">
+      <div className="relative w-[600px] h-[460px] bg-[#f5f5f5] rounded-[10px] shadow-modal animate-popIn flex flex-col overflow-hidden">
+        {/* macOS 风格标题栏:红绿灯 + 标题居中 */}
+        <div className="h-9 bg-[#ececec] border-b border-black/[.08] flex items-center px-3 relative">
+          <div className="flex gap-1.5">
+            <span onClick={onCancel} className="w-3 h-3 rounded-full bg-[#ff5f57] cursor-pointer" />
+            <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
+            <span className="w-3 h-3 rounded-full bg-[#28c940]" />
+          </div>
+          <div className="absolute left-1/2 -translate-x-1/2 text-[12.5px] text-text font-medium">{title}</div>
+        </div>
+        <div className="flex-1 flex overflow-hidden bg-white">
+          <div className="w-[150px] shrink-0 bg-[#ececec] border-r border-black/[.06] py-2 overflow-y-auto">
             {sidebar.map((s, i) => (
-              <div key={s} className={`px-3 py-1.5 text-[12px] cursor-pointer ${i === 4 ? 'bg-accent/10 text-accent font-medium' : 'text-text-2 hover:bg-black/[.04]'}`}>{s}</div>
+              <div key={s} className={`px-4 py-1.5 text-[12.5px] cursor-pointer ${i === 4 ? 'bg-[#d8d8d8] text-text font-medium' : 'text-text hover:bg-black/[.04]'}`}>{s}</div>
             ))}
           </div>
-          <div className="flex-1 overflow-y-auto p-3 grid gap-2" style={{ gridTemplateColumns:'repeat(4, 1fr)' }}>
+          <div className="flex-1 overflow-y-auto p-4 grid gap-3" style={{ gridTemplateColumns:'repeat(4, 1fr)' }}>
             {files.map(f => (
-              <div key={f.name} onClick={() => setSelected(f.name)}
-                   className={`flex flex-col items-center gap-1 p-2 rounded-md cursor-pointer transition-colors
-                              ${selected === f.name ? 'bg-accent/15' : 'hover:bg-black/[.04]'}`}>
-                <span className="text-[28px] leading-none">{f.icon}</span>
-                <span className="text-[11px] text-text truncate max-w-full">{f.name}</span>
+              <div key={f.name} onClick={() => setSelected(f.name)} onDoubleClick={() => onConfirm?.(f.name)}
+                   className={`flex flex-col items-center gap-1.5 p-2 rounded-md cursor-pointer transition-colors
+                              ${selected === f.name ? 'bg-accent/20 ring-1 ring-accent/50' : 'hover:bg-black/[.03]'}`}>
+                <span className="text-[36px] leading-none">{f.icon}</span>
+                <span className="text-[11.5px] text-text truncate max-w-full">{f.name}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="px-4 py-2.5 border-t border-border flex items-center justify-between">
-          <div className="text-[11px] text-text-3 truncate">已选: {selected}</div>
+        <div className="px-4 py-3 bg-[#f5f5f5] border-t border-black/[.06] flex items-center justify-between">
+          <div className="text-[12px] text-text-3 truncate">已选:{selected}</div>
           <div className="flex gap-2">
-            <button onClick={onCancel} className="px-3 py-1 rounded-md text-[12px] text-text-2 hover:bg-surface-2">Cancel</button>
-            <button onClick={onConfirm} className="px-3 py-1 rounded-md bg-accent text-white text-[12px] font-medium hover:bg-[#3b5de7]">{confirmLabel}</button>
+            <button onClick={onCancel} className="px-4 py-1 rounded-md text-[12.5px] text-text bg-white border border-black/[.1] hover:bg-surface-2">Cancel</button>
+            <button onClick={() => onConfirm?.(selected)} className="px-4 py-1 rounded-md bg-accent text-white text-[12.5px] font-medium hover:bg-[#3b5de7]">{confirmLabel}</button>
           </div>
         </div>
       </div>
@@ -2776,21 +2822,8 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiAgreed, setAiAgreed] = useState(false);
   const [aiAgreementOpen, setAiAgreementOpen] = useState(false);
+  const [appLoginOpen, setAppLoginOpen] = useState(false);
   const pendingSendRef = useRef('');
-  const tryAiSend = (text) => {
-    if (!aiAgreed) {
-      pendingSendRef.current = text;
-      setAiAgreementOpen(true);
-      return false;
-    }
-    return true;
-  };
-  const onAiAgreementConfirm = () => {
-    setAiAgreed(true);
-    setAiAgreementOpen(false);
-    // 演示用:这里就当作"发送成功",真实场景会走对话注入
-    pendingSendRef.current = '';
-  };
   const [hubState, setHubState] = useState({
     privacyAgreed: true,
     loggedIn: true,
@@ -2809,6 +2842,25 @@ function App() {
     else if (mode === 'offline') setHubState({ ...base, phoneList: PHONE_LIST.map(d => ({...d, status:'offline'})), padList: PAD_LIST.map(d => ({...d, status:'offline'})) });
     else if (mode === 'empty') setHubState({ ...base, phoneList: [], padList: [], selectedPhone:'', selectedPad:'' });
     else if (mode === 'intl') setHubState({ ...base, loggedIn:false, locale:'cn', pendingLocale:'intl', phoneList: PHONE_LIST, padList: PAD_LIST });
+  };
+
+  const tryAiSend = (text) => {
+    if (!hubState.loggedIn) { setAppLoginOpen(true); return false; }
+    if (!aiAgreed) {
+      pendingSendRef.current = text;
+      setAiAgreementOpen(true);
+      return false;
+    }
+    return true;
+  };
+  const onAiAgreementConfirm = () => {
+    setAiAgreed(true);
+    setAiAgreementOpen(false);
+    pendingSendRef.current = '';
+  };
+  const handleAppLogin = ({ aiAgreed: ai, privacyOnly }) => {
+    if (!privacyOnly) setHubState(s => ({ ...s, loggedIn: true, locale: s.pendingLocale || s.locale, pendingLocale: undefined }));
+    if (ai) setAiAgreed(true);
   };
 
   const conv = activeConvId ? CONVERSATIONS[activeConvId] : null;
@@ -2882,14 +2934,11 @@ function App() {
                   </button>
                 </div>
               )}
-              {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} hubState={hubState} setHubState={setHubState} onLoggedIn={({ aiAgreed: ai, privacyOnly }) => {
-                if (!privacyOnly) setHubState(s => ({ ...s, loggedIn: true, locale: s.pendingLocale || s.locale, pendingLocale: undefined }));
-                if (ai) setAiAgreed(true);
-              }} />}
+              {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => setAddDeviceOpen(true)} onTransferClick={() => {}} onTransferDrop={(f) => setShare(f)} hubState={hubState} setHubState={setHubState} onLoggedIn={handleAppLogin} onRequestLogin={() => setAppLoginOpen(true)} />}
               {activeTab === 'transfer'    && <TransferPage />}
-              {activeTab === 'cloud-photo' && (hubState.loggedIn ? <CloudPhotoPage /> : <CloudLoggedOutPage title="云相册" onGoHub={() => setActiveTab('hub')} />)}
-              {activeTab === 'cloud-note'  && (hubState.loggedIn ? <CloudNotePage />  : <CloudLoggedOutPage title="云笔记" onGoHub={() => setActiveTab('hub')} />)}
-              {activeTab === 'find-device' && (hubState.loggedIn ? <FindDevicePage /> : <CloudLoggedOutPage title="查找设备" onGoHub={() => setActiveTab('hub')} />)}
+              {activeTab === 'cloud-photo' && (hubState.loggedIn ? <CloudPhotoPage /> : <CloudLoggedOutPage title="云相册" onGoHub={() => setAppLoginOpen(true)} />)}
+              {activeTab === 'cloud-note'  && (hubState.loggedIn ? <CloudNotePage />  : <CloudLoggedOutPage title="云笔记" onGoHub={() => setAppLoginOpen(true)} />)}
+              {activeTab === 'find-device' && (hubState.loggedIn ? <FindDevicePage /> : <CloudLoggedOutPage title="查找设备" onGoHub={() => setAppLoginOpen(true)} />)}
               {activeTab === 'discover'    && <DiscoverPage />}
               {activeTab === 'files'       && <FilesPage />}
               {activeTab === 'tasks'       && <TasksPage />}
@@ -2922,6 +2971,13 @@ function App() {
       <AiAgreementDialog open={aiAgreementOpen}
                          onCancel={() => setAiAgreementOpen(false)}
                          onConfirm={onAiAgreementConfirm} />
+      <PrivacyConsentDialog
+        open={!hubState.privacyAgreed}
+        onAgree={({ aiAgreed: ai }) => { setHubState(s => ({ ...s, privacyAgreed: true })); if (ai) setAiAgreed(true); }} />
+      <LoginDialog open={appLoginOpen}
+                   onClose={() => setAppLoginOpen(false)}
+                   onLoggedIn={(payload) => { setAppLoginOpen(false); handleAppLogin(payload); }}
+                   presetAgreed={!!hubState.privacyAgreed} />
 
       <div className="mt-5 p-4 px-5 bg-surface border border-border rounded-xl text-[13px] text-text-2 leading-[1.8]">
         <b className="text-text">技术栈</b>:React 18 (UMD CDN) · Tailwind CSS (CDN, JIT) · Babel Standalone · 零构建,直接打开 HTML 即可。<br />
