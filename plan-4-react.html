@@ -1555,6 +1555,23 @@ function FilePickerModal({ title, onCancel, onConfirm, confirmLabel }) {
   );
 }
 
+function CloudLoggedOutPage({ title, onGoHub }) {
+  return (
+    <>
+      <WsHeader>{title}</WsHeader>
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="max-w-[420px] flex flex-col items-center text-center">
+          <div className="w-[60px] h-[60px] rounded-2xl bg-surface-2 flex items-center justify-center mb-4 text-[28px]">☁️</div>
+          <div className="text-[16px] font-semibold mb-1.5">登录后可使用{title}</div>
+          <div className="text-[12.5px] text-text-3 leading-relaxed mb-5">登录小米账号后,可在此跨设备访问{title === '查找设备' ? '小米设备的位置信息' : title === '云笔记' ? '所有笔记内容' : '所有相册内容'}</div>
+          <button onClick={onGoHub}
+                  className="px-6 py-2 rounded-full bg-accent text-white text-[13px] font-semibold hover:bg-[#3b5de7] shadow-soft">登录小米账号</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function CloudPhotoPage() {
   return (
     <div className="flex-1 flex bg-bg p-3.5 gap-3 overflow-hidden min-h-0">
@@ -2870,9 +2887,9 @@ function App() {
                 if (ai) setAiAgreed(true);
               }} />}
               {activeTab === 'transfer'    && <TransferPage />}
-              {activeTab === 'cloud-photo' && <CloudPhotoPage />}
-              {activeTab === 'cloud-note'  && <CloudNotePage />}
-              {activeTab === 'find-device' && <FindDevicePage />}
+              {activeTab === 'cloud-photo' && (hubState.loggedIn ? <CloudPhotoPage /> : <CloudLoggedOutPage title="云相册" onGoHub={() => setActiveTab('hub')} />)}
+              {activeTab === 'cloud-note'  && (hubState.loggedIn ? <CloudNotePage />  : <CloudLoggedOutPage title="云笔记" onGoHub={() => setActiveTab('hub')} />)}
+              {activeTab === 'find-device' && (hubState.loggedIn ? <FindDevicePage /> : <CloudLoggedOutPage title="查找设备" onGoHub={() => setActiveTab('hub')} />)}
               {activeTab === 'discover'    && <DiscoverPage />}
               {activeTab === 'files'       && <FilesPage />}
               {activeTab === 'tasks'       && <TasksPage />}
