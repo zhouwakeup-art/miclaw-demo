@@ -555,6 +555,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
 
   const [sendNotif, setSendNotif] = useState(null); // {fileName, size, progress}
   const [dragOver, setDragOver] = useState(false);
+  const [addedToast, setAddedToast] = useState(false); // 添加成功 toast
   const sendTimerRef = useRef(null);
   const startSend = (f) => {
     if (!f || !currentName) return;
@@ -749,7 +750,11 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
                        });
                        setDeviceTab(scannedKind);
                        setScanOpen(false);
-                     }} />
+                       setPickerOpen(false);
+                       setAddedToast(true);
+                       setTimeout(() => setAddedToast(false), 2200);
+                     }}
+                     onBack={() => { setScanOpen(false); setPickerOpen(true); }} />
       <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} onLoggedIn={onLoggedIn} presetAgreed={privacyAgreed} />
       <PrivacyConsentDialog
         open={!privacyAgreed}
@@ -764,6 +769,12 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
       )}
       <input ref={fileInputRef} type="file" className="hidden" onChange={onPickFile} />
       <MacSendNotification notif={sendNotif} onClose={() => { clearInterval(sendTimerRef.current); setSendNotif(null); }} />
+      {addedToast && (
+        <div className="absolute top-3 right-3 z-[200] animate-fadeIn px-4 py-2 rounded-full bg-surface shadow-modal flex items-center gap-2 border border-border">
+          <span className="w-[20px] h-[20px] rounded-full bg-accent flex items-center justify-center text-white text-[12px] font-bold">✓</span>
+          <span className="text-[13px] text-text font-medium">添加成功</span>
+        </div>
+      )}
     </>
   );
 }
@@ -1071,42 +1082,51 @@ function MacSendNotification({ notif, onClose }) {
   );
 }
 
-function ScanAddDialog({ open, kind, onClose, onSuccess }) {
+function ScanAddDialog({ open, kind, onClose, onBack, onSuccess }) {
   const [scanned, setScanned] = useState(false);
   useEffect(() => { if (!open) setScanned(false); }, [open]);
   if (!open) return null;
-  const fakeName = kind === 'phone' ? 'Xiaomi 17 Ultra' : 'Xiaomi Pad 7';
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center animate-fadeIn">
       <div className="absolute inset-0 bg-black/[.22] backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-[400px] bg-surface rounded-[14px] shadow-modal p-6 animate-popIn">
-        <button onClick={onClose} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/[.06] hover:bg-black/[.12] text-text-2 flex items-center justify-center">
-          <Icon.Close width="14" height="14" />
-        </button>
-        <div className="text-[18px] font-bold mb-1 text-center">扫码添加</div>
-        <div className="text-[12px] text-text-3 mb-5 text-center leading-relaxed">请确保小米手机/平板在附近,已升级至小米澎湃 OS 3,并与 Mac 登录相同小米账号、连接相同网络</div>
-
-        <div className="w-[220px] h-[220px] mx-auto bg-white border border-border rounded-xl flex items-center justify-center mb-4 relative">
-          <FakeQR size={200} />
-          {scanned && (
-            <div className="absolute inset-0 bg-white/95 flex items-center justify-center rounded-xl">
-              <div className="w-[64px] h-[64px] rounded-full bg-accent flex items-center justify-center text-white text-[32px] font-bold">✓</div>
-            </div>
-          )}
+      <div className="relative w-[640px] max-w-[92vw] h-[460px] bg-surface rounded-[14px] animate-popIn shadow-modal flex flex-col overflow-hidden">
+        {/* 顶部:← 扫码添加设备  ✕ */}
+        <div className="px-7 pt-5 pb-3 flex items-center">
+          <button onClick={onBack || onClose} className="w-7 h-7 rounded-md text-text-3 hover:text-text hover:bg-black/[.05] flex items-center justify-center mr-1.5">
+            <span className="text-[18px] leading-none">‹</span>
+          </button>
+          <div className="text-[16px] font-semibold text-text">扫码添加设备</div>
+          <div className="flex-1" />
+          <button onClick={onClose} className="w-7 h-7 rounded-md text-text-3 hover:text-text hover:bg-black/[.05] flex items-center justify-center">
+            <Icon.Close width="16" height="16" />
+          </button>
         </div>
 
-        {!scanned ? (
-          <>
-            <div className="text-[12px] text-text-3 text-center mb-3">打开小米手机或平板的相机 App,扫描上方二维码添加设备</div>
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => { setScanned('phone'); setTimeout(() => onSuccess?.({ name:'Xiaomi 17 Ultra', kind:'phone' }), 800); }}
-                      className="py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors">[ 演示 ] 扫到手机</button>
-              <button onClick={() => { setScanned('pad'); setTimeout(() => onSuccess?.({ name:'Xiaomi Pad 7', kind:'pad' }), 800); }}
-                      className="py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors">[ 演示 ] 扫到平板</button>
-            </div>
-          </>
-        ) : (
-          <div className="text-[12px] text-accent text-center font-medium">扫码成功,正在连接 {scanned === 'phone' ? 'Xiaomi 17 Ultra' : 'Xiaomi Pad 7'}…</div>
+        {/* 二维码 */}
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+          <div className="w-[200px] h-[200px] bg-white rounded-[10px] flex items-center justify-center relative">
+            <FakeQR size={180} />
+            {scanned && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/85 rounded-[10px]">
+                <div className="w-[68px] h-[68px] rounded-full bg-accent flex items-center justify-center text-white text-[34px] font-bold shadow-card">✓</div>
+              </div>
+            )}
+          </div>
+          {/* 编号说明 */}
+          <div className="text-[12px] text-text-3 leading-[1.9] mt-5 text-center">
+            <div>1. 请确保设备登录同一小米账号,处于同一网络</div>
+            <div>2. 使用小米手机相机,小爱视觉扫描二维码</div>
+          </div>
+        </div>
+
+        {/* 演示按钮(临时) */}
+        {!scanned && (
+          <div className="px-7 pb-4 grid grid-cols-2 gap-2">
+            <button onClick={() => { setScanned('phone'); setTimeout(() => onSuccess?.({ name:'Xiaomi 17 Ultra', kind:'phone' }), 1000); }}
+                    className="py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors">[ 演示 ] 扫到手机</button>
+            <button onClick={() => { setScanned('pad'); setTimeout(() => onSuccess?.({ name:'Xiaomi Pad 7', kind:'pad' }), 1000); }}
+                    className="py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors">[ 演示 ] 扫到平板</button>
+          </div>
         )}
       </div>
     </div>
