@@ -1073,6 +1073,79 @@ function ConfirmDialog({ title, confirmLabel='确认', cancelLabel='取消', onC
   );
 }
 
+function SwipeableDeviceRow({ device, kind, active, onSelect, onRemove }) {
+  const [offset, setOffset] = useState(0); // 0 = closed, -88 = revealed
+  const startXRef = useRef(null);
+  const startOffsetRef = useRef(0);
+  const movedRef = useRef(false);
+  const REVEAL = 88;
+
+  const onMouseDown = (e) => {
+    startXRef.current = e.clientX;
+    startOffsetRef.current = offset;
+    movedRef.current = false;
+    const onMove = (ev) => {
+      const dx = ev.clientX - startXRef.current;
+      if (Math.abs(dx) > 4) movedRef.current = true;
+      let next = startOffsetRef.current + dx;
+      if (next > 0) next = 0;
+      if (next < -REVEAL - 20) next = -REVEAL - 20;
+      setOffset(next);
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      // 吸附:超过一半就展开
+      setOffset(prev => prev < -REVEAL / 2 ? -REVEAL : 0);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  const handleClick = () => {
+    if (movedRef.current) return;
+    if (offset !== 0) { setOffset(0); return; }
+    onSelect();
+  };
+
+  const connected = device.status === 'connected';
+
+  return (
+    <div className="relative overflow-hidden rounded-xl">
+      {/* 底层红色移除按钮 */}
+      <button onClick={() => { setOffset(0); onRemove(); }}
+              className="absolute top-0 right-0 bottom-0 w-[88px] bg-[#ff453a] hover:bg-[#e63a30] text-white text-[14px] font-semibold flex items-center justify-center">
+        移除
+      </button>
+      {/* 顶层卡片 */}
+      <div
+        onMouseDown={onMouseDown}
+        onClick={handleClick}
+        style={{ transform:`translateX(${offset}px)`, transition: startXRef.current ? 'none' : 'transform 0.22s ease' }}
+        className={`relative flex items-center gap-3 px-3.5 py-3 cursor-pointer select-none
+                   ${active ? 'bg-accent-light' : 'bg-black/[.05] hover:bg-black/[.08]'}`}
+      >
+        <div className="w-9 h-9 rounded-md bg-white flex items-center justify-center shadow-soft shrink-0 pointer-events-none">
+          {kind === 'phone' ? (
+            <div className="w-4 h-6 rounded phone-gradient relative">
+              <div className="absolute top-[2px] right-[2px] w-1 h-1 rounded-full phone-camera" />
+            </div>
+          ) : (
+            <div className="w-7 h-5 rounded phone-gradient" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0 pointer-events-none">
+          <div className={`text-[15px] font-medium truncate ${active ? 'text-accent' : 'text-text'}`}>{device.name}</div>
+          <div className="text-[11px] text-text-3 mt-0.5">{connected ? '已连接' : '未连接'}</div>
+        </div>
+        {active && (
+          <div className="w-[22px] h-[22px] rounded-full bg-accent text-white flex items-center justify-center text-[12px] shrink-0 pointer-events-none">✓</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemove, onScan, onClose }) {
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -1100,39 +1173,14 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemo
           </div>
         )}
         <div className="flex flex-col gap-2">
-          {devices.map((d) => {
-            const active = d.name === currentName;
-            const connected = d.status === 'connected';
-            return (
-              <div key={d.name}
-                   className={`flex items-center gap-3 px-3.5 py-3 rounded-xl transition-colors
-                              ${active ? 'bg-accent-light' : 'bg-black/[.05] hover:bg-black/[.08]'}`}>
-                <div onClick={() => onSelect(d.name)} className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
-                  <div className="w-9 h-9 rounded-md bg-white flex items-center justify-center shadow-soft shrink-0">
-                    {kind === 'phone' ? (
-                      <div className="w-4 h-6 rounded phone-gradient relative">
-                        <div className="absolute top-[2px] right-[2px] w-1 h-1 rounded-full phone-camera" />
-                      </div>
-                    ) : (
-                      <div className="w-7 h-5 rounded phone-gradient" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-[15px] font-medium truncate ${active ? 'text-accent' : 'text-text'}`}>{d.name}</div>
-                    <div className="text-[11px] text-text-3 mt-0.5">{connected ? '已连接' : '未连接'}</div>
-                  </div>
-                  {active && (
-                    <div className="w-[22px] h-[22px] rounded-full bg-accent text-white flex items-center justify-center text-[12px] shrink-0">✓</div>
-                  )}
-                </div>
-                <button onClick={() => onRemove?.(d)}
-                        className="w-7 h-7 rounded-full bg-black/[.05] hover:bg-black/[.12] text-text-3 hover:text-[#e74c3c] flex items-center justify-center shrink-0"
-                        title="移除">
-                  <Icon.Close width="12" height="12" />
-                </button>
-              </div>
-            );
-          })}
+          {devices.map((d) => (
+            <SwipeableDeviceRow key={d.name}
+              device={d}
+              kind={kind}
+              active={d.name === currentName}
+              onSelect={() => onSelect(d.name)}
+              onRemove={() => onRemove?.(d)} />
+          ))}
         </div>
         <button className="w-full mt-7 mb-3 py-3 rounded-full bg-black/[.05] hover:bg-black/[.08] text-text text-[14px] font-semibold text-center transition-colors">重新搜索</button>
         <div className="text-[12.5px] text-text-2 text-center">未搜索到小米手机或平板?尝试<a onClick={onScan} className="text-accent cursor-pointer ml-0.5 hover:underline">扫码添加</a></div>
