@@ -1784,26 +1784,45 @@ function TasksPage() {
 }
 
 function FilesPage() {
-  const files = [
-    { icon:'🌐', name:'heart.html',           meta:'今天 17:30 · 2.3 KB' },
-    { icon:'📊', name:'周报_w19.xlsx',        meta:'今天 14:22 · 18.4 KB' },
-    { icon:'📄', name:'会议纪要_0511.pdf',    meta:'今天 10:05 · 45 KB' },
-    { icon:'📑', name:'产品方案_v2.docx',     meta:'昨天 20:41 · 32 KB' },
+  const [tab, setTab] = useState('all'); // all / received / generated
+  const tabs = [
+    { id:'all',       label:'全部',  empty:'还没有文件',          emptyHint:'在对话中生成文件或从其他设备接收文件后,会自动出现在这里' },
+    { id:'received',  label:'收到的', empty:'还没有收到的文件',     emptyHint:'从其他设备接收的文件会出现在这里' },
+    { id:'generated', label:'生成的', empty:'还没有 AI 生成的文件', emptyHint:'对话中由 AI 生成的文件会出现在这里' },
   ];
+  const current = tabs.find(t => t.id === tab);
   return (
     <>
-      <WsHeader action={<HdrBtn>按时间</HdrBtn>}>文件</WsHeader>
-      <div className="flex-1 overflow-y-auto px-6 py-5">
-        <div className="text-[12px] text-text-3 mb-3.5">AI 产物归档 · 对话中生成的所有文件</div>
-        <div className="flex flex-col gap-0.5">
-          {files.map((f, i) => (
-            <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer hover:bg-surface-2 group">
-              <span className="text-[18px] shrink-0">{f.icon}</span>
-              <span className="flex-1 text-[13px]">{f.name}</span>
-              <span className="text-[12px] text-text-3">{f.meta}</span>
-              <span className="text-[12px] text-accent opacity-0 group-hover:opacity-100 transition-opacity">💬 查看对话</span>
-            </div>
-          ))}
+      <WsHeader action={
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-surface-2 border border-border rounded-lg px-2.5 py-1 w-[200px]">
+            <span className="text-text-3 text-[12px]">🔍</span>
+            <input placeholder="搜索文件名、来源..."
+                   className="flex-1 bg-transparent text-[12.5px] text-text placeholder:text-text-3 focus:outline-none" />
+          </div>
+          <button className="w-7 h-7 rounded-md text-text-2 hover:text-text hover:bg-surface-2 flex items-center justify-center" title="多选">
+            ☑
+          </button>
+        </div>
+      }>文件</WsHeader>
+      <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className="px-6 pt-3 border-b border-border">
+          <div className="flex gap-6">
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                      className={`pb-2.5 text-[13px] transition-colors relative ${tab === t.id ? 'text-accent font-medium' : 'text-text-3 hover:text-text-2'}`}>
+                {t.label}
+                {tab === t.id && <span className="absolute left-0 right-0 -bottom-px h-[2px] bg-accent rounded-full" />}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center px-6 py-10">
+          <div className="w-[40px] h-[44px] rounded-md border-2 border-text-3/40 flex items-end justify-end p-1 mb-4 relative">
+            <div className="absolute top-0 right-0 w-2.5 h-2.5 border-l-2 border-b-2 border-text-3/40 -translate-y-px translate-x-px bg-bg" />
+          </div>
+          <div className="text-[14px] text-text-2 mb-1.5">{current.empty}</div>
+          <div className="text-[12px] text-text-3 text-center max-w-[320px] leading-relaxed">{current.emptyHint}</div>
         </div>
       </div>
     </>
