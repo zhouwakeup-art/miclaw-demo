@@ -2283,7 +2283,7 @@ function SettingsWindow({ open, onClose }) {
           <div className="flex flex-col gap-0.5">
             {navItems.map(item => (
               <button key={item.id} onClick={() => setPage(item.id)}
-                className={`text-left px-3 py-2 rounded-lg text-[13px] transition-colors ${(page === item.id || ((page === 'feedback-form' || page === 'suggestion-form') && item.id === 'feedback') || ((page === 'privacy' || page === 'privacy-detail') && item.id === 'general')) ? 'bg-white text-accent font-semibold shadow-soft' : 'text-text-2 hover:bg-white/60'}`}>
+                className={`text-left px-3 py-2 rounded-lg text-[13px] transition-colors ${(page === item.id || ((page === 'feedback-form' || page === 'suggestion-form') && item.id === 'feedback') || ((page === 'privacy' || page === 'privacy-detail' || page === 'permissions') && item.id === 'general')) ? 'bg-white text-accent font-semibold shadow-soft' : 'text-text-2 hover:bg-white/60'}`}>
                 {item.label}
               </button>
             ))}
@@ -2310,7 +2310,7 @@ function SettingsWindow({ open, onClose }) {
               <SettingsRow label="启用系统通知" control={<Toggle value={notifOn} onChange={setNotifOn} />} />
               <SettingsRow label="通知提示音" control={<Toggle value={notifSound} onChange={setNotifSound} />} />
               <SettingsRow label="清除缓存" arrow />
-              <SettingsRow label="系统权限管理" arrow />
+              <SettingsRow label="系统权限管理" arrow onClick={() => setPage('permissions')} />
               <SettingsRow label="隐私与安全" arrow onClick={() => setPage('privacy')} />
             </SettingsSection>
             <SettingsSection title="版本信息">
@@ -2436,6 +2436,22 @@ function SettingsWindow({ open, onClose }) {
             <div className="flex justify-center">
               <button className="px-8 py-2.5 rounded-full bg-surface-2 text-[13px] text-text-3">提交</button>
             </div>
+          </>)}
+
+          {page === 'permissions' && (<>
+            <div className="mb-4">
+              <button onClick={() => setPage('general')} className="text-[13px] text-text-3 hover:text-text flex items-center gap-1">‹ 返回</button>
+            </div>
+            <div className="text-[15px] font-semibold mb-5">系统权限管理</div>
+            <SettingsSection title="小米互联服务">
+              <SettingsRow label="访问位置" sub="用于获取 Wi-Fi 名称以判断设备是否处于同一局域网,查找设备或后台传输文件时会在"实时活动"中更新进度" arrow />
+              <SettingsRow label="访问本地网络" sub="用于在相同局域网下连接设备、传输文件、查看媒体数据和控制指令" arrow />
+              <SettingsRow label="访问蓝牙" sub="用于使用蓝牙搜索附近的设备" arrow />
+            </SettingsSection>
+            <SettingsSection title="超级小爱">
+              <SettingsRow label="管理始终允许" sub={'查看并撤销工具的"始终信任"授权'}
+                           control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">管理</button>} />
+            </SettingsSection>
           </>)}
 
           {page === 'privacy' && (<>
