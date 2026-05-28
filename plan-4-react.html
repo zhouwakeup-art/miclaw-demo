@@ -553,12 +553,27 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
   const hasRecord = currentList.length > 0;
   const isConnected = current?.status === 'connected';
 
-  const [sendToast, setSendToast] = useState(null);
+  const [sendNotif, setSendNotif] = useState(null); // {fileName, size, progress}
+  const sendTimerRef = useRef(null);
   const onPickFile = (e) => {
     const f = e.target.files?.[0];
     if (f && currentName) {
-      setSendToast(`已发送「${f.name}」到 ${currentName}`);
-      setTimeout(() => setSendToast(null), 2200);
+      const sizeMB = (f.size / 1024 / 1024).toFixed(1);
+      const sizeStr = f.size > 1024 * 1024 * 1024
+        ? (f.size / 1024 / 1024 / 1024).toFixed(1) + 'GB'
+        : sizeMB + 'MB';
+      setSendNotif({ fileName: f.name, size: sizeStr, progress: 0 });
+      let p = 0;
+      clearInterval(sendTimerRef.current);
+      sendTimerRef.current = setInterval(() => {
+        p += 8 + Math.random() * 6;
+        if (p >= 100) {
+          p = 100;
+          clearInterval(sendTimerRef.current);
+          setTimeout(() => setSendNotif(null), 1200);
+        }
+        setSendNotif(s => s ? { ...s, progress: Math.min(100, p) } : s);
+      }, 220);
     }
     e.target.value = '';
   };
@@ -737,9 +752,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
         />
       )}
       <input ref={fileInputRef} type="file" className="hidden" onChange={onPickFile} />
-      {sendToast && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-8 z-[200] bg-text/90 text-white px-4 py-2 rounded-lg text-[13px] shadow-modal animate-fadeIn">{sendToast}</div>
-      )}
+      <MacSendNotification notif={sendNotif} onClose={() => { clearInterval(sendTimerRef.current); setSendNotif(null); }} />
     </>
   );
 }
@@ -1009,6 +1022,40 @@ function ConnectHelpDialog({ open, onClose, onScan }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function MacSendNotification({ notif, onClose }) {
+  if (!notif) return null;
+  const { fileName, size, progress } = notif;
+  // 圆环进度参数
+  const R = 14;
+  const C = 2 * Math.PI * R;
+  return (
+    <div className="absolute top-3 right-3 z-[210] w-[360px] rounded-[14px] shadow-modal animate-fadeIn flex items-center gap-3 px-3 py-2.5"
+         style={{ background:'rgba(245,245,247,0.95)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)' }}>
+      {/* 文件缩略 + app badge */}
+      <div className="relative w-[44px] h-[44px] rounded-lg overflow-hidden shrink-0"
+           style={{ background:'linear-gradient(135deg, #b8c8a4 0%, #d4d8b8 50%, #a8b89c 100%)' }}>
+        <div className="absolute inset-0 flex items-center justify-center text-text-3 text-[18px]">📷</div>
+        <div className="absolute -bottom-0.5 -left-0.5 w-[16px] h-[16px] rounded bg-accent flex items-center justify-center text-white text-[9px] font-bold shadow-soft">⚡</div>
+      </div>
+      {/* 标题/副标题 */}
+      <div className="flex-1 min-w-0">
+        <div className="text-[13.5px] font-semibold text-text truncate">正在发送 {fileName}</div>
+        <div className="text-[11.5px] text-text-3 truncate">{size}</div>
+      </div>
+      {/* 圆环进度 + 关闭 */}
+      <button onClick={onClose} className="relative w-[34px] h-[34px] shrink-0 rounded-full flex items-center justify-center hover:bg-black/[.05] group" title="取消">
+        <svg width="34" height="34" viewBox="0 0 34 34" className="absolute inset-0 -rotate-90">
+          <circle cx="17" cy="17" r={R} fill="none" stroke="#e5e7eb" strokeWidth="2.5" />
+          <circle cx="17" cy="17" r={R} fill="none" stroke="#0a84ff" strokeWidth="2.5" strokeLinecap="round"
+                  strokeDasharray={C} strokeDashoffset={C * (1 - progress / 100)}
+                  style={{ transition:'stroke-dashoffset 0.2s linear' }} />
+        </svg>
+        <span className="text-text text-[14px] leading-none">✕</span>
+      </button>
     </div>
   );
 }
