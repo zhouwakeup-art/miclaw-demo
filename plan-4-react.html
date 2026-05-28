@@ -517,6 +517,14 @@ function DeviceCard({ children }) {
   return <div className="bg-surface border border-border rounded-lg p-5 flex flex-col gap-3.5 transition-colors hover:border-border-strong hover:shadow-card">{children}</div>;
 }
 
+// 未登录 / 无设备态的功能介绍轮播(共用)
+const INTRO_SLIDES = [
+  { title:'妙享桌面',  sub:'在 Mac 上像操作 Mac 应用一样,自由使用手机里的相册、文件和应用', illust:'phone' },
+  { title:'手机通知',  sub:'不再错过任何重要消息,打开妙享桌面直接回复',                     illust:'notify' },
+  { title:'屏幕扩展',  sub:'把小米平板变成 Mac 副屏',                                          illust:'pad' },
+  { title:'超级小爱',  sub:'你的电脑 AI 助手,可以和小爱聊天,还能一句话满足互联需求',         illust:'ai' },
+];
+
 // 设备记录:status 'connected' | 'offline'(局域网未发现,但有记录)
 const PHONE_LIST = [
   { name: 'Xiaomi 17 Pro',     status: 'connected' },
@@ -781,14 +789,7 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
 }
 
 function DeviceLoggedOut({ isPhoneTab, onLogin }) {
-  // 4 张轮播,对应截图里的 4 个引导
-  const slides = isPhoneTab ? [
-    { title:'在 Mac 使用小米手机', sub:'打开"妙享桌面",在 Mac 上无缝操作小米手机', illust:'phone' },
-    { title:'Mac 接收小米手机通知',  sub:'开启"通知流转",可在 Mac 上查看和回复消息',     illust:'notify' },
-  ] : [
-    { title:'Mac 拓展屏幕到小米平板', sub:'开启"屏幕扩展",将小米平板作为 Mac 的副屏', illust:'pad' },
-    { title:'全新超级小爱,随时为你处理任务', sub:'唤起小爱接管设备协同工作',                 illust:'ai' },
-  ];
+  const slides = INTRO_SLIDES;
   const [idx, setIdx] = useState(0);
   return (
     <div className="max-w-[520px] mx-auto flex flex-col items-center pt-2">
@@ -998,11 +999,7 @@ function LoginDialog({ open, onClose, onLoggedIn, presetAgreed = false }) {
 }
 
 function DeviceEmptyState({ onAdd }) {
-  // 无设备态:不区分手机/平板 tab,统一展示融合后的能力轮播
-  const slides = [
-    { title: '在 Mac 使用小米手机', sub: '打开"妙享桌面",在 Mac 上无缝操作小米手机', illust: 'phone' },
-    { title: 'Mac 拓展屏幕到小米平板', sub: '开启"屏幕扩展",将小米平板作为 Mac 的副屏', illust: 'pad' },
-  ];
+  const slides = INTRO_SLIDES;
   const [idx, setIdx] = useState(0);
   return (
     <div className="max-w-[520px] mx-auto flex flex-col items-center pt-2">
