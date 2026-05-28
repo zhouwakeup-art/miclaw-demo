@@ -671,12 +671,11 @@ function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState,
             <div className={`w-full bg-surface-2 border border-border rounded-xl p-4 ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
               <div className="text-[15px] font-semibold mb-1">妙享桌面</div>
               <div className="text-[12px] text-text-3 mb-3">打开最近在小米手机使用的应用</div>
-              <div className="grid grid-cols-5 gap-2">
-                <AppItem icon="📱" name="妙享桌面" />
+              <div className="grid grid-cols-4 gap-2">
                 <AppItem icon="🖼️" name="相册" />
-                <AppItem icon="📁" name="文件" />
-                <AppItem icon="💬" name="QQ" />
-                <AppItem icon="🎬" name="爱奇艺" />
+                <AppItem icon="📁" name="文件管理" />
+                <AppItem icon="🌐" name="浏览器" />
+                <AppItem icon="💬" name="短信" />
               </div>
             </div>
           </div>
