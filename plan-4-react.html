@@ -80,6 +80,7 @@
   .poi-text { text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
   /* 设备互联 spinner */
   @keyframes mc-spin { to { transform: rotate(360deg); } }
+  @keyframes mc-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
   .mc-spin > i {
     position: absolute; left: 50%; top: 0;
     width: 2px; height: 28%; border-radius: 1px;
@@ -1240,37 +1241,51 @@ function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemo
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
   if (!open) return null;
+  const empty = devices.length === 0;
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fadeIn">
-      <div className="absolute inset-0 bg-black/[.18] backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-[440px] max-w-[90vw] rounded-[14px] p-7 pb-5 animate-popIn shadow-modal" style={{ background:'#f2efe8' }}>
-        <button onClick={onClose} className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-black/[.08] hover:bg-black/[.14] text-text-2 flex items-center justify-center">
-          <Icon.Close width="14" height="14" />
+      <div className="absolute inset-0 bg-black/[.22] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-[640px] max-w-[92vw] h-[460px] bg-surface rounded-[14px] animate-popIn shadow-modal flex flex-col overflow-hidden">
+        <button onClick={onClose} className="absolute top-4 right-4 w-7 h-7 rounded-md text-text-3 hover:text-text hover:bg-black/[.05] flex items-center justify-center z-10">
+          <Icon.Close width="16" height="16" />
         </button>
-        <div className="text-[22px] font-bold text-text mb-1 text-center">我的设备</div>
-        <div className="text-[11.5px] text-text-3 text-center mb-5 leading-relaxed">请确保小米手机/平板在附近,手机系统已升级至小米澎湃 OS 3,并与 Mac 登录相同小米账号、连接相同网络</div>
-        {devices.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-8 mb-2">
-            <div className="relative w-[80px] h-[80px] flex items-center justify-center mb-3">
-              <span className="absolute w-full h-full rounded-full border border-accent/30 animate-pin" />
-              <span className="absolute w-12 h-12 rounded-full border border-accent/40 animate-pin" style={{ animationDelay: '0.6s' }} />
-              <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-white text-[16px]">🔍</div>
-            </div>
-            <div className="text-[13px] text-text-2">暂无设备</div>
+        <div className="px-7 pt-6 pb-3">
+          <div className="text-[20px] font-bold text-text mb-2">添加设备</div>
+          <div className="text-[12.5px] text-text-2 leading-[1.8]">
+            <div>1. 请确保小米手机或小米平板系统已升级至 Hyper OS 3</div>
+            <div>2. 与 Mac 均处于同一网络,登录同一小米账号</div>
           </div>
-        )}
-        <div className="flex flex-col gap-2">
-          {devices.map((d) => (
-            <SwipeableDeviceRow key={d.name}
-              device={d}
-              kind={kind}
-              active={d.name === currentName}
-              onSelect={() => onSelect(d.name)}
-              onRemove={() => onRemove?.(d)} />
-          ))}
         </div>
-        <button className="w-full mt-7 mb-3 py-3 rounded-full bg-black/[.05] hover:bg-black/[.08] text-text text-[14px] font-semibold text-center transition-colors">重新搜索</button>
-        <div className="text-[12.5px] text-text-2 text-center">未搜索到小米手机或平板?尝试<a onClick={onScan} className="text-accent cursor-pointer ml-0.5 hover:underline">扫码添加</a></div>
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+          {empty ? (
+            <>
+              <div className="relative w-[110px] h-[80px] mb-4">
+                {/* 三个彩色圆球 */}
+                <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-[#ff8a8a] opacity-90"
+                     style={{ animation: 'mc-bounce 1.6s ease-in-out infinite' }} />
+                <div className="absolute right-0 top-3 w-7 h-7 rounded-full bg-[#9c8aff] opacity-90"
+                     style={{ animation: 'mc-bounce 1.6s ease-in-out 0.5s infinite' }} />
+                <div className="absolute left-[42px] bottom-0 w-5 h-5 rounded-full bg-[#6ee895] opacity-90"
+                     style={{ animation: 'mc-bounce 1.6s ease-in-out 1s infinite' }} />
+              </div>
+              <div className="text-[14px] text-text-3">正在搜索...</div>
+            </>
+          ) : (
+            <div className="w-full max-w-[480px] px-7 flex flex-col gap-2">
+              {devices.map((d) => (
+                <SwipeableDeviceRow key={d.name}
+                  device={d}
+                  kind={kind}
+                  active={d.name === currentName}
+                  onSelect={() => onSelect(d.name)}
+                  onRemove={() => onRemove?.(d)} />
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="px-7 pb-6 text-center text-[12.5px] text-text-3">
+          未搜索到小米设备?可尝试 <a onClick={onScan} className="text-accent cursor-pointer hover:underline">扫码添加</a>
+        </div>
       </div>
     </div>
   );
