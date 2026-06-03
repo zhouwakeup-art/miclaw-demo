@@ -173,36 +173,72 @@ const CROSS_SESSIONS = [
   },
 ];
 
-// 超级小爱独立窗口的历史对话
-const AI_HISTORY = [
-  { id:'weather', title:'明天天气和穿搭建议',          time:'今天 18:02' },
-  { id:'web',     title:'生成一个粉色爱心动画网页',    time:'今天 11:23' },
-  { id:'weekly',  title:'周报数据分析',                time:'昨天' },
-  { id:'hotpot',  title:'推荐成都好吃的火锅店',        time:'昨天' },
-  { id:'leave',   title:'帮我写一份请假条',            time:'5 月 28 日' },
-  { id:'py',      title:'Python 列表去重的写法',       time:'5 月 27 日' },
-];
+// ============== 单一数据源:所有对话 ==============
+// source: 'main'(主窗口发起) | 'hub'(互联/互传) | 'note'(笔记) | 'album'(相册) | 'find'(查找)
+// 侧栏的历史 = 按 source 过滤;主窗口的历史 = 全集
+const ALL_CONVERSATIONS = [
+  // 互联助手发起的
+  { id:'h1', source:'hub', title:'让 Pad 7 响铃', time:'今天 11:02', messages:[
+    { role:'user', text:'让 Xiaomi Pad 7 响铃' },
+    { role:'ai',   text:'已让 Xiaomi Pad 7 开始响铃。如果还是找不到,要我帮你查一下最后位置吗?' },
+  ]},
+  { id:'h2', source:'hub', title:'查 Xiaomi 17 Pro 位置', time:'昨天', messages:[
+    { role:'user', text:'帮我查一下 Xiaomi 17 Pro 现在在哪' },
+    { role:'ai',   text:'Xiaomi 17 Pro 当前位置:北京市海淀区清河小米科技园 · 5 分钟前更新' },
+  ]},
 
-const AI_CONVS = {
-  weather: { title:'明天天气和穿搭建议', messages:[
+  // 笔记助手发起的
+  { id:'n1', source:'note', title:'整理大理丽江行程', time:'今天 09:30', messages:[
+    { role:'user', text:'帮我把这次行程整理成一个表格' },
+    { role:'ai',   text:'我读了这篇笔记,识别出 5 天行程。\n已生成表格,贴在笔记末尾,你看看格式 OK 不?' },
+    { role:'user', text:'帮我估算下大致花费' },
+    { role:'ai',   text:'按你列的项目粗算:\n• 大理段:约 ¥1,800/人(含住宿、餐、门票)\n• 丽江段:约 ¥2,200/人(玉龙雪山门票较贵)\n• 交通:¥1,500/人\n合计 ≈ ¥5,500/人' },
+  ]},
+  { id:'n2', source:'note', title:'按品类排序双十一清单', time:'昨天', messages:[
+    { role:'user', text:'按品类排个序' },
+    { role:'ai',   text:'已按"美妆 → 数码 → 家居"排好,在笔记顶部加了目录。' },
+  ]},
+
+  // 相册助手发起的
+  { id:'a1', source:'album', title:'挑 9 张做九宫格', time:'今天 14:20', messages:[
+    { role:'user', text:'从相机相册里挑 9 张做九宫格' },
+    { role:'ai',   text:'从最近 30 天的照片里挑了 9 张:海边日落 3 张、咖啡馆 3 张、城市夜景 3 张,色调一致。已生成预览。' },
+  ]},
+
+  // 查找助手发起的
+  { id:'f1', source:'find', title:'让 MIX Flip 2 响铃', time:'今天 10:15', messages:[
+    { role:'user', text:'让 MIX Flip 2 响铃' },
+    { role:'ai',   text:'已让 MIX Flip 2 响铃 30 秒,音量已最大。' },
+  ]},
+  { id:'f2', source:'find', title:'查 Pad 离线原因', time:'5 月 28 日', messages:[
+    { role:'user', text:'为什么 Pad 显示离线?' },
+    { role:'ai',   text:'Pad 7 最后一次上线在 2 小时前,可能原因:① 关机或电量耗尽 ② Wi-Fi 断开 ③ 距离超出蓝牙范围。可以试试响铃看反应。' },
+  ]},
+
+  // 主窗口直接发起的
+  { id:'weather', source:'main', title:'明天天气和穿搭建议', time:'今天 18:02', messages:[
     { role:'user', text:'明天北京天气怎么样,我应该穿什么?' },
     { role:'ai',   text:'明天北京 12°C ~ 23°C,多云转晴,风力 3 级。\n建议:薄毛衣 + 防风外套,早晚有点凉,白天比较舒服。' },
   ]},
-  web: { title:'生成一个粉色爱心动画网页', messages:[
+  { id:'web', source:'main', title:'生成一个粉色爱心动画网页', time:'今天 11:23', messages:[
     { role:'user', text:'帮我生成一个粉色爱心动画网页' },
     { role:'ai',   text:'已生成 heart.html,带呼吸感脉动 + 点击爆心。已保存到「文件」,要我打开预览吗?' },
   ]},
-  weekly: { title:'周报数据分析', messages:[
+  { id:'weekly', source:'main', title:'周报数据分析', time:'昨天', messages:[
     { role:'user', text:'分析一下这周的销售数据' },
     { role:'ai',   text:'本周总额 ¥128,450,环比 +12.3%。北京区 +21%,上海区 −5.2%。已生成可视化图表,保存到「文件」。' },
   ]},
-  hotpot: { title:'推荐成都好吃的火锅店', messages:[
+  { id:'hotpot', source:'main', title:'推荐成都好吃的火锅店', time:'昨天', messages:[
     { role:'user', text:'推荐几家成都好吃的火锅店' },
     { role:'ai',   text:'三家:小龙坎(春熙路)4.7、蜀大侠(宽窄巷子)4.6、大龙燚(太古里)4.5。要订位吗?' },
   ]},
-  leave:  { title:'帮我写一份请假条', messages:[]},
-  py:     { title:'Python 列表去重的写法', messages:[]},
-};
+  { id:'leave', source:'main', title:'帮我写一份请假条', time:'5 月 28 日', messages:[]},
+  { id:'py',    source:'main', title:'Python 列表去重的写法', time:'5 月 27 日', messages:[]},
+];
+
+// 主窗口"历史对话" = 全集
+const AI_HISTORY = ALL_CONVERSATIONS;
+const AI_CONVS = Object.fromEntries(ALL_CONVERSATIONS.map(c => [c.id, c]));
 
 // 灵感广场:三类混排,但每张卡片底部都有清晰的"动作词"
 const DISCOVER_ITEMS = [
@@ -238,25 +274,6 @@ const TASKS_LIST = [
   { name:'周一 09:30 提交周报',     time:'每周一 09:30',         on:true },
   { name:'喝水提醒',                time:'每 2 小时一次',         on:false },
 ];
-
-// 各个侧栏的历史对话(mock,前端本地维护)
-const RAIL_HISTORY_MOCK = {
-  hub:   [
-    { id:'h1', title:'让 Pad 7 响铃', time:'今天 11:02' },
-    { id:'h2', title:'查 Xiaomi 17 Pro 位置', time:'昨天' },
-  ],
-  note:  [
-    { id:'n1', title:'整理大理丽江行程', time:'今天 09:30' },
-    { id:'n2', title:'估算双十一花费', time:'昨天' },
-  ],
-  album: [
-    { id:'a1', title:'挑 9 张做九宫格', time:'今天 14:20' },
-  ],
-  find:  [
-    { id:'f1', title:'让 MIX Flip 2 响铃', time:'今天 10:15' },
-    { id:'f2', title:'查 Pad 离线原因', time:'5 月 28 日' },
-  ],
-};
 
 /* ===========================  Icons  =========================== */
 
@@ -387,7 +404,7 @@ function MessageList({ messages, compact, avatar='ai-avatar' }) {
 // 共用:rail 标题栏右侧的 + 新建 / 历史 工具按钮
 function RailHeaderActions({ kind }) {
   const [historyOpen, setHistoryOpen] = useState(false);
-  const items = RAIL_HISTORY_MOCK[kind] || [];
+  const items = ALL_CONVERSATIONS.filter(c => c.source === kind);
   return (
     <div className="ml-auto flex items-center gap-0.5 relative">
       <button title="新建对话"
