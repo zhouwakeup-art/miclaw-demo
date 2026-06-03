@@ -907,10 +907,6 @@ function AiWelcome({ onOpenDiscover }) {
             </div>
           ))}
         </div>
-        <button onClick={onOpenDiscover}
-                className="mt-5 text-[12.5px] text-text-3 hover:text-accent inline-flex items-center gap-1">
-          💡 浏览灵感广场,看看小爱还能做什么 →
-        </button>
       </div>
       <div className="px-6 pb-6 pt-4 shrink-0 flex justify-center">
         <ChatInputFull placeholder="发消息或 @ 设备帮你做事" value={input} onChange={setInput} onSend={() => setInput('')} />
