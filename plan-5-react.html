@@ -384,33 +384,44 @@ function MessageList({ messages, compact, avatar='ai-avatar' }) {
 
 /* ===========================  Right rail panels (per-page)  =========================== */
 
-// 共用:rail 标题栏右侧的 + 新建 / 🕐 历史 工具按钮
-function RailHeaderActions({ kind, accent }) {
+// 共用:rail 标题栏右侧的 + 新建 / 历史 工具按钮
+function RailHeaderActions({ kind }) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const items = RAIL_HISTORY_MOCK[kind] || [];
-  const dotColor = accent === 'blue' ? 'text-text-3 hover:text-accent' : 'text-text-3 hover:text-[#3a9a5c]';
   return (
-    <div className="ml-auto flex items-center gap-1 relative">
-      <button title="新建对话" className={`w-6 h-6 rounded-md flex items-center justify-center text-[14px] ${dotColor} hover:bg-white/60`}>＋</button>
+    <div className="ml-auto flex items-center gap-0.5 relative">
+      <button title="新建对话"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-text-3 hover:text-text hover:bg-white/70">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M11.5 2.5l2 2-7 7H4.5v-2z"/>
+          <path d="M2.5 13.5h11"/>
+        </svg>
+      </button>
       <button title="历史对话" onClick={() => setHistoryOpen(o => !o)}
-              className={`w-6 h-6 rounded-md flex items-center justify-center ${dotColor} hover:bg-white/60`}>
-        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 3a5 5 0 1 1-4.5 2.8"/><path d="M3.5 2v3.5H7"/><path d="M8 5v3l2 2"/>
+              className="w-7 h-7 rounded-md flex items-center justify-center text-text-3 hover:text-text hover:bg-white/70">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2.5 5.5h11M2.5 8.5h11M2.5 11.5h7"/>
         </svg>
       </button>
       {historyOpen && (
         <>
           <div className="fixed inset-0 z-[10]" onClick={() => setHistoryOpen(false)} />
-          <div className="absolute top-full right-0 mt-1 w-[260px] bg-white border border-border rounded-xl shadow-overlay py-1 z-[20] max-h-[300px] overflow-y-auto">
-            <div className="text-[11px] text-text-3 px-3 py-1.5">历史对话</div>
+          <div className="absolute top-full right-0 mt-1 w-[240px] bg-white border border-border rounded-lg shadow-overlay z-[20] max-h-[280px] overflow-y-auto">
+            <div className="text-[10.5px] text-text-3 px-3 pt-2 pb-1.5 border-b border-border">历史对话</div>
             {items.length === 0 ? (
               <div className="text-[12px] text-text-3 px-3 py-3">还没有历史对话</div>
-            ) : items.map(it => (
-              <div key={it.id} className="px-3 py-2 hover:bg-surface-2 cursor-pointer">
-                <div className="text-[12.5px] text-text truncate">{it.title}</div>
-                <div className="text-[11px] text-text-3 mt-0.5">{it.time}</div>
+            ) : (
+              <div className="py-1">
+                {items.map(it => (
+                  <div key={it.id} className="px-3 py-1.5 hover:bg-surface-2 cursor-pointer flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12.5px] text-text truncate leading-[1.3]">{it.title}</div>
+                    </div>
+                    <span className="text-[10.5px] text-text-3 shrink-0">{it.time}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </>
       )}
