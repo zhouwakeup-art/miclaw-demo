@@ -239,6 +239,25 @@ const TASKS_LIST = [
   { name:'喝水提醒',                time:'每 2 小时一次',         on:false },
 ];
 
+// 各个侧栏的历史对话(mock,前端本地维护)
+const RAIL_HISTORY_MOCK = {
+  hub:   [
+    { id:'h1', title:'让 Pad 7 响铃', time:'今天 11:02' },
+    { id:'h2', title:'查 Xiaomi 17 Pro 位置', time:'昨天' },
+  ],
+  note:  [
+    { id:'n1', title:'整理大理丽江行程', time:'今天 09:30' },
+    { id:'n2', title:'估算双十一花费', time:'昨天' },
+  ],
+  album: [
+    { id:'a1', title:'挑 9 张做九宫格', time:'今天 14:20' },
+  ],
+  find:  [
+    { id:'f1', title:'让 MIX Flip 2 响铃', time:'今天 10:15' },
+    { id:'f2', title:'查 Pad 离线原因', time:'5 月 28 日' },
+  ],
+};
+
 /* ===========================  Icons  =========================== */
 
 const Icon = {
@@ -365,6 +384,40 @@ function MessageList({ messages, compact, avatar='ai-avatar' }) {
 
 /* ===========================  Right rail panels (per-page)  =========================== */
 
+// 共用:rail 标题栏右侧的 + 新建 / 🕐 历史 工具按钮
+function RailHeaderActions({ kind, accent }) {
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const items = RAIL_HISTORY_MOCK[kind] || [];
+  const dotColor = accent === 'blue' ? 'text-text-3 hover:text-accent' : 'text-text-3 hover:text-[#3a9a5c]';
+  return (
+    <div className="ml-auto flex items-center gap-1 relative">
+      <button title="新建对话" className={`w-6 h-6 rounded-md flex items-center justify-center text-[14px] ${dotColor} hover:bg-white/60`}>＋</button>
+      <button title="历史对话" onClick={() => setHistoryOpen(o => !o)}
+              className={`w-6 h-6 rounded-md flex items-center justify-center ${dotColor} hover:bg-white/60`}>
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 3a5 5 0 1 1-4.5 2.8"/><path d="M3.5 2v3.5H7"/><path d="M8 5v3l2 2"/>
+        </svg>
+      </button>
+      {historyOpen && (
+        <>
+          <div className="fixed inset-0 z-[10]" onClick={() => setHistoryOpen(false)} />
+          <div className="absolute top-full right-0 mt-1 w-[260px] bg-white border border-border rounded-xl shadow-overlay py-1 z-[20] max-h-[300px] overflow-y-auto">
+            <div className="text-[11px] text-text-3 px-3 py-1.5">历史对话</div>
+            {items.length === 0 ? (
+              <div className="text-[12px] text-text-3 px-3 py-3">还没有历史对话</div>
+            ) : items.map(it => (
+              <div key={it.id} className="px-3 py-2 hover:bg-surface-2 cursor-pointer">
+                <div className="text-[12.5px] text-text truncate">{it.title}</div>
+                <div className="text-[11px] text-text-3 mt-0.5">{it.time}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // 1) 互联超级小爱(设备互联/互传页面右栏)
 function HubAiRail({ context }) {
   // context: { kind: 'hub' | 'transfer', deviceName?: string }
@@ -379,6 +432,7 @@ function HubAiRail({ context }) {
       <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
         <div className="w-[24px] h-[24px] rounded-full ai-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
         <div className="text-[13.5px] font-semibold text-grad">互联助手</div>
+        <RailHeaderActions kind="hub" accent="blue" />
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
@@ -411,6 +465,7 @@ function NoteAgentRail({ note }) {
       <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
         <div className="w-[24px] h-[24px] rounded-full agent-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
         <div className="text-[13.5px] font-semibold text-grad-g">笔记助手</div>
+        <RailHeaderActions kind="note" accent="green" />
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
@@ -441,6 +496,7 @@ function AlbumAgentRail({ album }) {
       <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
         <div className="w-[24px] h-[24px] rounded-full agent-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
         <div className="text-[13.5px] font-semibold text-grad-g">相册助手</div>
+        <RailHeaderActions kind="album" accent="green" />
       </div>
 
       <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
@@ -473,6 +529,7 @@ function FindAgentRail() {
       <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
         <div className="w-[24px] h-[24px] rounded-full agent-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
         <div className="text-[13.5px] font-semibold text-grad-g">查找助手</div>
+        <RailHeaderActions kind="find" accent="green" />
       </div>
       <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
         <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">需要帮你做点什么?</div>
