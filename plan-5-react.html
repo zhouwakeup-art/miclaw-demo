@@ -1037,9 +1037,8 @@ function DeviceIllust({ kind }) {
 
 function PrivacyConsentDialog({ open, onAgree }) {
   const [agreedMain, setAgreedMain] = useState(false);
-  const [agreedAi, setAgreedAi] = useState(false);
   const [agreedPlan, setAgreedPlan] = useState(true); // 用户体验改进计划默认勾选
-  useEffect(() => { if (open) { setAgreedMain(false); setAgreedAi(false); setAgreedPlan(true); } }, [open]);
+  useEffect(() => { if (open) { setAgreedMain(false); setAgreedPlan(true); } }, [open]);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[160] flex items-center justify-center animate-fadeIn">
@@ -1062,13 +1061,6 @@ function PrivacyConsentDialog({ open, onAgree }) {
             <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米操作系统用户协议</a>和<a className="text-accent hover:underline cursor-pointer">小米互联服务隐私政策</a></span>
           </div>
           <div className="flex items-start gap-2 text-[12px] text-text-2">
-            <button onClick={() => setAgreedAi(a => !a)}
-                    className={`w-[16px] h-[16px] rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedAi ? 'bg-accent' : 'bg-text-3/30'}`}>
-              {agreedAi && <span className="text-white text-[10px] leading-none">✓</span>}
-            </button>
-            <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">超级小爱使用协议</a>和<a className="text-accent hover:underline cursor-pointer">超级小爱隐私政策</a></span>
-          </div>
-          <div className="flex items-start gap-2 text-[12px] text-text-2">
             <button onClick={() => setAgreedPlan(a => !a)}
                     className={`w-[16px] h-[16px] rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedPlan ? 'bg-accent' : 'bg-text-3/30'}`}>
               {agreedPlan && <span className="text-white text-[10px] leading-none">✓</span>}
@@ -1079,7 +1071,7 @@ function PrivacyConsentDialog({ open, onAgree }) {
         <div className="flex gap-3">
           <button onClick={() => alert('不同意将无法使用小米互联服务,应用将退出')}
                   className="flex-1 py-2.5 rounded-md bg-surface-2 text-text text-[13px] font-medium hover:bg-surface-3">不同意</button>
-          <button onClick={() => agreedMain && onAgree({ aiAgreed: agreedAi })}
+          <button onClick={() => agreedMain && onAgree({ aiAgreed: false })}
                   disabled={!agreedMain}
                   className="flex-1 py-2.5 rounded-md bg-text-3/40 text-white text-[13px] font-medium disabled:cursor-not-allowed enabled:bg-accent enabled:hover:bg-[#3b5de7]">同意</button>
         </div>
@@ -1094,7 +1086,6 @@ function LoginDialog({ open, onClose, onLoggedIn, presetAgreed = false }) {
   const [pwd, setPwd] = useState('');
   const [pwdShow, setPwdShow] = useState(false);
   const [agreed, setAgreed] = useState(presetAgreed);
-  const [agreedAi, setAgreedAi] = useState(false);
   useEffect(() => { if (open) setAgreed(presetAgreed); }, [open, presetAgreed]);
   if (!open) return null;
   return (
@@ -1143,7 +1134,7 @@ function LoginDialog({ open, onClose, onLoggedIn, presetAgreed = false }) {
                 </button>
               </div>
               {/* 登录按钮 */}
-              <button onClick={() => onLoggedIn?.({ aiAgreed: agreedAi })}
+              <button onClick={() => onLoggedIn?.({ aiAgreed: false })}
                       className="w-full py-3 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] mb-4">登录</button>
               {/* 链接行 */}
               <div className="flex items-center gap-3 text-[12px] text-text-2 mb-7">
@@ -1154,19 +1145,12 @@ function LoginDialog({ open, onClose, onLoggedIn, presetAgreed = false }) {
                 <a className="hover:text-text cursor-pointer">手机号登录</a>
               </div>
               {/* 协议勾选 */}
-              <div className="flex items-start gap-2 text-[11.5px] text-text-2 mb-2">
+              <div className="flex items-start gap-2 text-[11.5px] text-text-2 mb-6">
                 <button onClick={() => setAgreed(a => !a)}
                         className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreed ? 'bg-accent' : 'bg-text-3/40'}`}>
                   {agreed && <span className="text-white text-[9px] leading-none">✓</span>}
                 </button>
                 <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米账号使用协议</a>和<a className="text-accent hover:underline cursor-pointer">小米账号隐私政策</a></span>
-              </div>
-              <div className="flex items-start gap-2 text-[11.5px] text-text-2 mb-6">
-                <button onClick={() => setAgreedAi(a => !a)}
-                        className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedAi ? 'bg-accent' : 'bg-text-3/40'}`}>
-                  {agreedAi && <span className="text-white text-[9px] leading-none">✓</span>}
-                </button>
-                <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">超级小爱使用协议</a>和<a className="text-accent hover:underline cursor-pointer">超级小爱隐私政策</a></span>
               </div>
             </>
           )}
