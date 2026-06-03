@@ -80,6 +80,25 @@
   .thumb-vinyl   { background: linear-gradient(135deg,#f0a8b8 0%,#c85a6a 100%); }
   .thumb-cloud   { background: linear-gradient(to bottom,#a8d8f0 0%,#d8e8f5 60%,#f0f5fa 100%); }
   .thumb-empty   { background: #f1f1ed; }
+  /* ========= 设备互联(从方案 4 搬运) ========= */
+  /* 分享弹窗紫色文件图标 */
+  .file-grad    { background: linear-gradient(135deg,#a894ff,#7c3aed); box-shadow: 0 4px 12px rgba(124,58,237,.2); }
+  /* 设备头像渐变 */
+  .device-grad  { background: linear-gradient(135deg,#a3b4ff,#6478ff); box-shadow: 0 3px 8px rgba(100,120,255,.25); }
+  /* 找设备面板背景渐变 */
+  .find-list-bg { background: linear-gradient(165deg,#dceacd 0%,#f1f5eb 55%,rgba(255,255,255,.96) 100%); }
+  /* POI 标签:白色发光背景 */
+  .poi-text     { text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
+  /* 设备互联 spinner */
+  @keyframes mc-spin { to { transform: rotate(360deg); } }
+  @keyframes mc-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .mc-spin > i {
+    position: absolute; left: 50%; top: 0;
+    width: 2px; height: 28%; border-radius: 1px;
+    background: currentColor;
+    transform-origin: 50% 180%;
+    opacity: .25;
+  }
 </style>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -289,6 +308,13 @@ const Icon = {
   Highlight:(p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" {...p}><path d="M9 2l5 5-7 7H3v-4z" strokeLinejoin="round"/></svg>),
   History:  (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M8 3a5 5 0 1 1-4.5 2.8"/><path d="M3.5 2v3.5H7"/><path d="M8 5v3l2 2"/></svg>),
   Trash:    (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" {...p}><path d="M3 4h10M6 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M4 4v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4"/></svg>),
+  Maximize: (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" {...p}><rect x="2" y="3.5" width="12" height="9" rx="1.6"/><rect x="3.4" y="4.9" width="9.2" height="6.2" rx="0.6" fill="currentColor"/></svg>),
+  Layers:   (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M8 2L2 5l6 3 6-3-6-3z"/><path d="M2 9l6 3 6-3"/><path d="M2 12l6 3 6-3"/></svg>),
+  Crosshair:(p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" {...p}><circle cx="8" cy="8" r="5"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/></svg>),
+  Upload:   (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M4 8a4 4 0 0 1 7.8-1 3 3 0 0 1 0 6H5a3.5 3.5 0 0 1-1-6.8"/><path d="M8 7v6M6 9l2-2 2 2"/></svg>),
+  Download: (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M8 2v9M5 8l3 3 3-3M3 13h10"/></svg>),
+  Refresh:  (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" {...p}><path d="M13 4v3h-3M3 12V9h3"/><path d="M12.2 6.5A5 5 0 0 0 4.2 6M3.8 9.5a5 5 0 0 0 8 .5"/></svg>),
+  SidebarRight:(p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="2" y="3" width="12" height="10" rx="1.5"/><line x1="10" y1="3" x2="10" y2="13"/></svg>),
 };
 
 /* ===========================  Shared components  =========================== */
@@ -327,6 +353,79 @@ function WsHeader({ children, action }) {
     <div className="h-[54px] px-6 border-b border-border flex items-center gap-3 shrink-0">
       <h2 className="text-[17px] font-semibold flex-1 truncate">{children}</h2>
       {action}
+    </div>
+  );
+}
+
+/* ===========================  Hub helpers (从方案 4 搬运)  =========================== */
+
+function FakeQR({ size = 150 }) {
+  // 25x25 伪随机方格,带 3 个角定位标
+  const N = 25;
+  const cells = useMemo(() => {
+    const arr = [];
+    let seed = 7;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      seed = (seed * 9301 + 49297) % 233280;
+      const filled = (seed / 233280) > 0.55;
+      arr.push({ r, c, filled });
+    }
+    return arr;
+  }, []);
+  const inFinder = (r, c) => (
+    (r < 7 && c < 7) || (r < 7 && c >= N - 7) || (r >= N - 7 && c < 7)
+  );
+  const finderColor = (r, c) => {
+    let er, ec;
+    if (r < 7 && c < 7) { er = r; ec = c; }
+    else if (r < 7) { er = r; ec = c - (N - 7); }
+    else { er = r - (N - 7); ec = c; }
+    if (er === 0 || er === 6 || ec === 0 || ec === 6) return '#000';
+    if (er === 1 || er === 5 || ec === 1 || ec === 5) return '#fff';
+    if (er >= 2 && er <= 4 && ec >= 2 && ec <= 4) return '#000';
+    return '#fff';
+  };
+  const cell = size / N;
+  return (
+    <div className="relative bg-white" style={{ width: size, height: size }}>
+      {cells.map(({ r, c, filled }) => {
+        const isFinder = inFinder(r, c);
+        const bg = isFinder ? finderColor(r, c) : (filled ? '#000' : '#fff');
+        return <div key={`${r}-${c}`} style={{ position:'absolute', left: c * cell, top: r * cell, width: cell, height: cell, background: bg }} />;
+      })}
+    </div>
+  );
+}
+
+function Spinner({ size = 14 }) {
+  // 8 段苹果风格 spinner,旋转
+  const bars = Array.from({ length: 8 });
+  return (
+    <span className="mc-spin inline-block relative shrink-0 text-text-3" style={{ width:size, height:size, animation:'mc-spin 0.9s steps(8) infinite' }}>
+      {bars.map((_, i) => (
+        <i key={i} style={{ transform:`translateX(-50%) rotate(${i * 45}deg)`, opacity: 0.15 + i * 0.1 }} />
+      ))}
+    </span>
+  );
+}
+
+function ActionChip({ children, primary, disabled, onClick }) {
+  return (
+    <div onClick={disabled ? undefined : onClick}
+         className={`border rounded-full px-3 py-1 text-[12px] inline-flex items-center gap-1 transition-colors
+                     ${disabled ? 'bg-surface text-text-3 border-border opacity-50 cursor-not-allowed'
+                                : 'cursor-pointer ' + (primary ? 'bg-accent text-white border-accent hover:bg-[#3b5de7]'
+                                              : 'bg-surface text-text-2 border-border hover:bg-text hover:text-white hover:border-text')}`}>
+      {children}
+    </div>
+  );
+}
+
+function AppItem({ icon, name }) {
+  return (
+    <div className="flex flex-col items-center gap-1 py-2.5 px-1 border border-border rounded-lg bg-surface cursor-pointer transition-colors hover:border-accent hover:bg-accent-bg group">
+      <div className="text-[20px] leading-none">{icon}</div>
+      <div className="text-[11px] text-text-2 group-hover:text-accent">{name}</div>
     </div>
   );
 }
@@ -402,12 +501,13 @@ function MessageList({ messages, compact, avatar='ai-avatar' }) {
 /* ===========================  Right rail panels (per-page)  =========================== */
 
 // 共用:rail 标题栏右侧的 + 新建 / 历史 工具按钮
-function RailHeaderActions({ kind }) {
+function RailHeaderActions({ kind, activeId, setActiveId }) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const items = ALL_CONVERSATIONS.filter(c => c.source === kind);
   return (
     <div className="ml-auto flex items-center gap-0.5 relative">
       <button title="新建对话"
+              onClick={() => setActiveId?.(null)}
               className="w-7 h-7 rounded-md flex items-center justify-center text-text-3 hover:text-text hover:bg-white/70">
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M11.5 2.5l2 2-7 7H4.5v-2z"/>
@@ -429,9 +529,11 @@ function RailHeaderActions({ kind }) {
             ) : (
               <div className="py-1">
                 {items.map(it => (
-                  <div key={it.id} className="px-3 py-1.5 hover:bg-surface-2 cursor-pointer flex items-center gap-2">
+                  <div key={it.id}
+                       onClick={() => { setActiveId?.(it.id); setHistoryOpen(false); }}
+                       className={`px-3 py-1.5 cursor-pointer flex items-center gap-2 ${activeId === it.id ? 'bg-surface-2' : 'hover:bg-surface-2'}`}>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[12.5px] text-text truncate leading-[1.3]">{it.title}</div>
+                      <div className={`text-[12.5px] truncate leading-[1.3] ${activeId === it.id ? 'font-medium text-accent' : 'text-text'}`}>{it.title}</div>
                     </div>
                     <span className="text-[10.5px] text-text-3 shrink-0">{it.time}</span>
                   </div>
@@ -449,32 +551,38 @@ function RailHeaderActions({ kind }) {
 function HubAiRail({ context }) {
   // context: { kind: 'hub' | 'transfer', deviceName?: string }
   const [input, setInput] = useState('');
+  const [activeId, setActiveId] = useState(() => (ALL_CONVERSATIONS.find(c => c.source === 'hub') || {}).id || null);
   const isHub = context?.kind === 'hub';
   const dev   = context?.deviceName || 'Xiaomi 17 Pro';
   const prompts = isHub
     ? [`让 ${dev} 响铃`, `把昨天的截屏发到 ${dev}`, `查 ${dev} 的位置`, `打开 ${dev} 的相册`]
     : [`把刚才的设计稿发到 ${dev}`, `把这个文件夹打包发过去`, `从 ${dev} 拉一个文件回来`, `让 ${dev} 加入热点`];
+  const conv = activeId ? AI_CONVS[activeId] : null;
   return (
     <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden ai-aurora">
       <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
         <div className="w-[24px] h-[24px] rounded-full ai-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
         <div className="text-[13.5px] font-semibold text-grad">互联助手</div>
-        <RailHeaderActions kind="hub" accent="blue" />
+        <RailHeaderActions kind="hub" activeId={activeId} setActiveId={setActiveId} />
       </div>
 
-      <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
-        <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">
-          需要帮你做点什么? <span className="text-text-3">试试</span>
+      {conv ? (
+        <MessageList messages={conv.messages} compact avatar="ai-avatar" />
+      ) : (
+        <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
+          <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">
+            需要帮你做点什么? <span className="text-text-3">试试</span>
+          </div>
+          <div className="flex flex-col gap-1 items-start">
+            {prompts.map((p, i) => (
+              <button key={i} onClick={() => setInput(p)}
+                      className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
+                {p}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-1 items-start">
-          {prompts.map((p, i) => (
-            <button key={i} onClick={() => setInput(p)}
-                    className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
-              {p}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       <div className="p-3 shrink-0">
         <ChatInputCompact placeholder="和小爱对话,或 @ 设备帮你做事" value={input} onChange={setInput} onSend={() => setInput('')} />
@@ -486,26 +594,32 @@ function HubAiRail({ context }) {
 // 2) 笔记右栏(显示当前笔记的对话)
 function NoteAgentRail({ note }) {
   const [input, setInput] = useState('');
+  const [activeId, setActiveId] = useState(() => (ALL_CONVERSATIONS.find(c => c.source === 'note') || {}).id || null);
   const prompts = NOTE_PROMPTS[note?.id] || ['整理这篇笔记', '提取摘要', '帮我排序'];
+  const conv = activeId ? AI_CONVS[activeId] : null;
   return (
     <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden agent-aurora">
       <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
         <div className="w-[24px] h-[24px] rounded-full agent-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
         <div className="text-[13.5px] font-semibold text-grad-g">笔记助手</div>
-        <RailHeaderActions kind="note" accent="green" />
+        <RailHeaderActions kind="note" activeId={activeId} setActiveId={setActiveId} />
       </div>
 
-      <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
-        <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">处理这篇笔记。试试</div>
-        <div className="flex flex-col gap-1 items-start">
-          {prompts.map((p, i) => (
-            <button key={i} onClick={() => setInput(p)}
-                    className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
-              {p}
-            </button>
-          ))}
+      {conv ? (
+        <MessageList messages={conv.messages} compact avatar="agent-avatar" />
+      ) : (
+        <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
+          <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">处理这篇笔记。试试</div>
+          <div className="flex flex-col gap-1 items-start">
+            {prompts.map((p, i) => (
+              <button key={i} onClick={() => setInput(p)}
+                      className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
+                {p}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="px-3 pb-3 shrink-0">
         <ChatInputCompact placeholder={`让小爱帮你处理「${note?.title || ''}」`} value={input} onChange={setInput} onSend={() => setInput('')} />
@@ -517,28 +631,34 @@ function NoteAgentRail({ note }) {
 // 3) 相册右栏
 function AlbumAgentRail({ album }) {
   const [input, setInput] = useState('');
+  const [activeId, setActiveId] = useState(() => (ALL_CONVERSATIONS.find(c => c.source === 'album') || {}).id || null);
   const prompts = ALBUM_AGENT_PROMPTS[album?.id] || ['筛选这个相册', '挑几张做精选'];
+  const conv = activeId ? AI_CONVS[activeId] : null;
   return (
     <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden agent-aurora">
       <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
         <div className="w-[24px] h-[24px] rounded-full agent-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
         <div className="text-[13.5px] font-semibold text-grad-g">相册助手</div>
-        <RailHeaderActions kind="album" accent="green" />
+        <RailHeaderActions kind="album" activeId={activeId} setActiveId={setActiveId} />
       </div>
 
-      <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
-        <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">
-          处理这个相册。试试
+      {conv ? (
+        <MessageList messages={conv.messages} compact avatar="agent-avatar" />
+      ) : (
+        <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
+          <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">
+            处理这个相册。试试
+          </div>
+          <div className="flex flex-col gap-1 items-start">
+            {prompts.map((p, i) => (
+              <button key={i} onClick={() => setInput(p)}
+                      className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
+                {p}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-1 items-start">
-          {prompts.map((p, i) => (
-            <button key={i} onClick={() => setInput(p)}
-                    className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
-              {p}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       <div className="px-3 pb-3 shrink-0">
         <ChatInputCompact placeholder={`让小爱筛选「${album?.name || ''}」`} value={input} onChange={setInput} onSend={() => setInput('')} />
@@ -550,25 +670,31 @@ function AlbumAgentRail({ album }) {
 // 4) 查找右栏
 function FindAgentRail() {
   const [input, setInput] = useState('');
+  const [activeId, setActiveId] = useState(() => (ALL_CONVERSATIONS.find(c => c.source === 'find') || {}).id || null);
   const prompts = ['为什么 Pad 显示离线?', '让 MIX Flip 2 响铃', '查我的电脑最后位置', '导航到 MIX Flip 2'];
+  const conv = activeId ? AI_CONVS[activeId] : null;
   return (
     <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden agent-aurora">
       <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
         <div className="w-[24px] h-[24px] rounded-full agent-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
         <div className="text-[13.5px] font-semibold text-grad-g">查找助手</div>
-        <RailHeaderActions kind="find" accent="green" />
+        <RailHeaderActions kind="find" activeId={activeId} setActiveId={setActiveId} />
       </div>
-      <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
-        <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">需要帮你做点什么?</div>
-        <div className="flex flex-col gap-1 items-start">
-          {prompts.map((p, i) => (
-            <button key={i} onClick={() => setInput(p)}
-                    className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
-              {p}
-            </button>
-          ))}
+      {conv ? (
+        <MessageList messages={conv.messages} compact avatar="agent-avatar" />
+      ) : (
+        <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
+          <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">需要帮你做点什么?</div>
+          <div className="flex flex-col gap-1 items-start">
+            {prompts.map((p, i) => (
+              <button key={i} onClick={() => setInput(p)}
+                      className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
+                {p}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       <div className="px-3 pb-3 shrink-0">
         <ChatInputCompact placeholder="问问设备在哪、让设备响铃" value={input} onChange={setInput} onSend={() => setInput('')} />
       </div>
@@ -578,60 +704,867 @@ function FindAgentRail() {
 
 /* ===========================  Main window pages  =========================== */
 
-function DeviceHubPage({ tab, setTab }) {
+/* ============== 设备互联(完整版,从方案 4 搬运)============== */
+
+function DeviceCard({ children }) {
+  return <div className="bg-surface border border-border rounded-lg p-5 flex flex-col gap-3.5 transition-colors hover:border-border-strong hover:shadow-card">{children}</div>;
+}
+
+// 未登录 / 无设备态的功能介绍轮播(共用)
+const INTRO_SLIDES = [
+  { title:'超级小爱',  sub:'你的电脑 AI 助手,可以和小爱聊天,还能一句话满足互联需求',         illust:'ai' },
+  { title:'通知同步',  sub:'和小爱说:"把手机通知同步到电脑上",不再错过任何重要消息,打开妙享桌面直接回复', illust:'notify' },
+  { title:'妙享桌面',  sub:'可以在电脑上操作手机屏幕,还能像操作本地应用一样使用手机应用窗口', illust:'phone' },
+  { title:'小米互传',  sub:'拖拽电脑文件到附近设备即可传输,快速实现文件数据互通',                           illust:'transfer' },
+];
+
+// 设备记录:status 'connected' | 'offline'(局域网未发现,但有记录)
+const PHONE_LIST = [
+  { name: 'Xiaomi 17 Pro',     status: 'connected' },
+  { name: 'Xiaomi 17 Ultra',   status: 'offline'   },
+  { name: 'Xiaomi MIX Flip 2', status: 'offline'   },
+];
+const PAD_LIST = [
+  { name: 'Xiaomi Pad 7',      status: 'connected' },
+  { name: 'Xiaomi Pad 6S Pro', status: 'offline'   },
+];
+
+function DeviceHubPage({ onAddDevice, onTransferClick, onTransferDrop, hubState, setHubState, onLoggedIn, onRequestLogin }) {
+  const [deviceTab, setDeviceTab] = useState('phone');
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
+  const [removeConfirm, setRemoveConfirm] = useState(null);
+  const [reconnecting, setReconnecting] = useState(false);
+  const { loggedIn, phoneList, padList, selectedPhone, selectedPad, firstKind = 'phone' } = hubState;
+  const privacyAgreed = !!hubState.privacyAgreed;
+  const setPhoneList = (v) => setHubState(s => ({ ...s, phoneList: typeof v === 'function' ? v(s.phoneList) : v }));
+  const setPadList   = (v) => setHubState(s => ({ ...s, padList:   typeof v === 'function' ? v(s.padList)   : v }));
+  const setSelectedPhone = (v) => setHubState(s => ({ ...s, selectedPhone: v }));
+  const setSelectedPad   = (v) => setHubState(s => ({ ...s, selectedPad:   v }));
+  const fileInputRef = useRef(null);
+
+  const isPhone = deviceTab === 'phone';
+  const currentList = isPhone ? phoneList : padList;
+  const setCurrentList = isPhone ? setPhoneList : setPadList;
+  const currentName = isPhone ? selectedPhone : selectedPad;
+  const setCurrentName = isPhone ? setSelectedPhone : setSelectedPad;
+  const current = currentList.find(d => d.name === currentName);
+  const hasRecord = currentList.length > 0;
+  const isConnected = current?.status === 'connected';
+
+  const [sendNotif, setSendNotif] = useState(null); // {fileName, size, progress}
+  const [dragOver, setDragOver] = useState(false);
+  const [addedToast, setAddedToast] = useState(false); // 添加成功 toast
+  const sendTimerRef = useRef(null);
+  const startSend = (f) => {
+    if (!f || !currentName) return;
+    const sizeStr = f.size > 1024 * 1024 * 1024
+      ? (f.size / 1024 / 1024 / 1024).toFixed(1) + 'GB'
+      : (f.size / 1024 / 1024).toFixed(1) + 'MB';
+    setSendNotif({ fileName: f.name, size: sizeStr, progress: 0 });
+    let p = 0;
+    clearInterval(sendTimerRef.current);
+    sendTimerRef.current = setInterval(() => {
+      p += 8 + Math.random() * 6;
+      if (p >= 100) { p = 100; clearInterval(sendTimerRef.current); setTimeout(() => setSendNotif(null), 1200); }
+      setSendNotif(s => s ? { ...s, progress: Math.min(100, p) } : s);
+    }, 220);
+  };
+  const onPickFile = (e) => {
+    startSend(e.target.files?.[0]);
+    e.target.value = '';
+  };
+
+  // 移除设备:连接中且选中要二次确认,其他直接移除
+  const requestRemove = (dev) => {
+    if (dev.status === 'connected' && dev.name === currentName) {
+      setRemoveConfirm({ name: dev.name, kind: isPhone ? 'phone' : 'pad' });
+    } else {
+      doRemove(dev.name);
+    }
+  };
+  const doRemove = (name) => {
+    const next = currentList.filter(d => d.name !== name);
+    setCurrentList(next);
+    if (name === currentName) setCurrentName(next[0]?.name || '');
+    setRemoveConfirm(null);
+  };
+
   return (
     <>
-      <WsHeader action={
-        <div className="flex bg-surface-2 border border-border rounded-lg p-0.5">
-          {['phone','pad'].map(k => (
-            <button key={k} onClick={() => setTab(k)}
-                    className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${tab===k ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>
-              {k === 'phone' ? '手机' : '平板'}
-            </button>
-          ))}
-        </div>
-      }>设备互联</WsHeader>
-      <div className="flex-1 overflow-y-auto px-6 py-5">
-        <div className="max-w-[520px] mx-auto flex flex-col items-center">
-          <div className="self-start mb-1">
-            <div className="text-[22px] font-bold inline-flex items-center gap-1 select-none">
-              {tab==='phone' ? 'Xiaomi 17 Pro' : 'Xiaomi Pad 7'}
-              <span className="text-text-3 text-[14px] font-normal">▾</span>
+      <WsHeader action={loggedIn && hasRecord ? (() => {
+        // tab 顺序由 firstKind(首个被添加的类型)决定
+        const order = firstKind === 'pad' ? ['pad', 'phone'] : ['phone', 'pad'];
+        const labelOf = (k) => {
+          if (k === 'phone') return phoneList.length === 0 ? '+ 添加手机' : '手机';
+          return padList.length === 0 ? '+ 添加平板' : '平板';
+        };
+        return (
+          <div className="flex items-center gap-2">
+            <div className="flex bg-surface-2 border border-border rounded-lg p-0.5">
+              {order.map(k => (
+                <button key={k} onClick={() => setDeviceTab(k)}
+                        className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${deviceTab===k ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>
+                  {labelOf(k)}
+                </button>
+              ))}
             </div>
-            <div className="text-[13px] text-text-3 mt-0.5">局域网连接</div>
           </div>
-          {tab === 'phone' ? (
-            <div className="w-[140px] h-[200px] rounded-[24px] phone-grad shadow-card flex items-center justify-center my-6">
+        );
+      })() : null}>设备互联</WsHeader>
+      <div
+        className="flex-1 overflow-y-auto px-6 py-5 relative"
+        onDragOver={(e) => { if (loggedIn && hasRecord) { e.preventDefault(); setDragOver(true); } }}
+        onDragLeave={(e) => {
+          // 只有真正离开容器才取消高亮(避免子元素触发)
+          if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          startSend(e.dataTransfer.files?.[0]);
+        }}>
+        {dragOver && (
+          <div className="absolute inset-3 z-[150] rounded-2xl border-2 border-dashed border-accent bg-accent/[0.06] flex items-center justify-center pointer-events-none">
+            <div className="text-[16px] font-semibold text-text-2">将文件拖放到此区域发送</div>
+          </div>
+        )}
+        {!loggedIn ? (
+          /* ===== 未登录态(走轮播引导 + 登录按钮) ===== */
+          <DeviceLoggedOut isPhoneTab={isPhone} onLogin={onRequestLogin} />
+        ) : !hasRecord ? (
+          /* ===== 暂无设备(无记录) ===== */
+          <DeviceEmptyState onAdd={() => setPickerOpen(true)} />
+        ) : isPhone ? (
+          /* ===== 手机 Tab(有记录) ===== */
+          <div className="max-w-[520px] mx-auto flex flex-col items-center">
+            <div className="self-start mb-1">
+              <div onClick={() => setPickerOpen(true)} className="text-[22px] font-bold cursor-pointer hover:text-text-2 inline-flex items-center gap-1 select-none">
+                {selectedPhone} <span className="text-text-3 text-[14px] font-normal">▾</span>
+              </div>
+              <div className="text-[13px] text-text-3 mt-0.5 flex items-center gap-1.5">
+                {isConnected ? '局域网连接' : reconnecting ? (
+                  <span className="inline-flex items-center gap-1.5 text-text-3">
+                    <Spinner size={14} />
+                    连接中
+                  </span>
+                ) : (
+                  <span>
+                    未连接,
+                    <span onClick={() => setHelpOpen(true)} className="text-accent cursor-pointer hover:underline">查看连接帮助</span>
+                    或
+                    <span onClick={() => { setReconnecting(true); setTimeout(() => setReconnecting(false), 2400); }} className="text-accent cursor-pointer hover:underline">重新连接</span>
+                  </span>
+                )}
+              </div>
+            </div>
+            {/* 设备图 */}
+            <div className={`w-[140px] h-[200px] rounded-[24px] phone-grad shadow-card flex items-center justify-center my-6 ${!isConnected ? 'opacity-60' : ''}`}>
               <div className="w-[120px] h-[170px] rounded-[18px] wp-blue" />
             </div>
-          ) : (
-            <div className="w-[220px] h-[160px] rounded-[16px] pad-grad shadow-card flex items-center justify-center my-6">
-              <div className="w-[190px] h-[130px] rounded-[10px] wp-pad" />
+            {/* 操作胶囊 */}
+            <div className="flex gap-2.5 mb-6">
+              <ActionChip>🔗 启用热点</ActionChip>
+              <ActionChip>🔔 响铃查找</ActionChip>
             </div>
-          )}
-          <div className="flex gap-2.5 mb-6">
-            <span className="border border-border rounded-full px-3 py-1 text-[12px] bg-surface text-text-2">🔗 启用热点</span>
-            <span className="border border-border rounded-full px-3 py-1 text-[12px] bg-surface text-text-2">🔔 响铃查找</span>
-          </div>
-          {tab === 'phone' && (
-            <div className="w-full bg-surface-2 border border-border rounded-xl p-4">
+            {/* 妙享桌面(未连接时禁用) */}
+            <div className={`w-full bg-surface-2 border border-border rounded-xl p-4 ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
               <div className="text-[15px] font-semibold mb-1">妙享桌面</div>
               <div className="text-[12px] text-text-3 mb-3">打开手机屏幕或最近在手机上使用的应用</div>
               <div className="grid grid-cols-5 gap-2">
-                {[['📱','妙享桌面'],['🖼️','相册'],['📁','文件'],['🌐','浏览器'],['💬','短信']].map(([i,n]) => (
-                  <div key={n} className="flex flex-col items-center gap-1 py-2.5 px-1 border border-border rounded-lg bg-surface cursor-pointer hover:border-accent">
-                    <div className="text-[20px] leading-none">{i}</div>
-                    <div className="text-[11px] text-text-2">{n}</div>
-                  </div>
-                ))}
+                <AppItem icon="📱" name="妙享桌面" />
+                <AppItem icon="🖼️" name="相册" />
+                <AppItem icon="📁" name="文件管理" />
+                <AppItem icon="🌐" name="浏览器" />
+                <AppItem icon="💬" name="短信" />
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          /* ===== 平板 Tab(有记录) ===== */
+          <div className="max-w-[520px] mx-auto flex flex-col items-center">
+            <div className="self-start mb-1">
+              <div onClick={() => setPickerOpen(true)} className="text-[22px] font-bold cursor-pointer hover:text-text-2 inline-flex items-center gap-1 select-none">
+                {selectedPad} <span className="text-text-3 text-[14px] font-normal">▾</span>
+              </div>
+              <div className="text-[13px] text-text-3 mt-0.5 flex items-center gap-1.5">
+                {isConnected ? '局域网连接' : reconnecting ? (
+                  <span className="inline-flex items-center gap-1.5 text-text-3">
+                    <Spinner size={14} />
+                    连接中
+                  </span>
+                ) : (
+                  <span>
+                    未连接,
+                    <span onClick={() => setHelpOpen(true)} className="text-accent cursor-pointer hover:underline">查看连接帮助</span>
+                    或
+                    <span onClick={() => { setReconnecting(true); setTimeout(() => setReconnecting(false), 2400); }} className="text-accent cursor-pointer hover:underline">重新连接</span>
+                  </span>
+                )}
+              </div>
+            </div>
+            {/* 设备图 */}
+            <div className={`w-[220px] h-[160px] rounded-[16px] pad-grad shadow-card flex items-center justify-center my-6 ${!isConnected ? 'opacity-60' : ''}`}>
+              <div className="w-[190px] h-[130px] rounded-[10px] wp-pad" />
+            </div>
+            {/* 操作胶囊 */}
+            <div className="flex gap-2.5 mb-6">
+              <ActionChip>🔔 响铃查找</ActionChip>
+            </div>
+            {/* 屏幕扩展(未连接禁用) */}
+            <div className={`w-full bg-surface-2 border border-border rounded-xl p-4 ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[15px] font-semibold">屏幕扩展</div>
+                  <div className="text-[12px] text-text-3 mt-0.5">把小米平板当作电脑的扩展显示器</div>
+                </div>
+                <button className="px-4 py-1.5 rounded-lg border border-border text-[13px] font-medium hover:bg-text hover:text-white hover:border-text transition-colors">开启</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+      <DevicePickerDialog open={pickerOpen}
+                          kind={isPhone ? 'phone' : 'pad'}
+                          devices={currentList}
+                          currentName={currentName}
+                          onSelect={(name) => { setCurrentName(name); setPickerOpen(false); }}
+                          onRemove={requestRemove}
+                          onScan={() => { setPickerOpen(false); setScanOpen(true); }}
+                          onClose={() => setPickerOpen(false)} />
+      <ConnectHelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} onScan={() => { setHelpOpen(false); setScanOpen(true); }} />
+      <ScanAddDialog open={scanOpen}
+                     kind={isPhone ? 'phone' : 'pad'}
+                     onClose={() => setScanOpen(false)}
+                     onSuccess={({ name, kind: scannedKind }) => {
+                       const newDev = { name, status:'connected' };
+                       setHubState(s => {
+                         // 第一次添加任何设备 → 用扫到的类型作为 firstKind
+                         const noRecord = s.phoneList.length === 0 && s.padList.length === 0;
+                         const firstKind = noRecord ? scannedKind : s.firstKind;
+                         if (scannedKind === 'phone') {
+                           return { ...s, firstKind, phoneList: [newDev, ...s.phoneList.filter(d => d.name !== name)], selectedPhone: name };
+                         }
+                         return { ...s, firstKind, padList: [newDev, ...s.padList.filter(d => d.name !== name)], selectedPad: name };
+                       });
+                       setDeviceTab(scannedKind);
+                       setScanOpen(false);
+                       setPickerOpen(false);
+                       setAddedToast(true);
+                       setTimeout(() => setAddedToast(false), 2200);
+                     }}
+                     onBack={() => { setScanOpen(false); setPickerOpen(true); }} />
+      {removeConfirm && (
+        <ConfirmDialog
+          title={`移除后会断开电脑与 ${removeConfirm.kind === 'phone' ? '小米手机' : '小米平板'} 的连接,可以通过"扫码添加"再次连接,确认移除?`}
+          confirmLabel="移除"
+          onConfirm={() => doRemove(removeConfirm.name)}
+          onCancel={() => setRemoveConfirm(null)}
+        />
+      )}
+      <input ref={fileInputRef} type="file" className="hidden" onChange={onPickFile} />
+      <MacSendNotification notif={sendNotif} onClose={() => { clearInterval(sendTimerRef.current); setSendNotif(null); }} />
+      {addedToast && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[200] animate-fadeIn px-4 py-2 rounded-full bg-surface shadow-modal flex items-center gap-2 border border-border">
+          <span className="w-[20px] h-[20px] rounded-full bg-accent flex items-center justify-center text-white text-[12px] font-bold">✓</span>
+          <span className="text-[13px] text-text font-medium">添加成功</span>
+        </div>
+      )}
     </>
   );
 }
+
+function DeviceLoggedOut({ isPhoneTab, onLogin }) {
+  const slides = INTRO_SLIDES;
+  const [idx, setIdx] = useState(0);
+  return (
+    <div className="max-w-[520px] mx-auto flex flex-col items-center pt-2">
+      <div className="w-[280px] h-[180px] rounded-2xl bg-surface-2 flex items-center justify-center mb-6">
+        <DeviceIllust kind={slides[idx].illust} />
+      </div>
+      <div className="text-[16px] font-semibold mb-1.5 text-center">{slides[idx].title}</div>
+      <div className="text-[12.5px] text-text-3 mb-4 text-center px-4 leading-relaxed">{slides[idx].sub}</div>
+      <div className="flex gap-1.5 mb-7">
+        {slides.map((_, i) => (
+          <span key={i} onClick={() => setIdx(i)}
+                className={`w-1.5 h-1.5 rounded-full cursor-pointer transition-colors ${i === idx ? 'bg-text' : 'bg-text-3/40'}`} />
+        ))}
+      </div>
+      <button onClick={onLogin}
+              className="w-[260px] py-2.5 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] shadow-soft">
+        登录小米账号
+      </button>
+    </div>
+  );
+}
+
+function DeviceIllust({ kind }) {
+  if (kind === 'phone') return (
+    <div className="relative">
+      <div className="w-[150px] h-[100px] rounded-md bg-gradient-to-br from-slate-300 to-slate-500 shadow-card" />
+      <div className="absolute -bottom-3 -right-4 w-[44px] h-[64px] rounded-lg bg-gradient-to-br from-sky-300 to-sky-500 shadow-card" />
+    </div>
+  );
+  if (kind === 'notify') return (
+    <div className="relative w-[180px] h-[120px] rounded-md bg-gradient-to-br from-slate-300 to-slate-500 shadow-card flex items-end justify-center pb-2">
+      <div className="w-[160px] h-[24px] rounded bg-white/80 mb-1" />
+    </div>
+  );
+  if (kind === 'pad') return (
+    <div className="relative">
+      <div className="w-[150px] h-[100px] rounded-md bg-gradient-to-br from-slate-300 to-slate-500 shadow-card" />
+      <div className="absolute -bottom-2 -right-6 w-[80px] h-[58px] rounded bg-gradient-to-br from-purple-300 to-purple-500 shadow-card" />
+    </div>
+  );
+  if (kind === 'transfer') return (
+    <div className="relative w-[200px] h-[110px] flex items-center justify-center">
+      {/* Mac */}
+      <div className="absolute left-2 top-1 w-[110px] h-[80px] rounded-md bg-gradient-to-br from-slate-300 to-slate-500 shadow-card" />
+      {/* 飞行的文件 */}
+      <div className="absolute left-[88px] top-[18px] w-[34px] h-[42px] rounded bg-white shadow-card flex items-center justify-center text-[18px] rotate-[-8deg]">📄</div>
+      {/* 手机 */}
+      <div className="absolute right-1 top-3 w-[44px] h-[68px] rounded-lg bg-gradient-to-br from-sky-300 to-sky-500 shadow-card" />
+    </div>
+  );
+  // ai
+  return (
+    <div className="w-[64px] h-[64px] rounded-full bg-gradient-to-br from-[#a894ff] to-[#7c3aed] shadow-card flex items-center justify-center">
+      <span className="text-white text-[28px]">✦</span>
+    </div>
+  );
+}
+
+function PrivacyConsentDialog({ open, onAgree }) {
+  const [agreedMain, setAgreedMain] = useState(false);
+  const [agreedAi, setAgreedAi] = useState(false);
+  const [agreedPlan, setAgreedPlan] = useState(true); // 用户体验改进计划默认勾选
+  useEffect(() => { if (open) { setAgreedMain(false); setAgreedAi(false); setAgreedPlan(true); } }, [open]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[160] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.30] backdrop-blur-sm" />
+      <div className="relative w-[380px] bg-surface rounded-[18px] shadow-modal animate-popIn p-7">
+        {/* App Icon */}
+        <div className="w-[64px] h-[64px] rounded-[14px] mx-auto mb-4 flex items-center justify-center"
+             style={{ background: 'radial-gradient(circle at 30% 30%, #b89cff 0%, transparent 50%), radial-gradient(circle at 70% 30%, #6ee895 0%, transparent 50%), radial-gradient(circle at 30% 70%, #ffb39c 0%, transparent 50%), radial-gradient(circle at 70% 70%, #4a6cf7 0%, transparent 50%), white' }}>
+        </div>
+        <div className="text-[18px] font-semibold text-center mb-3">小米互联服务</div>
+        <div className="text-[12.5px] text-text-2 leading-relaxed mb-5">
+          欢迎您使用小米互联互通服务,本服务为您提供在不同设备之间进行文件互传、数据流转和桌面共享等跨端协同和控制功能
+        </div>
+        <div className="space-y-2.5 mb-6">
+          <div className="flex items-start gap-2 text-[12px] text-text-2">
+            <button onClick={() => setAgreedMain(a => !a)}
+                    className={`w-[16px] h-[16px] rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedMain ? 'bg-accent' : 'bg-text-3/30'}`}>
+              {agreedMain && <span className="text-white text-[10px] leading-none">✓</span>}
+            </button>
+            <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米操作系统用户协议</a>和<a className="text-accent hover:underline cursor-pointer">小米互联服务隐私政策</a></span>
+          </div>
+          <div className="flex items-start gap-2 text-[12px] text-text-2">
+            <button onClick={() => setAgreedAi(a => !a)}
+                    className={`w-[16px] h-[16px] rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedAi ? 'bg-accent' : 'bg-text-3/30'}`}>
+              {agreedAi && <span className="text-white text-[10px] leading-none">✓</span>}
+            </button>
+            <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">超级小爱使用协议</a>和<a className="text-accent hover:underline cursor-pointer">超级小爱隐私政策</a></span>
+          </div>
+          <div className="flex items-start gap-2 text-[12px] text-text-2">
+            <button onClick={() => setAgreedPlan(a => !a)}
+                    className={`w-[16px] h-[16px] rounded shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedPlan ? 'bg-accent' : 'bg-text-3/30'}`}>
+              {agreedPlan && <span className="text-white text-[10px] leading-none">✓</span>}
+            </button>
+            <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米互联服务用户体验改进计划</a></span>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={() => alert('不同意将无法使用小米互联服务,应用将退出')}
+                  className="flex-1 py-2.5 rounded-md bg-surface-2 text-text text-[13px] font-medium hover:bg-surface-3">不同意</button>
+          <button onClick={() => agreedMain && onAgree({ aiAgreed: agreedAi })}
+                  disabled={!agreedMain}
+                  className="flex-1 py-2.5 rounded-md bg-text-3/40 text-white text-[13px] font-medium disabled:cursor-not-allowed enabled:bg-accent enabled:hover:bg-[#3b5de7]">同意</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LoginDialog({ open, onClose, onLoggedIn, presetAgreed = false }) {
+  const [mode, setMode] = useState('qr'); // 'qr' | 'phone'
+  const [account, setAccount] = useState('');
+  const [pwd, setPwd] = useState('');
+  const [pwdShow, setPwdShow] = useState(false);
+  const [agreed, setAgreed] = useState(presetAgreed);
+  const [agreedAi, setAgreedAi] = useState(false);
+  useEffect(() => { if (open) setAgreed(presetAgreed); }, [open, presetAgreed]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[140] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.30] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-[420px] bg-[#f3f3f3] rounded-[14px] shadow-modal animate-popIn overflow-hidden">
+        {/* 红绿灯标题栏 */}
+        <div className="h-9 bg-white flex items-center px-3 border-b border-black/[.06]">
+          <button onClick={onClose} className="w-3 h-3 rounded-full bg-[#ff5f57] hover:opacity-80" />
+        </div>
+
+        <div className="px-8 pt-8 pb-6 flex flex-col items-center">
+          {mode === 'qr' ? (
+            <>
+              <div className="w-[180px] h-[180px] bg-white rounded-xl shadow-soft flex items-center justify-center mb-3">
+                <FakeQR size={150} />
+              </div>
+              <div className="text-[12px] text-text-3 text-center leading-relaxed mb-8 px-4">
+                可使用小米手机或平板,点击设置 &gt; 小米账号后扫码登录,或使用其他扫码工具
+              </div>
+              <div className="text-[11.5px] text-text-2 text-center mb-5 leading-relaxed">
+                扫码登录即代表同意<a className="text-accent hover:underline cursor-pointer">小米账号使用协议</a>和<a className="text-accent hover:underline cursor-pointer">小米账号隐私政策</a>
+              </div>
+              <button onClick={() => onLoggedIn?.({ aiAgreed: false })}
+                      className="w-full py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors mb-3">[ 演示用 ] 模拟扫码成功</button>
+            </>
+          ) : (
+            <>
+              {/* mi logo */}
+              <div className="w-[58px] h-[58px] rounded-[12px] bg-[#ff6700] flex items-center justify-center shadow-soft mb-7">
+                <span className="text-white text-[26px] font-bold tracking-tight italic">mi</span>
+              </div>
+              {/* 账号 */}
+              <input value={account} onChange={(e) => setAccount(e.target.value)}
+                     placeholder="小米账号 / 手机号 / 邮箱"
+                     className="w-full px-4 py-3 mb-2 rounded-xl bg-[#e7e7e8] text-[13px] focus:outline-none placeholder:text-text-3" />
+              {/* 密码 */}
+              <div className="w-full relative mb-5">
+                <input value={pwd} onChange={(e) => setPwd(e.target.value)}
+                       type={pwdShow ? 'text' : 'password'}
+                       placeholder="密码"
+                       className="w-full px-4 py-3 pr-10 rounded-xl bg-[#e7e7e8] text-[13px] focus:outline-none placeholder:text-text-3" />
+                <button onClick={() => setPwdShow(s => !s)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-3 hover:text-text-2 text-[15px]">
+                  {pwdShow ? '🙈' : '👁'}
+                </button>
+              </div>
+              {/* 登录按钮 */}
+              <button onClick={() => onLoggedIn?.({ aiAgreed: agreedAi })}
+                      className="w-full py-3 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] mb-4">登录</button>
+              {/* 链接行 */}
+              <div className="flex items-center gap-3 text-[12px] text-text-2 mb-7">
+                <a className="hover:text-text cursor-pointer">注册</a>
+                <span className="text-text-3/50">|</span>
+                <a className="hover:text-text cursor-pointer">忘记密码</a>
+                <span className="text-text-3/50">|</span>
+                <a className="hover:text-text cursor-pointer">手机号登录</a>
+              </div>
+              {/* 协议勾选 */}
+              <div className="flex items-start gap-2 text-[11.5px] text-text-2 mb-2">
+                <button onClick={() => setAgreed(a => !a)}
+                        className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreed ? 'bg-accent' : 'bg-text-3/40'}`}>
+                  {agreed && <span className="text-white text-[9px] leading-none">✓</span>}
+                </button>
+                <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">小米账号使用协议</a>和<a className="text-accent hover:underline cursor-pointer">小米账号隐私政策</a></span>
+              </div>
+              <div className="flex items-start gap-2 text-[11.5px] text-text-2 mb-6">
+                <button onClick={() => setAgreedAi(a => !a)}
+                        className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreedAi ? 'bg-accent' : 'bg-text-3/40'}`}>
+                  {agreedAi && <span className="text-white text-[9px] leading-none">✓</span>}
+                </button>
+                <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">超级小爱使用协议</a>和<a className="text-accent hover:underline cursor-pointer">超级小爱隐私政策</a></span>
+              </div>
+            </>
+          )}
+
+          {/* 其他方式登录 */}
+          <div className="w-full flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-text-3/30" />
+            <span className="text-[11px] text-text-3">其他方式登录</span>
+            <div className="flex-1 h-px bg-text-3/30" />
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => setMode('qr')}
+                    className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${mode === 'qr' ? 'bg-accent text-white shadow-soft' : 'bg-white border border-border text-text-2 hover:text-text'}`}
+                    title="扫码登录">
+              <span className="text-[18px]">⊟</span>
+            </button>
+            <button onClick={() => setMode('phone')}
+                    className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${mode === 'phone' ? 'bg-accent text-white shadow-soft' : 'bg-white border border-border text-text-2 hover:text-text'}`}
+                    title="账号密码登录">
+              <span className="text-[18px]">📱</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeviceEmptyState({ onAdd }) {
+  const slides = INTRO_SLIDES;
+  const [idx, setIdx] = useState(0);
+  return (
+    <div className="max-w-[520px] mx-auto flex flex-col items-center pt-2">
+      <div className="w-[280px] h-[180px] rounded-2xl bg-surface-2 flex items-center justify-center mb-5">
+        <DeviceIllust kind={slides[idx].illust} />
+      </div>
+      <div className="text-[16px] font-semibold mb-1.5 text-center">{slides[idx].title}</div>
+      <div className="text-[12.5px] text-text-3 mb-4 text-center px-4 leading-relaxed">{slides[idx].sub}</div>
+      <div className="flex gap-1.5 mb-6">
+        {slides.map((_, i) => (
+          <span key={i} onClick={() => setIdx(i)}
+                className={`w-1.5 h-1.5 rounded-full cursor-pointer transition-colors ${i === idx ? 'bg-text' : 'bg-text-3/40'}`} />
+        ))}
+      </div>
+      <button onClick={onAdd}
+              className="w-[260px] py-2.5 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] shadow-soft">添加设备</button>
+    </div>
+  );
+}
+
+function ConnectHelpDialog({ open, onClose, onScan }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.20] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-[420px] bg-surface rounded-[14px] shadow-modal p-6 animate-popIn">
+        <button onClick={onClose} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/[.06] hover:bg-black/[.12] text-text-2 flex items-center justify-center">
+          <Icon.Close width="14" height="14" />
+        </button>
+        <div className="text-[18px] font-bold mb-1">连接帮助</div>
+        <div className="text-[12.5px] text-text-3 mb-5">为您提供以下连接设备的方法</div>
+        <div className="space-y-3">
+          <div onClick={onScan} className="bg-surface-2 hover:bg-surface-3 rounded-xl p-4 cursor-pointer transition-colors">
+            <div className="text-[14px] font-semibold mb-1">扫码添加</div>
+            <div className="text-[12px] text-text-3 leading-relaxed">请确保小米手机/平板在附近,已升级至小米澎湃 OS 3,并与电脑登录相同小米账号、连接相同网络。可使用小米手机/平板相机扫描二维码添加</div>
+          </div>
+          <div className="bg-surface-2 hover:bg-surface-3 rounded-xl p-4 cursor-pointer transition-colors">
+            <div className="text-[14px] font-semibold mb-1">热点连接</div>
+            <div className="text-[12px] text-text-3 leading-relaxed">通过首页"启用热点"入口,使电脑与 小米手机/小米平板 加入同一局域网,或在此点击"热点连接"</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MacSendNotification({ notif, onClose }) {
+  if (!notif) return null;
+  const { fileName, size, progress } = notif;
+  // 圆环进度参数
+  const R = 14;
+  const C = 2 * Math.PI * R;
+  return (
+    <div className="absolute top-3 right-3 z-[210] w-[360px] rounded-[14px] shadow-modal animate-fadeIn flex items-center gap-3 px-3 py-2.5"
+         style={{ background:'rgba(245,245,247,0.95)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)' }}>
+      {/* 文件缩略 + app badge */}
+      <div className="relative w-[44px] h-[44px] rounded-lg overflow-hidden shrink-0"
+           style={{ background:'linear-gradient(135deg, #b8c8a4 0%, #d4d8b8 50%, #a8b89c 100%)' }}>
+        <div className="absolute inset-0 flex items-center justify-center text-text-3 text-[18px]">📷</div>
+        <div className="absolute -bottom-0.5 -left-0.5 w-[16px] h-[16px] rounded bg-accent flex items-center justify-center text-white text-[9px] font-bold shadow-soft">⚡</div>
+      </div>
+      {/* 标题/副标题 */}
+      <div className="flex-1 min-w-0">
+        <div className="text-[13.5px] font-semibold text-text truncate">正在发送 {fileName}</div>
+        <div className="text-[11.5px] text-text-3 truncate">{size}</div>
+      </div>
+      {/* 圆环进度 + 关闭 */}
+      <button onClick={onClose} className="relative w-[34px] h-[34px] shrink-0 rounded-full flex items-center justify-center hover:bg-black/[.05] group" title="取消">
+        <svg width="34" height="34" viewBox="0 0 34 34" className="absolute inset-0 -rotate-90">
+          <circle cx="17" cy="17" r={R} fill="none" stroke="#e5e7eb" strokeWidth="2.5" />
+          <circle cx="17" cy="17" r={R} fill="none" stroke="#0a84ff" strokeWidth="2.5" strokeLinecap="round"
+                  strokeDasharray={C} strokeDashoffset={C * (1 - progress / 100)}
+                  style={{ transition:'stroke-dashoffset 0.2s linear' }} />
+        </svg>
+        <span className="text-text text-[14px] leading-none">✕</span>
+      </button>
+    </div>
+  );
+}
+
+function ScanAddDialog({ open, kind, onClose, onBack, onSuccess }) {
+  const [scanned, setScanned] = useState(false);
+  useEffect(() => { if (!open) setScanned(false); }, [open]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.22] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-[640px] max-w-[92vw] h-[460px] bg-surface rounded-[14px] animate-popIn shadow-modal flex flex-col overflow-hidden">
+        {/* 顶部:← 扫码添加设备  ✕ */}
+        <div className="px-7 pt-5 pb-3 flex items-center">
+          <button onClick={onBack || onClose} className="w-7 h-7 rounded-md text-text-3 hover:text-text hover:bg-black/[.05] flex items-center justify-center mr-1.5">
+            <span className="text-[18px] leading-none">‹</span>
+          </button>
+          <div className="text-[16px] font-semibold text-text">扫码添加设备</div>
+          <div className="flex-1" />
+          <button onClick={onClose} className="w-7 h-7 rounded-md text-text-3 hover:text-text hover:bg-black/[.05] flex items-center justify-center">
+            <Icon.Close width="16" height="16" />
+          </button>
+        </div>
+
+        {/* 二维码 */}
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+          <div className="w-[200px] h-[200px] bg-white rounded-[10px] flex items-center justify-center relative">
+            <FakeQR size={180} />
+            {scanned && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/85 rounded-[10px]">
+                <div className="w-[68px] h-[68px] rounded-full bg-accent flex items-center justify-center text-white text-[34px] font-bold shadow-card">✓</div>
+              </div>
+            )}
+          </div>
+          {/* 编号说明 */}
+          <div className="text-[12px] text-text-3 leading-[1.9] mt-5 text-center">
+            <div>1. 请确保设备登录同一小米账号,处于同一网络</div>
+            <div>2. 使用小米手机相机,小爱视觉扫描二维码</div>
+          </div>
+        </div>
+
+        {/* 演示按钮(临时) */}
+        {!scanned && (
+          <div className="px-7 pb-4 grid grid-cols-2 gap-2">
+            <button onClick={() => { setScanned('phone'); setTimeout(() => onSuccess?.({ name:'Xiaomi 17 Ultra', kind:'phone' }), 1000); }}
+                    className="py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors">[ 演示 ] 扫到手机</button>
+            <button onClick={() => { setScanned('pad'); setTimeout(() => onSuccess?.({ name:'Xiaomi Pad 7', kind:'pad' }), 1000); }}
+                    className="py-2 rounded-md bg-surface-2 hover:bg-surface-3 text-[12px] text-text-2 transition-colors">[ 演示 ] 扫到平板</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AiAgreementDialog({ open, onCancel, onConfirm }) {
+  const [agreed, setAgreed] = useState(false);
+  useEffect(() => { if (!open) setAgreed(false); }, [open]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.30] backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative w-[400px] bg-surface rounded-[14px] shadow-modal p-6 animate-popIn">
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#a894ff] to-[#7c3aed] mx-auto mb-3 flex items-center justify-center text-white text-[20px]">✦</div>
+        <div className="text-[16px] font-semibold text-center mb-2">使用超级小爱前,请先同意以下协议</div>
+        <div className="text-[12.5px] text-text-2 leading-relaxed mb-4 text-center">
+          为提供 AI 对话与设备协同能力,我们需要处理你的输入、设备上下文等信息。
+        </div>
+        <div className="flex items-start gap-2 text-[12px] text-text-2 mb-5">
+          <button onClick={() => setAgreed(a => !a)}
+                  className={`w-[14px] h-[14px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-colors ${agreed ? 'bg-accent' : 'bg-text-3/40'}`}>
+            {agreed && <span className="text-white text-[9px] leading-none">✓</span>}
+          </button>
+          <span>已阅读并同意<a className="text-accent hover:underline cursor-pointer">超级小爱使用协议</a>和<a className="text-accent hover:underline cursor-pointer">超级小爱隐私政策</a></span>
+        </div>
+        <div className="flex justify-end gap-2">
+          <button onClick={onCancel}
+                  className="px-4 py-1.5 rounded-md text-[13px] text-text-2 hover:bg-surface-2">取消</button>
+          <button onClick={onConfirm} disabled={!agreed}
+                  className={`px-4 py-1.5 rounded-md text-white text-[13px] font-medium transition-colors ${agreed ? 'bg-accent hover:bg-[#3b5de7]' : 'bg-accent/40 cursor-not-allowed'}`}>同意并继续</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmDialog({ title, confirmLabel='确认', cancelLabel='取消', onConfirm, onCancel }) {
+  return (
+    <div className="fixed inset-0 z-[130] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.25] backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative w-[380px] bg-surface rounded-[14px] shadow-modal p-5 animate-popIn">
+        <div className="text-[14px] text-text leading-relaxed mb-5">{title}</div>
+        <div className="flex justify-end gap-2">
+          <button onClick={onCancel} className="px-4 py-1.5 rounded-md text-[13px] text-text-2 hover:bg-surface-2">{cancelLabel}</button>
+          <button onClick={onConfirm} className="px-4 py-1.5 rounded-md bg-[#e74c3c] text-white text-[13px] font-medium hover:opacity-90">{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SwipeableDeviceRow({ device, kind, active, onSelect, onRemove }) {
+  const [offset, setOffset] = useState(0); // 0 = closed, -88 = revealed
+  const startXRef = useRef(null);
+  const startOffsetRef = useRef(0);
+  const movedRef = useRef(false);
+  const REVEAL = 88;
+
+  const onMouseDown = (e) => {
+    startXRef.current = e.clientX;
+    startOffsetRef.current = offset;
+    movedRef.current = false;
+    const onMove = (ev) => {
+      const dx = ev.clientX - startXRef.current;
+      if (Math.abs(dx) > 4) movedRef.current = true;
+      let next = startOffsetRef.current + dx;
+      if (next > 0) next = 0;
+      if (next < -REVEAL - 20) next = -REVEAL - 20;
+      setOffset(next);
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      // 吸附:超过一半就展开
+      setOffset(prev => prev < -REVEAL / 2 ? -REVEAL : 0);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  const handleClick = () => {
+    if (movedRef.current) return;
+    if (offset !== 0) { setOffset(0); return; }
+    onSelect();
+  };
+
+  const connected = device.status === 'connected';
+
+  return (
+    <div className="relative overflow-hidden rounded-xl">
+      {/* 底层红色移除按钮(仅在滑开时存在) */}
+      {offset < 0 && (
+        <button onClick={() => { setOffset(0); onRemove(); }}
+                className="absolute top-0 right-0 bottom-0 w-[88px] bg-[#ff453a] hover:bg-[#e63a30] text-white text-[14px] font-semibold flex items-center justify-center">
+          移除
+        </button>
+      )}
+      {/* 顶层卡片 */}
+      <div
+        onMouseDown={onMouseDown}
+        onClick={handleClick}
+        style={{ transform:`translateX(${offset}px)`, transition: startXRef.current ? 'none' : 'transform 0.22s ease' }}
+        className={`relative flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer select-none transition-colors
+                   ${active ? 'bg-accent-bg' : 'bg-surface-2 hover:bg-surface-3'}`}
+      >
+        <div className="w-10 h-12 rounded-md flex items-center justify-center shrink-0 pointer-events-none overflow-hidden bg-white shadow-soft"
+             style={{ background:'linear-gradient(180deg, #cfe2f3 0%, #6f9ec8 50%, #1f3a5a 100%)' }}>
+          {/* 设备图(用渐变模拟手机壁纸) */}
+        </div>
+        <div className="flex-1 min-w-0 pointer-events-none">
+          <div className={`text-[15px] font-medium truncate ${active ? 'text-accent' : 'text-text'}`}>{device.name}</div>
+          {connected && <div className="text-[12px] text-accent/70 mt-0.5">已连接</div>}
+        </div>
+        {active && (
+          <div className="w-[26px] h-[26px] rounded-full bg-accent text-white flex items-center justify-center text-[14px] shrink-0 pointer-events-none">✓</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DevicePickerDialog({ open, kind, devices, currentName, onSelect, onRemove, onScan, onClose }) {
+  const [searching, setSearching] = useState(false);
+  const [searchedOnce, setSearchedOnce] = useState(false);
+  const searchTimerRef = useRef(null);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  useEffect(() => {
+    if (open) {
+      // 无设备打开 → 自动启动搜索动画
+      if (devices.length === 0) {
+        setSearching(true);
+        setSearchedOnce(false);
+        clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = setTimeout(() => { setSearching(false); setSearchedOnce(true); }, 2000);
+      } else {
+        setSearching(false);
+        setSearchedOnce(false);
+      }
+    } else {
+      setSearching(false);
+      setSearchedOnce(false);
+      clearTimeout(searchTimerRef.current);
+    }
+  }, [open]); // eslint-disable-line
+  const triggerSearch = () => {
+    setSearching(true);
+    setSearchedOnce(false);
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => { setSearching(false); setSearchedOnce(true); }, 2000);
+  };
+  if (!open) return null;
+  const hasDevices = devices.length > 0;
+  const showSearchingView = searching;
+  const showNotFoundView = !searching && !hasDevices && searchedOnce;
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.22] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-[640px] max-w-[92vw] h-[460px] bg-surface rounded-[14px] animate-popIn shadow-modal flex flex-col overflow-hidden">
+        <button onClick={onClose} className="absolute top-4 right-4 w-7 h-7 rounded-md text-text-3 hover:text-text hover:bg-black/[.05] flex items-center justify-center z-10">
+          <Icon.Close width="16" height="16" />
+        </button>
+
+        {/* 顶部 */}
+        {hasDevices && !searching ? (
+          <div className="px-7 pt-6 pb-4">
+            <div className="text-[20px] font-bold text-text">我的设备</div>
+          </div>
+        ) : (
+          <div className="px-7 pt-6 pb-3">
+            <div className="text-[20px] font-bold text-text mb-2">{hasDevices ? '我的设备' : '添加设备'}</div>
+            {!hasDevices && (
+              <div className="text-[12.5px] text-text-2 leading-[1.8]">
+                <div>1. 请确保小米手机或小米平板系统已升级至 Hyper OS 3</div>
+                <div>2. 与电脑均处于同一网络,登录同一小米账号</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 内容 */}
+        {showSearchingView ? (
+          <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+            <div className="relative w-[110px] h-[80px] mb-4">
+              <div className="absolute left-0 top-1 w-5 h-5 rounded-full bg-[#ff8a8a] opacity-90"
+                   style={{ animation: 'mc-bounce 1.6s ease-in-out infinite' }} />
+              <div className="absolute right-0 top-3 w-7 h-7 rounded-full bg-[#9c8aff] opacity-90"
+                   style={{ animation: 'mc-bounce 1.6s ease-in-out 0.5s infinite' }} />
+              <div className="absolute left-[42px] bottom-0 w-5 h-5 rounded-full bg-[#6ee895] opacity-90"
+                   style={{ animation: 'mc-bounce 1.6s ease-in-out 1s infinite' }} />
+            </div>
+            <div className="text-[14px] text-text-3">正在搜索...</div>
+          </div>
+        ) : showNotFoundView ? (
+          <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+            <div className="relative w-[64px] h-[80px] mb-3">
+              {/* 手机轮廓 */}
+              <div className="absolute inset-0 border-[2.5px] border-text-3/40 rounded-[10px]" />
+              {/* 警告小圆 */}
+              <div className="absolute -bottom-1 -right-1 w-[26px] h-[26px] rounded-full bg-text-3/70 flex items-center justify-center text-white text-[15px] font-bold">!</div>
+            </div>
+            <div className="text-[14px] text-text-3 mb-5">未搜索到设备</div>
+            <button onClick={triggerSearch}
+                    className="px-7 py-2 rounded-full bg-accent text-white text-[14px] font-semibold hover:bg-[#3b5de7] shadow-soft">重新搜索</button>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto px-7 pb-3">
+            <div className="flex flex-col gap-2">
+              {devices.map((d) => (
+                <SwipeableDeviceRow key={d.name}
+                  device={d}
+                  kind={kind}
+                  active={d.name === currentName}
+                  onSelect={() => onSelect(d.name)}
+                  onRemove={() => onRemove?.(d)} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 底部 */}
+        {hasDevices && !searching ? (
+          <div className="px-7 py-3 border-t border-border flex items-center justify-between">
+            <div className="text-[12.5px] text-text-3">
+              未搜索到小米设备?可尝试 <a onClick={onScan} className="text-accent cursor-pointer hover:underline">扫码添加</a>
+            </div>
+            <button onClick={triggerSearch} className="px-4 py-1.5 rounded-full bg-surface-2 hover:bg-surface-3 text-[13px] text-text font-medium">重新搜索</button>
+          </div>
+        ) : (
+          <div className="px-7 pb-6 text-center text-[12.5px] text-text-3">
+            未搜索到小米设备?可尝试 <a onClick={onScan} className="text-accent cursor-pointer hover:underline">扫码添加</a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============== 设备互联(完整版)END ============== */
 
 function TransferPage() {
   return (
@@ -1693,13 +2626,13 @@ function MainSidebar({ activeTab, onSelectTab, onOpenAi, onOpenSettings }) {
   );
 }
 
-function MainWindow({ onOpenAi, onOpenSettings }) {
+function MainWindow({ onOpenAi, onOpenSettings, hubState, setHubState, onLoggedIn, onRequestLogin }) {
   const [activeTab,    setActiveTab]    = useState('hub');
   const [activeNoteId, setActiveNoteId] = useState('lijiang');
   const [activeAlbumId, setActiveAlbumId] = useState('cam');
-  const [hubTab, setHubTab] = useState('phone');
 
-  const hubDeviceName = hubTab === 'phone' ? 'Xiaomi 17 Pro' : 'Xiaomi Pad 7';
+  // hub 当前选中的设备名(给 HubAiRail 用)
+  const hubDeviceName = hubState?.selectedPhone || hubState?.selectedPad || 'Xiaomi 17 Pro';
 
   const renderRail = () => {
     if (activeTab === 'hub')         return <HubAiRail context={{ kind:'hub', deviceName:hubDeviceName }} />;
@@ -1716,7 +2649,7 @@ function MainWindow({ onOpenAi, onOpenSettings }) {
       <div className="flex flex-1 min-h-0">
         <MainSidebar activeTab={activeTab} onSelectTab={setActiveTab} onOpenAi={onOpenAi} onOpenSettings={onOpenSettings} />
         <div className="flex-1 flex flex-col min-w-0">
-          {activeTab === 'hub'         && <DeviceHubPage tab={hubTab} setTab={setHubTab} />}
+          {activeTab === 'hub'         && <DeviceHubPage onAddDevice={() => {}} onTransferClick={() => {}} onTransferDrop={() => {}} hubState={hubState} setHubState={setHubState} onLoggedIn={onLoggedIn} onRequestLogin={onRequestLogin} />}
           {activeTab === 'transfer'    && <TransferPage />}
           {activeTab === 'cloud-photo' && <CloudPhotoPage activeAlbumId={activeAlbumId} setActiveAlbumId={setActiveAlbumId} />}
           {activeTab === 'cloud-note'  && <CloudNotePage activeNoteId={activeNoteId} setActiveNoteId={setActiveNoteId} />}
@@ -1740,6 +2673,46 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [demoItem, setDemoItem] = useState(null);
+
+  // 设备互联:hubState + 隐私/登录/AI 协议弹窗
+  const [hubState, setHubState] = useState({
+    privacyAgreed: true,
+    loggedIn: true,
+    locale: 'cn',
+    firstKind: 'phone',
+    phoneList: PHONE_LIST,
+    padList:   PAD_LIST,
+    selectedPhone: 'Xiaomi 17 Pro',
+    selectedPad:   'Xiaomi Pad 7',
+  });
+  const [aiAgreed, setAiAgreed] = useState(false);
+  const [aiAgreementOpen, setAiAgreementOpen] = useState(false);
+  const [appLoginOpen, setAppLoginOpen] = useState(false);
+
+  const setHubDemo = (mode) => {
+    const base = {
+      privacyAgreed:true, loggedIn:true, locale:'cn', firstKind:'phone',
+      phoneList: PHONE_LIST.map((d,i) => i===0 ? {...d, status:'connected'} : d),
+      padList: PAD_LIST,
+      selectedPhone: PHONE_LIST[0].name,
+      selectedPad: PAD_LIST[0].name,
+    };
+    if (mode === 'no-privacy')      setHubState({ ...base, privacyAgreed:false, loggedIn:false, phoneList: [], padList: [], selectedPhone:'', selectedPad:'' });
+    else if (mode === 'logged-out') setHubState({ ...base, loggedIn:false, phoneList: PHONE_LIST, padList: PAD_LIST });
+    else if (mode === 'connected')  setHubState(base);
+    else if (mode === 'offline')    setHubState({ ...base, phoneList: PHONE_LIST.map(d => ({...d, status:'offline'})), padList: PAD_LIST.map(d => ({...d, status:'offline'})) });
+    else if (mode === 'empty')      setHubState({ ...base, phoneList: [], padList: [], selectedPhone:'', selectedPad:'' });
+    else if (mode === 'intl')       setHubState({ ...base, loggedIn:false, locale:'cn', pendingLocale:'intl', phoneList: PHONE_LIST, padList: PAD_LIST });
+  };
+
+  const handleAppLogin = ({ aiAgreed: ai, privacyOnly } = {}) => {
+    if (!privacyOnly) setHubState(s => ({ ...s, loggedIn: true, locale: s.pendingLocale || s.locale, pendingLocale: undefined }));
+    if (ai) setAiAgreed(true);
+  };
+  const onAiAgreementConfirm = () => {
+    setAiAgreed(true);
+    setAiAgreementOpen(false);
+  };
 
   const aiWindowRef = useRef(null);
   const openAi = () => {
@@ -1770,6 +2743,17 @@ function App() {
     onPlayDemo,
   };
 
+  const mainProps = {
+    onOpenAi: openAi,
+    onOpenSettings: () => setSettingsOpen(true),
+    hubState,
+    setHubState,
+    onLoggedIn: handleAppLogin,
+    onRequestLogin: () => setAppLoginOpen(true),
+  };
+
+  const showHubDemoBar = demoView === 'main' || demoView === 'both';
+
   return (
     <div className="max-w-[1320px] mx-auto px-5 py-6 pb-16">
       <h1 className="text-[22px] font-semibold mb-1 tracking-tight">方案 5 · 上下文绑定的右栏</h1>
@@ -1786,7 +2770,7 @@ function App() {
       </div>
 
       {/* 演示切换 */}
-      <div className="mb-4 flex items-center gap-2 text-[12px] flex-wrap">
+      <div className="mb-2 flex items-center gap-2 text-[12px] flex-wrap">
         <span className="text-text-3">演示视图:</span>
         <div className="flex bg-[#fff8d6] border border-[#e8c46a] rounded-lg p-0.5">
           <button onClick={() => setDemoView('main')} className={`px-3 py-1 rounded-md text-[12px] font-medium ${demoView==='main' ? 'bg-white text-text shadow-soft' : 'text-[#8a6a1c] hover:bg-white/60'}`}>主窗口</button>
@@ -1797,13 +2781,28 @@ function App() {
         <span className="ml-auto text-text-3">提示:可去超级小爱的「灵感广场」试三种动作词</span>
       </div>
 
-      {demoView === 'main' && <MainWindow onOpenAi={openAi} onOpenSettings={() => setSettingsOpen(true)} />}
+      {/* 设备互联演示态(仅在能看到主窗口时显示) */}
+      {showHubDemoBar && (
+        <div className="mb-4 flex items-center gap-2 text-[12px] flex-wrap">
+          <span className="text-text-3">设备互联演示态:</span>
+          <div className="flex bg-[#fff8d6] border border-[#e8c46a] rounded-lg p-0.5">
+            <button onClick={() => setHubDemo('no-privacy')} className="px-2.5 py-1 rounded-md text-[12px] font-medium text-[#8a6a1c] hover:bg-white">未同意隐私</button>
+            <button onClick={() => setHubDemo('logged-out')} className="px-2.5 py-1 rounded-md text-[12px] font-medium text-[#8a6a1c] hover:bg-white">未登录</button>
+            <button onClick={() => setHubDemo('empty')} className="px-2.5 py-1 rounded-md text-[12px] font-medium text-[#8a6a1c] hover:bg-white">已登录无设备</button>
+            <button onClick={() => setHubDemo('offline')} className="px-2.5 py-1 rounded-md text-[12px] font-medium text-[#8a6a1c] hover:bg-white">有设备未连接</button>
+            <button onClick={() => setHubDemo('connected')} className="px-2.5 py-1 rounded-md text-[12px] font-medium text-[#8a6a1c] hover:bg-white">已连接</button>
+            <button onClick={() => setHubDemo('intl')} className="px-2.5 py-1 rounded-md text-[12px] font-medium text-[#8a6a1c] hover:bg-white">国际账号</button>
+          </div>
+        </div>
+      )}
+
+      {demoView === 'main' && <MainWindow {...mainProps} />}
       {demoView === 'ai'   && <SuperAiWindow {...aiProps} />}
       {demoView === 'both' && (
         <div className="flex flex-col gap-5">
           <div>
             <div className="text-[11.5px] text-text-3 mb-1.5 px-1 font-semibold tracking-wide">主窗口 · 小米互联服务</div>
-            <MainWindow onOpenAi={openAi} onOpenSettings={() => setSettingsOpen(true)} />
+            <MainWindow {...mainProps} />
           </div>
           <div ref={aiWindowRef}>
             <div className="text-[11.5px] text-text-3 mb-1.5 px-1 font-semibold tracking-wide">第二窗口 · 超级小爱</div>
@@ -1815,6 +2814,18 @@ function App() {
       <SettingsWindow open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <Toast toast={toast} onClose={() => setToast(null)} />
       <DemoModal item={demoItem} onClose={() => setDemoItem(null)} />
+
+      {/* 设备互联相关弹窗 */}
+      <PrivacyConsentDialog
+        open={!hubState.privacyAgreed}
+        onAgree={({ aiAgreed: ai }) => { setHubState(s => ({ ...s, privacyAgreed: true })); if (ai) setAiAgreed(true); }} />
+      <LoginDialog open={appLoginOpen}
+                   onClose={() => setAppLoginOpen(false)}
+                   onLoggedIn={(payload) => { setAppLoginOpen(false); handleAppLogin(payload); }}
+                   presetAgreed={!!hubState.privacyAgreed} />
+      <AiAgreementDialog open={aiAgreementOpen}
+                         onCancel={() => setAiAgreementOpen(false)}
+                         onConfirm={onAiAgreementConfirm} />
 
       <div className="mt-5 p-4 px-5 bg-surface border border-border rounded-xl text-[13px] text-text-2 leading-[1.8]">
         <b className="text-text">设计要点</b>:
