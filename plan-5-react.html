@@ -921,140 +921,572 @@ function AiWelcome({ onOpenDiscover }) {
 
 /* ===========================  Settings (只在主窗口里)  =========================== */
 
+function McpSettings() {
+  const [mcpTab, setMcpTab] = useState('builtin');
+  const [showCustomForm, setShowCustomForm] = useState(false);
+  const builtinServices = [
+    { name:'高德地图', desc:'高德地图：POI 搜索、地理编码、路线规划、天气查...', tag:'出行旅行', tools:15 },
+    { name:'快递100', desc:'快递100：快递查询、时效预估、运费估算', tag:'生活服务', tools:5 },
+    { name:'百度地图', desc:'百度地图：地理编码、地点检索、路线规划、天气、...', tag:'出行旅行', tools:13 },
+    { name:'哈啰出行', desc:'哈啰出行：POI 搜索、打车估价、生成 App 跳转链接', tag:'出行旅行', tools:3 },
+    { name:'小米内容搜索', desc:'小米内容搜索：影视综搜索、短视频搜索、小说搜索', tag:'生活服务', tools:3 },
+    { name:'同程搜索', desc:'同程旅行：机票、火车票、酒店、景区、综合旅行搜索', tag:'出行旅行', tools:7 },
+    { name:'航班管家', desc:'航班管家：航铁票务实时查询、航铁动态追踪、航铁...', tag:'出行旅行', tools:1 },
+    { name:'携程旅行-机票', desc:'携程机票查询：航班号、航司、价格、余票、经停信息', tag:'出行旅行', tools:1 },
+    { name:'携程旅行-酒店', desc:'携程酒店查询：酒店名称、评分、房价、地址、经纬度', tag:'出行旅行', tools:1 },
+    { name:'携程旅行-火车票', desc:'携程火车票查询：车次、票价、余票、座位类型', tag:'出行旅行', tools:1 },
+    { name:'酷狗音乐', desc:'酷狗音乐：搜索音乐/歌曲/专辑，打开搜索页和播放页', tag:'生活服务', tools:3 },
+    { name:'同花顺', desc:'同花顺：股票行情、个股分析、财经资讯、研报数据查询', tag:'金融', tools:6 },
+    { name:'京东', desc:'京东：商品搜索、价格查询、优惠推荐', tag:'购物', tools:3 },
+    { name:'闲鱼', desc:'闲鱼：二手商品搜索', tag:'购物', tools:1 },
+    { name:'飞常准', desc:'飞常准：实时航班动态追踪、机场到发大屏查询、航班票价查询', tag:'出行旅行', tools:4 },
+    { name:'京东金融MCP基础服务', desc:'京东金融MCP基础服务', tag:'', tools:3 },
+    { name:'东方财富妙想MCP', desc:'东方财富妙想MCP', tag:'', tools:1 },
+    { name:'小米商城', desc:'小米商城', tag:'', tools:1 },
+    { name:'Wind 万得', desc:'万得金融数据：股票、债券、宏观经济、基金、外汇数据查询，研报检索', tag:'金融', tools:4 },
+    { name:'T3出行', desc:'T3出行', tag:'', tools:1 },
+  ];
+  return (
+    <>
+      <div className="text-[12px] text-text-3 mb-4">配置和管理 MCP（Model Context Protocol）服务器，为您的智能体扩展工具能力</div>
+      <div className="flex items-center gap-4 mb-4 border-b border-border pb-2">
+        <span onClick={() => setMcpTab('builtin')} className={`text-[13px] pb-1 cursor-pointer ${mcpTab==='builtin' ? 'font-semibold text-text border-b-2 border-accent' : 'text-text-3 hover:text-text-2'}`}>内置服务 <span className="text-text-3 font-normal">20</span></span>
+        <span onClick={() => setMcpTab('custom')} className={`text-[13px] pb-1 cursor-pointer ${mcpTab==='custom' ? 'font-semibold text-text border-b-2 border-accent' : 'text-text-3 hover:text-text-2'}`}>自定义服务</span>
+      </div>
+
+      {mcpTab === 'builtin' && (<>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[13px] font-semibold">内置服务</span>
+          <span className="text-[12px] text-text-3 cursor-pointer hover:text-text-2">↻ 刷新</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {builtinServices.map(s => (
+            <div key={s.name} className="bg-white rounded-xl p-3 border border-border">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[12px] text-text-3">⊘</span>
+                  <span className="text-[12px] font-semibold truncate max-w-[120px]">{s.name}</span>
+                </div>
+                <span className="w-7 h-3.5 rounded-full bg-accent relative shrink-0"><span className="absolute right-0.5 top-0.5 w-2.5 h-2.5 rounded-full bg-white" /></span>
+              </div>
+              <div className="text-[10px] text-text-3 leading-relaxed mb-1.5 line-clamp-2">{s.desc}</div>
+              <div className="flex items-center gap-1.5">
+                {s.tag && <span className="text-[10px] text-[#34c759] font-medium">{s.tag}</span>}
+                <span className="text-[10px] text-text-3">● {s.tools} tools</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>)}
+
+      {mcpTab === 'custom' && (<>
+        <div className="w-[200px] h-[140px] border-2 border-dashed border-border-strong rounded-xl flex items-center justify-center cursor-pointer hover:border-accent hover:bg-accent-bg/30 transition-colors"
+             onClick={() => setShowCustomForm(true)}>
+          <span className="text-[14px] text-text-3">+ 自定义</span>
+        </div>
+      </>)}
+
+      {showCustomForm && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center animate-fadeIn">
+          <div className="absolute inset-0 bg-black/[.3]" onClick={() => setShowCustomForm(false)} />
+          <div className="relative w-[420px] max-h-[80vh] bg-white rounded-xl shadow-modal p-6 overflow-y-auto animate-popIn">
+            <div className="text-[18px] font-bold mb-5">自定义</div>
+
+            <div className="mb-4">
+              <div className="text-[12px] text-text-2 mb-1.5">服务名称</div>
+              <input className="w-full px-3 py-2.5 rounded-lg border border-accent bg-accent-bg/20 text-[13px] outline-none focus:border-accent" placeholder="输入服务名称" />
+            </div>
+
+            <div className="mb-4">
+              <div className="text-[12px] text-text-2 mb-1.5">描述</div>
+              <input className="w-full px-3 py-2.5 rounded-lg border border-border text-[13px] outline-none focus:border-accent" placeholder="描述此 MCP 服务的用途" />
+            </div>
+
+            <div className="mb-4">
+              <div className="text-[12px] text-text-2 mb-1.5">传输类型</div>
+              <div className="w-full px-3 py-2.5 rounded-lg border border-border text-[13px] text-text-2 bg-surface-2">标准输入输出 (stdio)</div>
+            </div>
+
+            <div className="mb-4">
+              <div className="text-[12px] text-text-2 mb-1.5">命令</div>
+              <input className="w-full px-3 py-2.5 rounded-lg border border-border text-[13px] outline-none focus:border-accent" placeholder="例如: node, npx, uvx, python" />
+            </div>
+
+            <div className="mb-4">
+              <div className="text-[12px] text-text-2 mb-1.5">参数</div>
+              <textarea className="w-full px-3 py-2.5 rounded-lg border border-border text-[13px] outline-none focus:border-accent resize-none h-[70px]" placeholder="每行一个参数" />
+            </div>
+
+            <div className="flex items-center justify-between mb-5">
+              <span className="text-[12px] text-text-2">环境变量</span>
+              <span className="text-[12px] text-accent cursor-pointer">+ 添加</span>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowCustomForm(false)} className="px-4 py-2 rounded-lg border border-border text-[13px] hover:bg-surface-2">取消</button>
+              <button className="px-4 py-2 rounded-lg bg-accent text-white text-[13px] font-medium hover:bg-accent/90">保存</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function AiSettings() {
+  const [aiTab, setAiTab] = useState('skill');
+  const tabs = [
+    { id:'skill', label:'技能' },
+    { id:'mcp', label:'MCP' },
+    { id:'auth', label:'应用授权' },
+    { id:'mihome', label:'米家' },
+  ];
+  return (
+    <>
+      <div className="flex gap-4 mb-5 border-b border-border pb-2">
+        {tabs.map(t => (
+          <span key={t.id} onClick={() => setAiTab(t.id)}
+            className={`text-[13px] pb-1 cursor-pointer ${aiTab === t.id ? 'font-semibold text-text border-b-2 border-text' : 'text-text-3 hover:text-text-2'}`}>{t.label}</span>
+        ))}
+      </div>
+
+      {aiTab === 'skill' && (
+        <>
+          <div className="text-[12px] text-text-3 mb-3">为您的智能体提供预封装且可重复的最佳实践与工具</div>
+          <div className="flex items-center gap-2 mb-4 relative">
+            <div className="flex-1 bg-white rounded-lg border border-border px-3 py-2 flex items-center gap-2">
+              <span className="text-text-3 text-[13px]">🔍</span>
+              <span className="text-[12px] text-text-3">搜索技能</span>
+            </div>
+            <div className="relative">
+              <button onClick={() => { const el = document.getElementById('skill-add-menu'); el.style.display = el.style.display === 'block' ? 'none' : 'block'; }}
+                className="flex items-center gap-1 px-3 py-2 rounded-lg border border-border bg-white text-[12px] font-medium hover:bg-surface-2">⊕ 添加</button>
+              <div id="skill-add-menu" style={{display:'none'}} className="absolute right-0 top-full mt-1 w-[180px] bg-white rounded-xl shadow-overlay border border-border py-1 z-50">
+                <div className="px-4 py-2.5 text-[13px] text-text hover:bg-surface-2 cursor-pointer flex items-center gap-2.5">⬆ 上传 .zip</div>
+                <div className="px-4 py-2.5 text-[13px] text-text hover:bg-surface-2 cursor-pointer flex items-center gap-2.5">📁 上传文件夹</div>
+                <div className="px-4 py-2.5 text-[13px] text-text hover:bg-surface-2 cursor-pointer flex items-center gap-2.5">🔗 从 GitHub 导入</div>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { name:'本地工具', desc:'访问本地系统资源，包括 macOS 和 Windows 上...', date:'3月27日' },
+              { name:'编程规划', desc:'创建一个简洁的计划。当用户明确要求与编码任务相...', date:'3月27日' },
+              { name:'电影搜索', desc:'搜索云盘中的可下载影视资源（电影、电视剧、动...', date:'3月27日' },
+              { name:'定时任务', desc:'创建和管理定时任务，支持查看、修改、启用/禁用、...', date:'4月20日', highlight:true },
+              { name:'画布设计', desc:'使用设计理念创作精美的视觉艺术作品，输出为 .png...', date:'3月27日' },
+              { name:'技能助理', desc:'创建新 skill、修改和改进现有 skill，以及衡量 skill ...', date:'3月27日' },
+              { name:'前端设计', desc:'创建具有高品质设计的独特、生产级前端界面。当...', date:'3月27日' },
+              { name:'天气查询', desc:'获取当前天气和预报（无需 API密钥）。', date:'3月27日' },
+              { name:'网页游戏', desc:'当 Codex 构建或迭代 Web 游戏（HTML/JS）并需要...', date:'3月27日' },
+              { name:'文件格式转换', desc:'统一文件格式转换(convert/转换/格式转换/pdf生...', date:'3月27日' },
+              { name:'压缩包处理', desc:'读取和解压压缩包内容（.zip、.tar、.tar.gz、.t...', date:'5月27日' },
+              { name:'音乐搜索', desc:'搜索网盘中的可下载音乐资源（歌曲、专辑、无损音...', date:'3月27日' },
+              { name:'Excel表格', desc:'全面的电子表格创建、编辑和分析，支持公式、格式...', date:'5月27日' },
+              { name:'PDF处理', desc:'PDF 读取、文本/表格提取、合并/拆分/加密、填...', date:'5月27日' },
+              { name:'PPT演示', desc:'演示文稿创建、编辑和分析。当 Claw 需要处理演...', date:'5月27日' },
+              { name:'Remotion', desc:'Remotion 最佳实践 - 使用 React 创建视频', date:'3月27日' },
+              { name:'Seedance', desc:'使用火山引擎 Seedance 模型生成 AI 视频。支持文...', date:'3月27日' },
+              { name:'Seedream', desc:'使用火山引擎 Seedream 模型生成 AI 图片。支持...', date:'3月27日' },
+              { name:'Word文档', desc:'仅在用户明确要求生成 / 编辑 / 读取 .docx 文件时使...', date:'5月27日' },
+            ].map(s => (
+              <div key={s.name} className={`rounded-xl p-3 border ${s.highlight ? 'bg-accent-bg border-accent/20' : 'bg-white border-border'}`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[13px] text-text-3">☆</span>
+                    <span className="text-[12px] font-semibold">{s.name}</span>
+                  </div>
+                  <span className="w-7 h-3.5 rounded-full bg-accent relative"><span className="absolute right-0.5 top-0.5 w-2.5 h-2.5 rounded-full bg-white" /></span>
+                </div>
+                <div className="text-[10px] text-text-3 leading-relaxed mb-1.5 line-clamp-2">{s.desc}</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-accent font-medium px-1 py-0.5 bg-accent/10 rounded">内置</span>
+                  <span className="text-[10px] text-text-3">· {s.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {aiTab === 'mcp' && <McpSettings />}
+
+      {aiTab === 'auth' && (
+        <SettingsSection title="应用授权">
+          <div className="px-4 py-2 text-[12px] text-text-3">管理第三方应用授权，授权后可使用对应平台的工具能力</div>
+          <div className="px-4 pb-3">
+            <div className="bg-surface-2 rounded-lg p-2.5 flex items-center justify-between">
+              <div>
+                <div className="text-[12px] font-medium">吾律 <span className="text-[10px] text-text-3 ml-1 px-1.5 py-0.5 bg-surface-3 rounded">未授权</span></div>
+                <div className="text-[10px] text-text-3 mt-0.5">法律咨询问答</div>
+              </div>
+              <button className="px-2 py-0.5 text-[11px] text-accent border border-accent rounded hover:bg-accent-bg">授权</button>
+            </div>
+          </div>
+        </SettingsSection>
+      )}
+
+      {aiTab === 'mihome' && (
+        <div>
+          <div className="text-[14px] font-semibold text-text mb-1.5">米家</div>
+          <div className="text-[12px] text-text-3 mb-5 leading-relaxed">选择允许 AI 助手访问的米家家庭。取消勾选的家庭将不会在对话中被使用。</div>
+          <div className="text-[13px] font-semibold text-text mb-2">家庭列表(已选 1/1)</div>
+          <div className="bg-white border-2 border-accent/40 rounded-xl p-3 flex items-center gap-3 mb-4">
+            <div className="w-5 h-5 rounded bg-accent/20 flex items-center justify-center shrink-0">
+              <span className="text-accent text-[12px] leading-none">✓</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-semibold text-text">2389984542</div>
+              <div className="text-[11px] text-text-3 mt-0.5">1 个房间 · ID: 765001311057</div>
+            </div>
+          </div>
+          <div className="text-[11px] text-text-3 flex items-start gap-1.5">
+            <span>💡</span>
+            <span>至少需要选择一个家庭。更改会立即生效,在下次对话中使用新的家庭配置。</span>
+          </div>
+        </div>
+      )}
+
+    </>
+  );
+}
+
 function SettingsWindow({ open, onClose }) {
-  const [tab, setTab] = useState('account');
+  const [autoHide, setAutoHide] = useState(true);
+  const [page, setPage] = useState('general');
+  const [feedbackModule, setFeedbackModule] = useState('');
+  const [notifOn, setNotifOn] = useState(true);
+  const [notifSound, setNotifSound] = useState(true);
+  useEffect(() => { if (open) setPage('general'); }, [open]);
   useEffect(() => {
-    if (!open) return;
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [onClose]);
   if (!open) return null;
-  const tabs = [
-    { id:'account', label:'账号',     icon:'👤' },
-    { id:'connect', label:'互联',     icon:'🔗' },
-    { id:'cloud',   label:'云服务',   icon:'☁️' },
-    { id:'ai',      label:'超级小爱', icon:'✦'  },
+
+  const navItems = [
+    { id:'account', label:'账号' },
+    { id:'general', label:'通用' },
+    { id:'connect', label:'设备互联' },
+    { id:'cloud', label:'云服务' },
+    { id:'ai', label:'超级小爱' },
+    { id:'help', label:'使用帮助' },
+    { id:'feedback', label:'问题反馈' },
   ];
+
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center animate-fadeIn">
       <div className="absolute inset-0 bg-black/[.22] backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-[680px] max-w-[92vw] h-[480px] max-h-[88vh] rounded-[14px] overflow-hidden animate-popIn shadow-modal flex bg-[#f5f5f5]">
-        <div className="w-[160px] shrink-0 flex flex-col pt-5 pb-4 px-3 bg-[#f5f5f5]">
-          <div className="text-[18px] font-bold text-text mb-1 px-2">设置</div>
-          <div className="text-[11px] text-text-3 mb-4 px-2">小米互联服务</div>
+      <div className="relative w-[680px] max-w-[92vw] h-[520px] max-h-[88vh] rounded-[14px] overflow-hidden animate-popIn shadow-modal flex" style={{ background:'#f5f5f5' }}>
+        {/* 左侧导航 */}
+        <div className="w-[160px] shrink-0 flex flex-col pt-5 pb-4 px-3" style={{ background:'#f5f5f5' }}>
+          <div className="text-[18px] font-bold text-text mb-4 px-2">设置</div>
           <div className="flex flex-col gap-0.5">
-            {tabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                      className={`text-left px-3 py-2 rounded-lg text-[13px] flex items-center gap-2 transition-colors
-                                 ${tab === t.id ? 'bg-white text-accent font-semibold shadow-soft' : 'text-text-2 hover:bg-white/60'}`}>
-                <span className="w-[18px] text-center">{t.icon}</span>
-                <span>{t.label}</span>
+            {navItems.map(item => (
+              <button key={item.id} onClick={() => setPage(item.id)}
+                className={`text-left px-3 py-2 rounded-lg text-[13px] transition-colors ${(page === item.id || ((page === 'feedback-form' || page === 'suggestion-form') && item.id === 'feedback') || ((page === 'privacy' || page === 'privacy-detail' || page === 'permissions') && item.id === 'general')) ? 'bg-white text-accent font-semibold shadow-soft' : 'text-text-2 hover:bg-white/60'}`}>
+                {item.label}
               </button>
             ))}
           </div>
         </div>
+
+        {/* 右侧内容 */}
         <div className="flex-1 bg-white/80 rounded-l-xl overflow-y-auto px-6 py-5 relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-[20px] text-text-3 hover:text-text">✕</button>
+          <button onClick={onClose} className="absolute top-4 right-4 text-[20px] text-text-3 hover:text-text cursor-pointer">✕</button>
 
-          {tab === 'account' && (
-            <>
-              <div className="flex flex-col items-center justify-center gap-1 pt-10 pb-6">
-                <div className="w-[80px] h-[80px] rounded-full bg-gradient-to-br from-sky-200 via-sky-400 to-blue-700 mb-3 flex items-end justify-center text-[36px] leading-none pb-1 overflow-hidden">🧑</div>
-                <div className="text-[18px] font-bold">倪妮</div>
-                <div className="text-[12.5px] text-text-3">小米 ID:000001</div>
+          {page === 'account' && (<>
+            <div className="flex flex-col items-center justify-center gap-1 pt-12 pb-8">
+              <div className="w-[80px] h-[80px] rounded-full bg-gradient-to-br from-sky-200 via-sky-400 to-blue-700 mb-3 flex items-end justify-center text-[36px] leading-none pb-1 overflow-hidden">🧑</div>
+              <div className="text-[18px] font-bold">小米人</div>
+              <div className="text-[13px] text-text-3">小米 ID:000001</div>
+            </div>
+            <div className="flex justify-center">
+              <button className="px-6 py-2 text-[14px] text-[#e74c3c] font-medium border border-[#e74c3c]/30 rounded-lg hover:bg-[#e74c3c]/5 transition-colors">退出登录</button>
+            </div>
+          </>)}
+
+          {page === 'general' && (<>
+            <SettingsSection title="通用设置">
+              <SettingsRow label="启用系统通知" control={<Toggle value={notifOn} onChange={setNotifOn} />} />
+              <SettingsRow label="通知提示音" control={<Toggle value={notifSound} onChange={setNotifSound} />} />
+              <SettingsRow label="清除缓存" arrow />
+              <SettingsRow label="系统权限管理" arrow onClick={() => setPage('permissions')} />
+              <SettingsRow label="隐私与安全" arrow onClick={() => setPage('privacy')} />
+            </SettingsSection>
+            <SettingsSection title="版本信息">
+              <SettingsRow label="客户端版本" sub="V2.5.1"
+                           control={<button className="px-3 py-1 rounded-md bg-white border border-border-strong text-[12px] hover:bg-surface-2 transition-colors">检查更新</button>} />
+            </SettingsSection>
+          </>)}
+
+          {page === 'connect' && (<>
+            <SettingsSection title="内容同步">
+              <SettingsRow label="跨设备剪贴板" sub="复制的文字、图片或文件，粘贴到已连接的小米手机、平板"
+                           control={<Toggle value={autoHide} onChange={setAutoHide} />} />
+            </SettingsSection>
+
+            <SettingsSection title="小米互传">
+              <SettingsRow label="接收文件保存目录" sub="/Users/mi/Downloads"
+                           control={<button className="px-3 py-1 rounded-md bg-white border border-border-strong text-[12px] hover:bg-surface-2 transition-colors">更改</button>} />
+            </SettingsSection>
+
+            <SettingsSection title="妙享桌面">
+              <SettingsRow label="自动隐藏标题栏和虚拟导航键"
+                           control={<Toggle value={autoHide} onChange={setAutoHide} />} />
+              <SettingsRow label="最近任务" value="command+3" />
+              <SettingsRow label="回到桌面" value="command+2" />
+              <SettingsRow label="返回上一级" value="command+1" />
+            </SettingsSection>
+
+            <SettingsSection title="屏幕扩展">
+              <SettingsRow label="排列显示器" arrow />
+              <SettingsRow label="显示边栏" value="不显示边栏"
+                           control={<span className="text-text-3 text-[12px] ml-1.5">⇅</span>} />
+            </SettingsSection>
+          </>)}
+
+          {page === 'cloud' && (<>
+            <SettingsSection title="云服务">
+              <SettingsRow label="云相册下载目录" sub="/Users/mi/Downloads"
+                           control={<button className="px-3 py-1 rounded-md bg-white border border-border-strong text-[12px] hover:bg-surface-2 transition-colors">更改</button>} />
+              <SettingsRow label="云服务个人中心" arrow />
+            </SettingsSection>
+          </>)}
+
+          {page === 'ai' && <AiSettings />}
+
+          {page === 'help' && <HelpSettings />}
+
+          {page === 'feedback' && (
+            <FeedbackSettings
+              setFeedbackModule={setFeedbackModule}
+              setPage={setPage}
+            />
+          )}
+
+          {page === 'feedback-form' && (<>
+            <div className="mb-4">
+              <button onClick={() => setPage('feedback')} className="text-[13px] text-text-3 hover:text-text flex items-center gap-1">‹ 返回</button>
+            </div>
+            <div className="text-[15px] font-semibold mb-5">{feedbackModule}</div>
+
+            {feedbackModule !== '超级小爱' && (
+              <div className="bg-white rounded-xl border border-border p-4 mb-4 flex items-center justify-between">
+                <span className="text-[13px]">请选择问题类型（必填）<span className="text-[#e74c3c]">*</span></span>
+                <span className="text-[12px] text-text-3 bg-surface-2 px-3 py-1 rounded-md">问题类型 ▾</span>
               </div>
-              <div className="bg-accent-bg border border-accent-light rounded-xl p-3 text-[12px] text-text-2 leading-relaxed mb-4">
-                💡 退出登录会同时清空主窗口和超级小爱的数据 · 只有一个账号
+            )}
+
+            <div className="mb-1">
+              <span className="text-[12px] text-[#e74c3c]">问题描述*</span>
+            </div>
+            <div className="bg-white rounded-xl border border-border p-4 mb-4 min-h-[120px]">
+              <div className="text-[13px] text-text-3">请具体描述您遇到的问题，包括详细的操作步骤和实际现象（不少于 10 个字）</div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-border p-4 mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-surface-2 flex items-center justify-center text-[18px] text-text-3">+</div>
+              <div>
+                <div className="text-[13px] font-medium">添加图片或视频</div>
+                <div className="text-[11px] text-text-3">建议视频不超过 1 分钟</div>
               </div>
-              <div className="flex justify-center">
-                <button className="px-6 py-2 text-[13px] text-[#e74c3c] font-medium border border-[#e74c3c]/30 rounded-lg hover:bg-[#e74c3c]/5">退出登录</button>
+            </div>
+
+            <div className="mb-1">
+              <span className="text-[12px] text-text-3">联系方式（手机号或邮箱）</span>
+            </div>
+            <div className="bg-white rounded-xl border border-border p-3 mb-8">
+              <div className="text-[13px] text-text-3">为快速解决问题，请留下您的联系方式</div>
+            </div>
+
+            <div className="flex gap-3 justify-center">
+              <button className="px-6 py-2.5 rounded-full bg-surface-2 text-[13px] text-text-3">提交并上传日志</button>
+              <button className="px-6 py-2.5 rounded-full bg-surface-2 text-[13px] text-text-3">仅提交</button>
+            </div>
+          </>)}
+
+          {page === 'suggestion-form' && (<>
+            <div className="mb-4">
+              <button onClick={() => setPage('feedback')} className="text-[13px] text-text-3 hover:text-text flex items-center gap-1">‹ 返回</button>
+            </div>
+            <div className="text-[15px] font-semibold mb-5">功能建议</div>
+
+            <div className="mb-1">
+              <span className="text-[12px] text-[#e74c3c]">描述*</span>
+            </div>
+            <div className="bg-white rounded-xl border border-border p-4 mb-4 min-h-[140px]">
+              <div className="text-[13px] text-text-3">请填写您的功能建议，感谢您的支持（必填）</div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-border p-4 mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-surface-2 flex items-center justify-center text-[18px] text-text-3">+</div>
+              <div>
+                <div className="text-[13px] font-medium">添加图片或视频</div>
+                <div className="text-[11px] text-text-3">建议视频不超过 1 分钟</div>
               </div>
-            </>
-          )}
+            </div>
 
-          {tab === 'connect' && (
-            <>
-              <SettingsSection title="设备互联">
-                <SettingsRow label="启用妙享桌面" control={<MiniToggle defaultOn />} />
-                <SettingsRow label="自动隐藏标题栏和虚拟导航键" control={<MiniToggle defaultOn />} />
-                <SettingsRow label="跨设备剪贴板" sub="复制的文字、图片或文件,可粘贴到已连接的小米手机或平板" control={<MiniToggle defaultOn />} />
-              </SettingsSection>
-              <SettingsSection title="小米互传">
-                <SettingsRow label="接收文件保存目录" sub="/Users/mi/Downloads" control={<button className="px-3 py-1 rounded-md bg-white border border-border-strong text-[12px] hover:bg-surface-2">更改</button>} />
-                <SettingsRow label="允许陌生人发送" sub="关闭后只有同账号的设备可发送" control={<MiniToggle />} />
-              </SettingsSection>
-            </>
-          )}
+            <div className="mb-1">
+              <span className="text-[12px] text-text-3">联系方式（手机号或邮箱）</span>
+            </div>
+            <div className="bg-white rounded-xl border border-border p-3 mb-8">
+              <div className="text-[13px] text-text-3">为快速解决问题，请留下您的联系方式</div>
+            </div>
 
-          {tab === 'cloud' && (
-            <>
-              <SettingsSection title="云相册">
-                <SettingsRow label="自动同步" control={<MiniToggle defaultOn />} />
-                <SettingsRow label="原图下载目录" sub="/Users/mi/Pictures/iCloud" control={<button className="px-3 py-1 rounded-md bg-white border border-border-strong text-[12px] hover:bg-surface-2">更改</button>} />
-              </SettingsSection>
-              <SettingsSection title="云笔记">
-                <SettingsRow label="实时同步" control={<MiniToggle defaultOn />} />
-                <SettingsRow label="启动时打开上次的笔记" control={<MiniToggle defaultOn />} />
-              </SettingsSection>
-              <SettingsSection title="查找设备">
-                <SettingsRow label="实时位置更新" sub="关闭后只显示设备最后一次的位置" control={<MiniToggle defaultOn />} />
-              </SettingsSection>
-            </>
-          )}
+            <div className="flex justify-center">
+              <button className="px-8 py-2.5 rounded-full bg-surface-2 text-[13px] text-text-3">提交</button>
+            </div>
+          </>)}
 
-          {tab === 'ai' && (
-            <>
-              <SettingsSection title="对话">
-                <SettingsRow label="对话语音播报" control={<MiniToggle />} />
-                <SettingsRow label="保留历史对话" sub="开启后所有对话永久保存,可在「历史对话」中查看" control={<MiniToggle defaultOn />} />
-              </SettingsSection>
-              <SettingsSection title="侧栏对话">
-                <SettingsRow label="云笔记侧栏对话"  control={<MiniToggle defaultOn />} />
-                <SettingsRow label="云相册侧栏对话"  control={<MiniToggle defaultOn />} />
-                <SettingsRow label="查找设备侧栏对话" control={<MiniToggle defaultOn />} />
-              </SettingsSection>
-              <SettingsSection title="跨设备 session">
-                <SettingsRow label="同步手机和平板的小爱对话" sub="关闭后无法在 PC 端查看其他设备上的对话历史" control={<MiniToggle defaultOn />} />
-              </SettingsSection>
-              <SettingsSection title="技能与工具">
-                <SettingsRow label="管理我的工具箱" sub="查看从灵感广场添加的 skill,可以一键卸载" control={<button className="px-3 py-1 rounded-md bg-accent text-white text-[12px] font-medium hover:bg-[#3b5de7]">打开</button>} />
-              </SettingsSection>
-            </>
-          )}
+          {page === 'permissions' && (<>
+            <div className="mb-4">
+              <button onClick={() => setPage('general')} className="text-[13px] text-text-3 hover:text-text flex items-center gap-1">‹ 返回</button>
+            </div>
+            <div className="text-[15px] font-semibold mb-5">系统权限管理</div>
+            <SettingsSection title="小米互联服务">
+              <SettingsRow label="访问位置" sub={'用于获取 Wi-Fi 名称以判断设备是否处于同一局域网,查找设备或后台传输文件时会在"实时活动"中更新进度'} arrow />
+              <SettingsRow label="访问本地网络" sub="用于在相同局域网下连接设备、传输文件、查看媒体数据和控制指令" arrow />
+              <SettingsRow label="访问蓝牙" sub="用于使用蓝牙搜索附近的设备" arrow />
+            </SettingsSection>
+            <SettingsSection title="超级小爱">
+              <SettingsRow label="管理始终允许" sub={'查看并撤销工具的"始终信任"授权'}
+                           control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">管理</button>} />
+            </SettingsSection>
+          </>)}
+
+          {page === 'privacy' && (<>
+            <div className="mb-4">
+              <button onClick={() => setPage('general')} className="text-[13px] text-text-3 hover:text-text flex items-center gap-1">‹ 返回</button>
+            </div>
+            <div className="text-[15px] font-semibold mb-5">隐私与安全</div>
+            <SettingsSection>
+              <SettingsRow label="小米互联服务" arrow onClick={() => setPage('privacy-detail')} />
+              <SettingsRow label="小米云服务" arrow onClick={() => setPage('privacy-detail')} />
+              <SettingsRow label="超级小爱" arrow onClick={() => setPage('privacy-detail')} />
+            </SettingsSection>
+          </>)}
+
+          {page === 'privacy-detail' && (<>
+            <div className="mb-4">
+              <button onClick={() => setPage('privacy')} className="text-[13px] text-text-3 hover:text-text flex items-center gap-1">‹ 返回</button>
+            </div>
+            <div className="text-[15px] font-semibold mb-5">隐私与安全</div>
+            <SettingsSection>
+              <SettingsRow label="隐私政策" arrow />
+              <SettingsRow label="用户协议" arrow />
+            </SettingsSection>
+            <SettingsSection>
+              <SettingsRow label="撤回同意" arrow />
+            </SettingsSection>
+          </>)}
         </div>
       </div>
     </div>
+  );
+}
+
+function FeedbackSettings({ setFeedbackModule, setPage }) {
+  const [tab, setTab] = useState('module');
+  const tabs = [
+    { id:'module',     label:'问题模块' },
+    { id:'suggestion', label:'建议' },
+    { id:'log',        label:'日志' },
+  ];
+  const modules = ['首页连接小米设备','小米互传','妙享桌面','跨设备解锁','查找设备','连接小米手机热点','屏幕扩展','超级小爱'];
+  return (
+    <>
+      <div className="flex gap-4 mb-5 border-b border-border pb-2">
+        {tabs.map(t => (
+          <span key={t.id} onClick={() => setTab(t.id)}
+                className={`text-[13px] pb-1 cursor-pointer ${tab === t.id ? 'font-semibold text-text border-b-2 border-text' : 'text-text-3 hover:text-text-2'}`}>{t.label}</span>
+        ))}
+      </div>
+      {tab === 'module' && (
+        <SettingsSection>
+          {modules.map(m => (
+            <SettingsRow key={m} label={m} arrow
+              onClick={() => { setFeedbackModule(m); setPage('feedback-form'); }} />
+          ))}
+        </SettingsSection>
+      )}
+      {tab === 'suggestion' && (
+        <SettingsSection>
+          <SettingsRow label="功能建议" arrow
+            onClick={() => { setFeedbackModule('功能建议'); setPage('suggestion-form'); }} />
+        </SettingsSection>
+      )}
+      {tab === 'log' && (
+        <SettingsSection>
+          <SettingsRow
+            label="日志收集"
+            sub="导出设备互联与超级小爱相关日志用于诊断和问题排查"
+            control={<button className="px-3 py-1.5 text-[12px] font-medium text-white bg-accent rounded-md hover:opacity-90 shrink-0">导出日志</button>}
+          />
+        </SettingsSection>
+      )}
+    </>
+  );
+}
+
+function HelpSettings() {
+  const [tab, setTab] = useState('transfer');
+  const tabs = [
+    { id:'transfer', label:'小米互传' },
+    { id:'connect',  label:'设备互联' },
+    { id:'find',     label:'查找设备' },
+  ];
+  const items = {
+    transfer: ['如何与小米设备互传文件'],
+    connect:  ['如何连接电脑与小米手机','如何一键连接小米手机热点','如何在电脑上查看和使用小米手机','如何将电脑屏幕扩展到小米平板'],
+    find:     ['如何查找小米设备'],
+  };
+  return (
+    <>
+      <div className="flex gap-4 mb-5 border-b border-border pb-2">
+        {tabs.map(t => (
+          <span key={t.id} onClick={() => setTab(t.id)}
+                className={`text-[13px] pb-1 cursor-pointer ${tab === t.id ? 'font-semibold text-text border-b-2 border-text' : 'text-text-3 hover:text-text-2'}`}>{t.label}</span>
+        ))}
+      </div>
+      <SettingsSection>
+        {items[tab].map(label => <SettingsRow key={label} label={label} arrow />)}
+      </SettingsSection>
+    </>
   );
 }
 
 function SettingsSection({ title, children }) {
   return (
     <div className="mb-5">
-      <div className="text-[11px] text-text-3 mb-1.5 px-3 tracking-wide">{title}</div>
-      <div className="bg-white rounded-xl divide-y divide-black/[.06] overflow-hidden">{children}</div>
+      {title && <div className="text-[11px] text-text-3 mb-1.5 px-3">{title}</div>}
+      <div className="bg-white rounded-xl divide-y divide-black/[.06] overflow-hidden">
+        {children}
+      </div>
     </div>
   );
 }
 
-function SettingsRow({ label, sub, control }) {
+function SettingsRow({ label, value, sub, arrow, control, onClick }) {
   return (
-    <div className="flex items-center px-4 py-3">
+    <div onClick={onClick} className="flex items-center px-4 py-3 cursor-pointer hover:bg-black/[.02]">
       <div className="flex-1 min-w-0">
         <div className="text-[14px] text-text">{label}</div>
         {sub && <div className="text-[12px] text-text-3 mt-0.5">{sub}</div>}
       </div>
+      {value && <div className="text-[13px] text-text-3 mr-2">{value}</div>}
       {control}
+      {arrow && <span className="text-text-3 text-[14px] ml-2 leading-none">›</span>}
     </div>
   );
 }
 
-function MiniToggle({ defaultOn=false }) {
-  const [on, setOn] = useState(defaultOn);
+function Toggle({ value, onChange }) {
   return (
-    <button onClick={() => setOn(o => !o)}
-            className={`relative w-[34px] h-[20px] rounded-full transition-colors shrink-0 ${on ? 'bg-accent' : 'bg-black/[.15]'}`}>
-      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-soft transition-transform ${on ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+    <button onClick={() => onChange(!value)}
+            className={`relative w-[34px] h-[20px] rounded-full transition-colors shrink-0 ${value ? 'bg-accent' : 'bg-black/[.15]'}`}>
+      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-soft transition-transform ${value ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
     </button>
   );
 }
