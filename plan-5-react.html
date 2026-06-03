@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>方案 5 · 上下文绑定的右栏(React + Tailwind)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: '#eef3f2',
+          surface: '#ffffff',
+          'surface-2': '#f4f7f7',
+          'surface-3': '#e7eded',
+          border: '#e7e5e0',
+          'border-strong': '#d4d2cc',
+          text: '#1a1a1a',
+          'text-2': '#5f5e5b',
+          'text-3': '#8a8983',
+          accent: '#4a6cf7',
+          'accent-bg': '#eef2ff',
+          'accent-light': '#dbe4ff',
+          ok: '#3a9a5c',
+          warn: '#c89b2b',
+          off: '#c1c0bc',
+        },
+        boxShadow: {
+          'soft':    '0 1px 2px rgba(0,0,0,.04)',
+          'card':    '0 4px 12px rgba(0,0,0,.06)',
+          'modal':   '0 24px 80px rgba(0,0,0,.22)',
+          'overlay': '0 8px 24px rgba(0,0,0,.10)',
+        },
+        keyframes: {
+          fadeIn: { from: { opacity: 0 }, to: { opacity: 1 } },
+          popIn: { from: { opacity: 0, transform: 'translateY(12px) scale(.98)' }, to: { opacity: 1, transform: 'translateY(0) scale(1)' } },
+        },
+        animation: {
+          fadeIn: 'fadeIn .15s ease',
+          popIn:  'popIn .18s ease',
+        },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { background: #eef3f2; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .app-bg     { background: linear-gradient(120deg, #e6f1ea 0%, #ebeff4 45%, #efe9f1 80%, #f3ebf0 100%); }
+  .ai-aurora  {
+    background:
+      radial-gradient(ellipse 120% 80% at 25% 12%, rgba(190,215,240,.5), transparent 62%),
+      radial-gradient(ellipse 100% 70% at 82% 28%, rgba(220,195,235,.5), transparent 62%),
+      radial-gradient(ellipse 110% 80% at 50% 95%, rgba(245,220,225,.4), transparent 66%),
+      linear-gradient(180deg, #ecedf6 0%, #f5edf3 100%);
+  }
+  .agent-aurora {
+    background:
+      radial-gradient(ellipse 110% 70% at 30% 15%, rgba(200,230,210,.55), transparent 60%),
+      radial-gradient(ellipse 100% 60% at 80% 80%, rgba(220,235,210,.4), transparent 60%),
+      linear-gradient(180deg, #f0f4ec 0%, #f3f6ed 100%);
+  }
+  .ai-avatar     { background: linear-gradient(135deg,#4a6cf7,#7c3aed); }
+  .agent-avatar  { background: linear-gradient(135deg,#5fb37b,#3a9a5c); }
+  .text-grad     { background: linear-gradient(135deg,#4a6cf7,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .text-grad-g   { background: linear-gradient(135deg,#5fb37b,#3a9a5c); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .phone-grad    { background: linear-gradient(140deg, #c8a981 0%, #e0c298 40%, #8b7149 100%); }
+  .pad-grad      { background: linear-gradient(140deg, #b8a4d8 0%, #d4c0e8 40%, #7a5da0 100%); }
+  .wp-blue       { background: linear-gradient(160deg, #cfe2f3 0%, #6f9ec8 50%, #1f3a5a 100%); }
+  .wp-pad        { background: linear-gradient(135deg,#e8d8c0 0%, #b89878 45%, #5a3a28 100%); }
+  .transfer-bg   {
+    background:
+      radial-gradient(ellipse 80% 70% at 50% 60%, rgba(255,255,255,0.55), transparent 72%),
+      linear-gradient(180deg, #f1f5f4 0%, #e8eeed 100%);
+  }
+  .thumb-cam     { background: linear-gradient(135deg,#3a4a5c 0%,#5b7090 50%,#7c95b3 100%); }
+  .thumb-fam     { background: linear-gradient(165deg,#b8c8a4,#e8d5b0 60%,#a8937a); }
+  .thumb-sun     { background: linear-gradient(to bottom,#f27a3e 0%,#e85c2a 45%,#2a2e3a 70%,#1a1d28 100%); }
+  .thumb-doc     { background: linear-gradient(135deg,#ffeb5b 0%,#f5d430 100%); }
+  .thumb-grass   { background: linear-gradient(165deg,#7a9a6a 0%,#5a7a5a 60%,#3a4a3a 100%); }
+  .thumb-vinyl   { background: linear-gradient(135deg,#f0a8b8 0%,#c85a6a 100%); }
+  .thumb-cloud   { background: linear-gradient(to bottom,#a8d8f0 0%,#d8e8f5 60%,#f0f5fa 100%); }
+  .thumb-empty   { background: #f1f1ed; }
+</style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="text-[14px] leading-[1.5] text-text">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect, useMemo } = React;
+
+/* ===========================  Mock data  =========================== */
+
+const NOTES_LIST = [
+  { id:'lijiang',   title:'大理丽江行',  preview:'12.27 晚11点到丽江...', date:'2023年11月23日 20:40' },
+  { id:'shopping',  title:'可买物品',   preview:'裤子 适合冬天穿的裤子',  date:'2023年11月5日 09:00' },
+  { id:'1111',      title:'双十一购物list', preview:'护肤品',             date:'2023年10月11日 15:01' },
+  { id:'travel',    title:'上海特种兵',  preview:'9月15日',                date:'2023年9月17日 20:19' },
+  { id:'pain',      title:'出行痛点',    preview:'掌握公交路线和剩余时间', date:'2023年9月15日 12:32' },
+];
+
+const NOTE_BODIES = {
+  lijiang: [
+    '12.27 晚11点到丽江',
+    '12.28 早八到东巴谷 牦牛坪 蓝月谷 云杉坪 晚上逛丽江古城',
+    '12.29 自然醒 午饭后去高铁站 下午到大理 下午+晚上喜洲古镇',
+    '12.30 早起龙龛码头看水杉+日出 无量樱花谷 2h车程 下午看情况洱海生态廊',
+    '12.31 早8点出发去机场',
+  ],
+  shopping: ['裤子 适合冬天穿的裤子','羊毛衫','保暖内衣'],
+  '1111':   ['护肤品 — 雅诗兰黛、海蓝之谜','吹风机','床品四件套'],
+  travel:   ['9月15日 早8点高铁','迪士尼半日','外滩夜景'],
+  pain:     ['掌握公交路线和剩余时间','打车排队','导航延迟'],
+};
+
+const ALBUMS = [
+  { id:'cam',   name:'相机',     count:10067, thumb:'thumb-cam' },
+  { id:'scr',   name:'截屏',     count:469,   thumb:'thumb-empty' },
+  { id:'fam',   name:'家庭',     count:12,    thumb:'thumb-fam' },
+  { id:'sun',   name:'微信',     count:2747,  thumb:'thumb-sun' },
+  { id:'doc',   name:'百度云',   count:4,     thumb:'thumb-doc' },
+  { id:'grass', name:'我的创作', count:1,     thumb:'thumb-grass' },
+  { id:'vinyl', name:'全民K歌',  count:1,     thumb:'thumb-vinyl' },
+  { id:'cloud', name:'锁屏壁纸', count:2,     thumb:'thumb-cloud' },
+];
+
+// 笔记右栏 chip(按笔记 id 切换提示词)
+const NOTE_PROMPTS = {
+  lijiang:  ['整理成日程表格', '估算大致花费', '提取关键景点', '帮我按时间排序'],
+  shopping: ['按品类排序', '估算总价', '加一个"已购"标记'],
+  '1111':   ['按品类排序', '加一个目录', '挑出最贵的几项'],
+  travel:   ['整理成日程', '提取交通安排', '估算花费'],
+  pain:     ['提取关键问题', '按场景归类'],
+};
+
+const ALBUM_AGENT_PROMPTS = {
+  cam: ['筛选有人脸的照片', '找出最近 1 个月的', '挑 9 张做九宫格'],
+  scr: ['提取所有截图里的文字', '按 App 来源分类'],
+  fam: ['按时间线整理成相册', '挑选适合做相册首图的'],
+  sun: ['筛选大于 5MB 的清理', '找出过期表情包'],
+  doc: ['按文件名整理', '按上传时间分组'],
+  grass: ['整理成作品集'],
+  vinyl: ['按演唱者整理'],
+  cloud: ['推荐适配深色模式的'],
+};
+
+// 跨设备 session(原"跨端执行")
+const CROSS_SESSIONS = [
+  {
+    id:'phone-1', device:'手机 · Xiaomi 17 Pro', time:'今天 14:32', preview:'帮我找一下昨天拍的小猫照片传过来',
+    messages:[
+      { role:'user', text:'帮我找一下昨天拍的小猫照片传过来' },
+      { role:'ai',   text:'好的,在相册里翻一下...找到 3 张,已经发到你电脑上了 ✓' },
+      { role:'user', text:'再帮我看看相册里有没有花的特写' },
+      { role:'ai',   text:'有 12 张花的特写,要我也一起发过去吗?' },
+    ],
+  },
+  {
+    id:'phone-2', device:'手机 · Xiaomi 17 Pro', time:'昨天 22:08', preview:'明早 7 点提醒我吃药',
+    messages:[
+      { role:'user', text:'明早 7 点提醒我吃药' },
+      { role:'ai',   text:'已设置,明早 7:00 在所有设备上提醒你 ✓' },
+    ],
+  },
+  {
+    id:'pad-1', device:'平板 · Xiaomi Pad 7', time:'昨天 19:45', preview:'帮我把这本电子书做个摘要',
+    messages:[
+      { role:'user', text:'帮我把这本《海风中失落的血色馈赠》做个摘要' },
+      { role:'ai',   text:'好,我读完了。这是一本短篇集,7 个故事都围绕着加拿大海岸渔民和矿工的家庭...' },
+    ],
+  },
+];
+
+// 超级小爱独立窗口的历史对话
+const AI_HISTORY = [
+  { id:'weather', title:'明天天气和穿搭建议',          time:'今天 18:02' },
+  { id:'web',     title:'生成一个粉色爱心动画网页',    time:'今天 11:23' },
+  { id:'weekly',  title:'周报数据分析',                time:'昨天' },
+  { id:'hotpot',  title:'推荐成都好吃的火锅店',        time:'昨天' },
+  { id:'leave',   title:'帮我写一份请假条',            time:'5 月 28 日' },
+  { id:'py',      title:'Python 列表去重的写法',       time:'5 月 27 日' },
+];
+
+const AI_CONVS = {
+  weather: { title:'明天天气和穿搭建议', messages:[
+    { role:'user', text:'明天北京天气怎么样,我应该穿什么?' },
+    { role:'ai',   text:'明天北京 12°C ~ 23°C,多云转晴,风力 3 级。\n建议:薄毛衣 + 防风外套,早晚有点凉,白天比较舒服。' },
+  ]},
+  web: { title:'生成一个粉色爱心动画网页', messages:[
+    { role:'user', text:'帮我生成一个粉色爱心动画网页' },
+    { role:'ai',   text:'已生成 heart.html,带呼吸感脉动 + 点击爆心。已保存到「文件」,要我打开预览吗?' },
+  ]},
+  weekly: { title:'周报数据分析', messages:[
+    { role:'user', text:'分析一下这周的销售数据' },
+    { role:'ai',   text:'本周总额 ¥128,450,环比 +12.3%。北京区 +21%,上海区 −5.2%。已生成可视化图表,保存到「文件」。' },
+  ]},
+  hotpot: { title:'推荐成都好吃的火锅店', messages:[
+    { role:'user', text:'推荐几家成都好吃的火锅店' },
+    { role:'ai',   text:'三家:小龙坎(春熙路)4.7、蜀大侠(宽窄巷子)4.6、大龙燚(太古里)4.5。要订位吗?' },
+  ]},
+  leave:  { title:'帮我写一份请假条', messages:[]},
+  py:     { title:'Python 列表去重的写法', messages:[]},
+};
+
+// 灵感广场:三类混排,但每张卡片底部都有清晰的"动作词"
+const DISCOVER_ITEMS = [
+  // action: 'chat' | 'install' | 'demo'
+  { cat:'文档', icon:'📄', name:'生成周报',    desc:'用结构化模板帮你写周报',         action:'chat',    actionLabel:'开始对话' },
+  { cat:'文档', icon:'📊', name:'制作 PPT',    desc:'输入主题生成完整演示',           action:'install', actionLabel:'添加到工具箱' },
+  { cat:'文档', icon:'📈', name:'数据分析',    desc:'表格处理、图表生成',             action:'install', actionLabel:'添加到工具箱' },
+  { cat:'文档', icon:'📑', name:'PDF 转换',    desc:'Word、Markdown 一键转 PDF',      action:'install', actionLabel:'添加到工具箱' },
+  { cat:'创意', icon:'❤️', name:'生成网页',    desc:'描述效果直接生成可运行的网页',   action:'install', actionLabel:'添加到工具箱' },
+  { cat:'创意', icon:'🎨', name:'设计海报',    desc:'输入主题和风格,生成精美设计',     action:'install', actionLabel:'添加到工具箱' },
+  { cat:'创意', icon:'🎮', name:'做个小游戏',  desc:'描述玩法生成网页小游戏',         action:'install', actionLabel:'添加到工具箱' },
+  { cat:'创意', icon:'🖼️', name:'AI 绘图',     desc:'描述画面和风格,AI 生成图片',     action:'install', actionLabel:'添加到工具箱' },
+  { cat:'生活', icon:'🌤️', name:'明天天气穿搭',desc:'查天气并推荐当天穿什么',          action:'chat',    actionLabel:'开始对话' },
+  { cat:'生活', icon:'🍲', name:'推荐附近吃的',desc:'根据位置推荐餐厅',                action:'chat',    actionLabel:'开始对话' },
+  { cat:'生活', icon:'📦', name:'查快递',      desc:'实时查询快递、一键寄件',          action:'chat',    actionLabel:'开始对话' },
+  { cat:'生活', icon:'🧭', name:'路线规划',    desc:'高德地图、实时路况、POI 查询',    action:'chat',    actionLabel:'开始对话' },
+  { cat:'入门', icon:'🎬', name:'看看小爱怎么整理桌面', desc:'30 秒视频演示',          action:'demo',    actionLabel:'看示范' },
+  { cat:'入门', icon:'🎬', name:'用小爱写一份周报',     desc:'1 分钟实操演示',          action:'demo',    actionLabel:'看示范' },
+  { cat:'入门', icon:'🎬', name:'@ 设备让手机找东西',    desc:'跨端协作演示',           action:'demo',    actionLabel:'看示范' },
+  { cat:'入门', icon:'🎬', name:'让小爱帮你写代码',      desc:'编程场景演示',           action:'demo',    actionLabel:'看示范' },
+];
+
+const FILES_LIST = [
+  { name:'heart.html',     size:'2.3 KB',  from:'AI 生成 · 今天 11:23',  icon:'🌐' },
+  { name:'周报_w19.xlsx',  size:'48 KB',   from:'AI 生成 · 昨天',         icon:'📊' },
+  { name:'设计稿.fig',     size:'12.4 MB', from:'Xiaomi 17 Pro · 今天',   icon:'🎨' },
+  { name:'笔记摘要.pdf',   size:'180 KB',  from:'AI 生成 · 5 月 28 日',   icon:'📄' },
+];
+
+const TASKS_LIST = [
+  { name:'每天 7:00 提醒吃药',      time:'每天 07:00',           on:true },
+  { name:'下班 18:30 打车回家',     time:'工作日 18:30',         on:true },
+  { name:'周一 09:30 提交周报',     time:'每周一 09:30',         on:true },
+  { name:'喝水提醒',                time:'每 2 小时一次',         on:false },
+];
+
+/* ===========================  Icons  =========================== */
+
+const Icon = {
+  Compose: (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3.5 3.5h9a1.5 1.5 0 0 1 1.5 1.5v5a1.5 1.5 0 0 1-1.5 1.5H8.5L5.5 13.7a.3.3 0 0 1-.5-.22V11.5h-1.5A1.5 1.5 0 0 1 2 10v-5A1.5 1.5 0 0 1 3.5 3.5z"/><path d="M8 5.7v3.6M6.2 7.5h3.6"/></svg>),
+  Paperclip:(p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M11.5 7L7 11.5a2.5 2.5 0 0 1-3.5-3.5L8 3.5a4 4 0 0 1 5.5 5.5L8.5 14"/></svg>),
+  ArrowUp:  (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5"/></svg>),
+  Close:    (p) => (<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" {...p}><path d="M3 3l8 8M11 3l-8 8"/></svg>),
+  External: (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M6 3H3v10h10v-3"/><path d="M9 3h4v4M13 3l-6 6"/></svg>),
+  Search:   (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" {...p}><circle cx="7.5" cy="7.5" r="4.5"/><path d="M11 11l3 3"/></svg>),
+  Plus:     (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" {...p}><path d="M8 3v10M3 8h10"/></svg>),
+  Image:    (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" {...p}><rect x="2" y="3" width="12" height="10" rx="1"/><circle cx="6" cy="7" r="1.2" fill="currentColor" stroke="none"/><path d="M2 11l3-3 3 3 2-2 4 4" strokeLinejoin="round"/></svg>),
+  Highlight:(p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" {...p}><path d="M9 2l5 5-7 7H3v-4z" strokeLinejoin="round"/></svg>),
+  History:  (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M8 3a5 5 0 1 1-4.5 2.8"/><path d="M3.5 2v3.5H7"/><path d="M8 5v3l2 2"/></svg>),
+  Trash:    (p) => (<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" {...p}><path d="M3 4h10M6 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M4 4v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4"/></svg>),
+};
+
+/* ===========================  Shared components  =========================== */
+
+function TitleBar({ title, rightSlot }) {
+  return (
+    <div className="relative h-[42px] bg-surface-2 border-b border-border flex items-center px-3.5 shrink-0">
+      <div className="flex gap-1.5 z-10">
+        <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+        <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
+        <span className="w-3 h-3 rounded-full bg-[#28c940]" />
+      </div>
+      <div className="absolute inset-x-0 text-center text-[13px] font-medium text-text pointer-events-none">{title}</div>
+      {rightSlot && <div className="ml-auto z-10 flex items-center gap-1">{rightSlot}</div>}
+    </div>
+  );
+}
+
+function NavItem({ icon, label, active, onClick, accent, className='' }) {
+  return (
+    <div onClick={onClick}
+         className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[13px] cursor-pointer mb-px transition-colors
+                    ${active ? 'bg-black/[.06] text-text font-medium' : 'text-text-2 hover:bg-black/[.04] hover:text-text'} ${accent ? 'text-grad font-semibold' : ''} ${className}`}>
+      {icon && <span className="text-[14px] w-[18px] text-center shrink-0">{icon}</span>}
+      <span className="truncate">{label}</span>
+    </div>
+  );
+}
+
+function SectionLabel({ children }) {
+  return <div className="text-[11px] font-semibold text-text-3 px-2.5 pt-3 pb-1 tracking-wide">{children}</div>;
+}
+
+function WsHeader({ children, action }) {
+  return (
+    <div className="h-[54px] px-6 border-b border-border flex items-center gap-3 shrink-0">
+      <h2 className="text-[17px] font-semibold flex-1 truncate">{children}</h2>
+      {action}
+    </div>
+  );
+}
+
+function ChatInputCompact({ placeholder, value, onChange, onSend, disabled }) {
+  const handleSend = () => { if (!disabled && (value || '').trim()) onSend?.(value); };
+  return (
+    <div className="border border-border-strong rounded-2xl p-3 px-3.5 bg-surface flex flex-col gap-2.5 text-[13px]">
+      <textarea
+        className="text-text bg-transparent border-0 focus:outline-none resize-none min-h-[36px] placeholder:text-text-3 w-full block leading-[1.5]"
+        placeholder={placeholder}
+        value={value || ''}
+        onChange={(e) => onChange?.(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+        rows={2}
+        disabled={disabled}
+      />
+      <div className="flex items-center gap-1">
+        <button className="w-7 h-7 inline-flex items-center justify-center text-text-2 hover:text-text rounded-md hover:bg-black/[.04]" title="附件">
+          <Icon.Paperclip width="16" height="16" />
+        </button>
+        <span className="flex-1" />
+        <button onClick={handleSend} className="w-8 h-8 rounded-full bg-text text-white flex items-center justify-center hover:bg-black transition-colors">
+          <Icon.ArrowUp width="13" height="13" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ChatInputFull({ placeholder, value, onChange, onSend }) {
+  const handleSend = () => { if (!(value || '').trim()) return; onSend?.(value); };
+  return (
+    <div className="w-full max-w-[700px] mx-auto border border-border-strong rounded-xl py-3 px-3.5 bg-surface flex flex-col gap-2.5 shadow-soft">
+      <textarea
+        className="text-text bg-transparent border-0 focus:outline-none resize-none min-h-[40px] placeholder:text-text-3 w-full block text-[13.5px] leading-[1.55]"
+        placeholder={placeholder}
+        value={value || ''}
+        onChange={(e) => onChange?.(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+        rows={2}
+      />
+      <div className="flex items-center justify-between">
+        <button className="h-[26px] min-w-[26px] px-1.5 inline-flex items-center justify-center border border-border bg-surface rounded-full text-text-2 hover:bg-surface-2 hover:text-text hover:border-border-strong transition-all" title="上传文件">
+          <Icon.Paperclip width="16" height="16" />
+        </button>
+        <button onClick={handleSend} className="w-7 h-7 rounded-full bg-accent text-white flex items-center justify-center hover:bg-[#3b5de7]"><Icon.ArrowUp width="12" height="12" /></button>
+      </div>
+    </div>
+  );
+}
+
+function MessageList({ messages, compact, avatar='ai-avatar' }) {
+  return (
+    <div className={`flex-1 overflow-y-auto flex flex-col min-h-0 ${compact ? 'p-3.5 px-3 gap-3' : 'py-5 px-1 gap-[18px]'}`}>
+      {messages.map((m, i) => (
+        <div key={i} className={`flex gap-2.5 ${compact ? 'max-w-[90%]' : 'max-w-[80%]'} ${m.role==='user' ? 'self-end' : 'self-start'}`}>
+          {m.role === 'ai' && (
+            <div className={`${compact ? 'w-[22px] h-[22px] text-[11px]' : 'w-7 h-7 text-[13px]'} rounded-full ${avatar} text-white flex items-center justify-center font-semibold shrink-0`}>✦</div>
+          )}
+          <div className={`rounded-xl shadow-soft whitespace-pre-wrap ${compact ? 'px-3 py-2 text-[12.5px] leading-[1.55]' : 'px-3.5 py-2.5 text-[13.5px] leading-[1.65]'}
+                          ${m.role === 'user'
+                            ? 'bg-accent text-white rounded-br'
+                            : 'bg-surface text-text border border-border rounded-bl'}`}>
+            {m.text.split('\n').map((line, j) => <React.Fragment key={j}>{line}{j < m.text.split('\n').length - 1 && <br />}</React.Fragment>)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ===========================  Right rail panels (per-page)  =========================== */
+
+// 1) 互联超级小爱(设备互联/互传页面右栏)
+function HubAiRail({ context }) {
+  // context: { kind: 'hub' | 'transfer', deviceName?: string }
+  const [input, setInput] = useState('');
+  const isHub = context?.kind === 'hub';
+  const dev   = context?.deviceName || 'Xiaomi 17 Pro';
+  const prompts = isHub
+    ? [`让 ${dev} 响铃`, `把昨天的截屏发到 ${dev}`, `查 ${dev} 的位置`, `打开 ${dev} 的相册`]
+    : [`把刚才的设计稿发到 ${dev}`, `把这个文件夹打包发过去`, `从 ${dev} 拉一个文件回来`, `让 ${dev} 加入热点`];
+  return (
+    <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden ai-aurora">
+      <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
+        <div className="w-[24px] h-[24px] rounded-full ai-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
+        <div className="text-[13.5px] font-semibold text-grad">互联助手</div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
+        <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">
+          需要帮你做点什么? <span className="text-text-3">试试</span>
+        </div>
+        <div className="flex flex-col gap-1 items-start">
+          {prompts.map((p, i) => (
+            <button key={i} onClick={() => setInput(p)}
+                    className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-3 shrink-0">
+        <ChatInputCompact placeholder="和小爱对话,或 @ 设备帮你做事" value={input} onChange={setInput} onSend={() => setInput('')} />
+      </div>
+    </aside>
+  );
+}
+
+// 2) 笔记右栏(显示当前笔记的对话)
+function NoteAgentRail({ note }) {
+  const [input, setInput] = useState('');
+  const prompts = NOTE_PROMPTS[note?.id] || ['整理这篇笔记', '提取摘要', '帮我排序'];
+  return (
+    <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden agent-aurora">
+      <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
+        <div className="w-[24px] h-[24px] rounded-full agent-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
+        <div className="text-[13.5px] font-semibold text-grad-g">笔记助手</div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
+        <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">处理这篇笔记。试试</div>
+        <div className="flex flex-col gap-1 items-start">
+          {prompts.map((p, i) => (
+            <button key={i} onClick={() => setInput(p)}
+                    className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="px-3 pb-3 shrink-0">
+        <ChatInputCompact placeholder={`让小爱帮你处理「${note?.title || ''}」`} value={input} onChange={setInput} onSend={() => setInput('')} />
+      </div>
+    </aside>
+  );
+}
+
+// 3) 相册右栏
+function AlbumAgentRail({ album }) {
+  const [input, setInput] = useState('');
+  const prompts = ALBUM_AGENT_PROMPTS[album?.id] || ['筛选这个相册', '挑几张做精选'];
+  return (
+    <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden agent-aurora">
+      <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
+        <div className="w-[24px] h-[24px] rounded-full agent-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
+        <div className="text-[13.5px] font-semibold text-grad-g">相册助手</div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
+        <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">
+          处理这个相册。试试
+        </div>
+        <div className="flex flex-col gap-1 items-start">
+          {prompts.map((p, i) => (
+            <button key={i} onClick={() => setInput(p)}
+                    className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="px-3 pb-3 shrink-0">
+        <ChatInputCompact placeholder={`让小爱筛选「${album?.name || ''}」`} value={input} onChange={setInput} onSend={() => setInput('')} />
+      </div>
+    </aside>
+  );
+}
+
+// 4) 查找右栏
+function FindAgentRail() {
+  const [input, setInput] = useState('');
+  const prompts = ['为什么 Pad 显示离线?', '让 MIX Flip 2 响铃', '查我的电脑最后位置', '导航到 MIX Flip 2'];
+  return (
+    <aside className="w-[300px] border-l border-border flex flex-col shrink-0 overflow-hidden agent-aurora">
+      <div className="h-[48px] px-3.5 flex items-center gap-2 shrink-0">
+        <div className="w-[24px] h-[24px] rounded-full agent-avatar flex items-center justify-center text-white text-[11px] font-semibold">✦</div>
+        <div className="text-[13.5px] font-semibold text-grad-g">查找助手</div>
+      </div>
+      <div className="flex-1 overflow-y-auto flex flex-col justify-end px-3 pb-2 min-h-0">
+        <div className="text-[12.5px] text-text-2 mb-2 px-1 leading-[1.55]">需要帮你做点什么?</div>
+        <div className="flex flex-col gap-1 items-start">
+          {prompts.map((p, i) => (
+            <button key={i} onClick={() => setInput(p)}
+                    className="text-left text-[12.5px] text-text-2 hover:text-text px-2.5 py-1 rounded-lg bg-white/50 hover:bg-white/85 border border-white/60 hover:border-border hover:shadow-soft transition-all cursor-pointer leading-[1.4]">
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="px-3 pb-3 shrink-0">
+        <ChatInputCompact placeholder="问问设备在哪、让设备响铃" value={input} onChange={setInput} onSend={() => setInput('')} />
+      </div>
+    </aside>
+  );
+}
+
+/* ===========================  Main window pages  =========================== */
+
+function DeviceHubPage({ tab, setTab }) {
+  return (
+    <>
+      <WsHeader action={
+        <div className="flex bg-surface-2 border border-border rounded-lg p-0.5">
+          {['phone','pad'].map(k => (
+            <button key={k} onClick={() => setTab(k)}
+                    className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${tab===k ? 'bg-surface shadow-soft text-text' : 'text-text-3 hover:text-text'}`}>
+              {k === 'phone' ? '手机' : '平板'}
+            </button>
+          ))}
+        </div>
+      }>设备互联</WsHeader>
+      <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="max-w-[520px] mx-auto flex flex-col items-center">
+          <div className="self-start mb-1">
+            <div className="text-[22px] font-bold inline-flex items-center gap-1 select-none">
+              {tab==='phone' ? 'Xiaomi 17 Pro' : 'Xiaomi Pad 7'}
+              <span className="text-text-3 text-[14px] font-normal">▾</span>
+            </div>
+            <div className="text-[13px] text-text-3 mt-0.5">局域网连接</div>
+          </div>
+          {tab === 'phone' ? (
+            <div className="w-[140px] h-[200px] rounded-[24px] phone-grad shadow-card flex items-center justify-center my-6">
+              <div className="w-[120px] h-[170px] rounded-[18px] wp-blue" />
+            </div>
+          ) : (
+            <div className="w-[220px] h-[160px] rounded-[16px] pad-grad shadow-card flex items-center justify-center my-6">
+              <div className="w-[190px] h-[130px] rounded-[10px] wp-pad" />
+            </div>
+          )}
+          <div className="flex gap-2.5 mb-6">
+            <span className="border border-border rounded-full px-3 py-1 text-[12px] bg-surface text-text-2">🔗 启用热点</span>
+            <span className="border border-border rounded-full px-3 py-1 text-[12px] bg-surface text-text-2">🔔 响铃查找</span>
+          </div>
+          {tab === 'phone' && (
+            <div className="w-full bg-surface-2 border border-border rounded-xl p-4">
+              <div className="text-[15px] font-semibold mb-1">妙享桌面</div>
+              <div className="text-[12px] text-text-3 mb-3">打开手机屏幕或最近在手机上使用的应用</div>
+              <div className="grid grid-cols-5 gap-2">
+                {[['📱','妙享桌面'],['🖼️','相册'],['📁','文件'],['🌐','浏览器'],['💬','短信']].map(([i,n]) => (
+                  <div key={n} className="flex flex-col items-center gap-1 py-2.5 px-1 border border-border rounded-lg bg-surface cursor-pointer hover:border-accent">
+                    <div className="text-[20px] leading-none">{i}</div>
+                    <div className="text-[11px] text-text-2">{n}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function TransferPage() {
+  return (
+    <>
+      <WsHeader>小米互传</WsHeader>
+      <div className="flex-1 overflow-hidden flex flex-col relative transfer-bg">
+        <div className="px-6 pt-5">
+          <div className="text-[22px] font-bold">倪妮的电脑</div>
+          <div className="text-[13px] text-text-3 mt-1">点击设备球选择或拖拽文件至设备球发送</div>
+        </div>
+        <div className="flex-1 relative flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute rounded-full border border-white/70 bg-white/[0.18]" style={{ width:'620px', height:'620px' }} />
+            <div className="absolute rounded-full border border-white/70 bg-white/[0.30]" style={{ width:'460px', height:'460px' }} />
+            <div className="absolute rounded-full border border-white/80 bg-white/[0.45]" style={{ width:'300px', height:'300px' }} />
+          </div>
+          <div className="relative flex items-center justify-center gap-3 z-[1]">
+            {[
+              { name:'我的 Xiaomi 17',       size:120, wp:'wp-blue' },
+              { name:'我的 Xiaomi 17 Ultra', size:170, wp:'wp-blue' },
+              { name:'Xiaomi Pad 7',         size:120, wp:'wp-pad'  },
+            ].map((d, i) => {
+              const phoneW = d.size === 170 ? 60 : 44;
+              return (
+                <div key={i} className="flex flex-col items-center cursor-pointer group">
+                  <div className="rounded-full bg-white shadow-[0_8px_28px_rgba(120,160,210,0.25)] flex items-center justify-center transition-all group-hover:scale-105"
+                       style={{ width:d.size, height:d.size }}>
+                    <div className="rounded-[14px] overflow-hidden shadow-[0_3px_10px_rgba(60,90,140,0.18)] bg-white"
+                         style={{ width:phoneW, height:phoneW * 1.6 }}>
+                      <div className={`w-full h-full ${d.wp}`} />
+                    </div>
+                  </div>
+                  <div className="text-[12px] text-text-2 mt-2 group-hover:text-text">{d.name}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// 跨设备 session(原"跨端执行") - 已挪到超级小爱窗口里(自身就是 AI)
+function CrossInAi() {
+  const [activeId, setActiveId] = useState(CROSS_SESSIONS[0].id);
+  const active = CROSS_SESSIONS.find(s => s.id === activeId);
+  return (
+    <div className="flex-1 flex min-w-0 overflow-hidden">
+      <aside className="w-[260px] shrink-0 bg-surface-2 border-r border-border flex flex-col overflow-hidden">
+        <div className="px-4 pt-5 pb-3 shrink-0">
+          <div className="text-[16px] font-semibold mb-1">跨设备 session</div>
+          <div className="text-[11.5px] text-text-3 leading-[1.55]">看你在小米手机和平板上的小爱对话,并接着聊</div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-2 pb-2">
+          {CROSS_SESSIONS.map(s => (
+            <div key={s.id} onClick={() => setActiveId(s.id)}
+                 className={`p-3 rounded-lg cursor-pointer mb-1 ${activeId === s.id ? 'bg-accent-bg' : 'hover:bg-surface-3'}`}>
+              <div className="text-[11.5px] text-text-3 mb-1 flex items-center gap-1.5">
+                <span>{s.device.startsWith('手机') ? '📱' : '📲'}</span>
+                <span className="truncate flex-1">{s.device}</span>
+                <span>{s.time}</span>
+              </div>
+              <div className={`text-[13px] truncate ${activeId === s.id ? 'text-accent font-medium' : 'text-text'}`}>{s.preview}</div>
+            </div>
+          ))}
+        </div>
+      </aside>
+      <section className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <div className="h-[54px] px-5 border-b border-border flex items-center gap-2 shrink-0">
+          <div className="w-[28px] h-[28px] rounded-full ai-avatar flex items-center justify-center text-white text-[12px] font-semibold">✦</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px] font-semibold truncate">{active.device}</div>
+            <div className="text-[11px] text-text-3">PC 端镜像 · 接续手机端的小爱对话</div>
+          </div>
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-accent-bg text-accent border border-accent-light">已同步</span>
+        </div>
+        <div className="flex-1 flex flex-col w-full max-w-[760px] mx-auto px-10 overflow-hidden min-h-0">
+          <MessageList messages={active.messages} />
+        </div>
+        <div className="px-6 pb-6 pt-3 shrink-0 flex justify-center border-t border-border">
+          <ChatInputFull placeholder={`接着在 ${active.device.split(' · ')[1]} 的小爱里聊...`} value="" onChange={() => {}} onSend={() => {}} />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function CloudPhotoPage({ activeAlbumId, setActiveAlbumId }) {
+  const album = ALBUMS.find(a => a.id === activeAlbumId);
+  return (
+    <div className="flex-1 flex bg-bg p-3.5 gap-3 overflow-hidden min-h-0">
+      <aside className="w-40 shrink-0 py-1.5 px-0.5 flex flex-col gap-4">
+        <div>
+          <div className="text-[15px] font-semibold px-2.5 pt-1 pb-2">云相册</div>
+          <NavItem icon="🖼" label="照片" />
+          <NavItem active icon="📚" label="相册" />
+          <NavItem icon="🎬" label="视频" />
+          <NavItem icon="🗑" label="最近删除" />
+        </div>
+      </aside>
+      <section className="flex-1 min-w-0 bg-surface border border-border rounded-lg flex flex-col overflow-hidden">
+        <div className="px-5 pt-4 pb-3 flex items-center justify-between shrink-0 border-b border-border">
+          <div className="text-[18px] font-semibold">{album ? album.name : '所有相册'}</div>
+          <div className="text-[12px] text-text-3">{album ? `${album.count} 张` : `${ALBUMS.length} 个相册`}</div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4 grid gap-x-4 gap-y-4 content-start"
+             style={{ gridTemplateColumns:'repeat(auto-fill, minmax(120px, 1fr))' }}>
+          {ALBUMS.map((a) => (
+            <div key={a.id} onClick={() => setActiveAlbumId(a.id)}
+                 className="flex flex-col gap-1.5 cursor-pointer group">
+              <div className={`aspect-square rounded-xl shadow-soft transition-all group-hover:-translate-y-0.5 ${a.thumb} ${a.id === activeAlbumId ? 'ring-2 ring-accent ring-offset-2' : ''}`} />
+              <div className={`text-[13px] font-medium truncate px-0.5 ${a.id === activeAlbumId ? 'text-accent' : ''}`}>{a.name}</div>
+              <div className="text-[12px] text-text-3 px-0.5">{a.count}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function CloudNotePage({ activeNoteId, setActiveNoteId }) {
+  const note = NOTES_LIST.find(n => n.id === activeNoteId) || NOTES_LIST[0];
+  const body = NOTE_BODIES[note.id] || [];
+  return (
+    <div className="flex-1 flex bg-bg p-3.5 gap-3 overflow-hidden min-h-0">
+      <section className="w-[260px] shrink-0 bg-surface border border-border rounded-lg flex flex-col overflow-hidden">
+        <div className="px-4 pt-4 pb-2.5 shrink-0">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[17px] font-semibold inline-flex items-center gap-1.5">
+              全部笔记
+              <span className="text-text-3 text-[11px]">▾</span>
+            </div>
+            <button className="w-7 h-7 rounded-full bg-accent text-white flex items-center justify-center hover:bg-[#3b5de7]" title="新建笔记">
+              <Icon.Plus width="14" height="14" />
+            </button>
+          </div>
+          <div className="bg-surface-3 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-[12.5px] text-text-3">
+            <Icon.Search width="13" height="13" />
+            <span>搜索全部笔记</span>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 pb-3">
+          {NOTES_LIST.map((n, i) => (
+            <div key={n.id} onClick={() => setActiveNoteId(n.id)}
+                 className={`py-3 ${i < NOTES_LIST.length - 1 ? 'border-b border-border' : ''} cursor-pointer`}>
+              <div className={`text-[13px] font-semibold truncate mb-0.5 ${n.id === note.id ? 'text-accent' : 'text-text'}`}>{n.title}</div>
+              <div className="text-[12px] text-text-2 truncate mb-1.5">{n.preview}</div>
+              <div className="text-[11px] text-text-3">{n.date}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="flex-1 min-w-0 bg-surface border border-border rounded-lg flex flex-col overflow-hidden">
+        <div className="flex items-center gap-0.5 px-3.5 py-2.5 border-b border-border shrink-0">
+          <button className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text flex items-center justify-center"><Icon.Image width="15" height="15" /></button>
+          <button className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text flex items-center justify-center"><Icon.Highlight width="15" height="15" /></button>
+          {['1','2','3'].map(n => (
+            <button key={n} className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text font-semibold text-[13px]">H<sub className="text-[9px] align-baseline">{n}</sub></button>
+          ))}
+          <span className="flex-1" />
+          <button className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text flex items-center justify-center"><Icon.History width="15" height="15" /></button>
+          <button className="min-w-[28px] h-7 px-1 rounded-md text-text-2 hover:bg-surface-2 hover:text-text flex items-center justify-center"><Icon.Trash width="15" height="15" /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-7 py-5">
+          <h1 className="text-[20px] font-semibold tracking-tight mb-3.5">{note.title}</h1>
+          {body.map((p, i) => (
+            <p key={i} className="text-[13.5px] leading-[1.85]">{p}</p>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function FindDevicePage() {
+  return (
+    <div className="flex-1 relative overflow-hidden">
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+        <rect width="1600" height="1000" fill="#eef1ea"/>
+        <path d="M0,0 L720,0 L520,260 Q340,220 0,320 Z" fill="#bdd9a8"/>
+        <path d="M380,0 L280,180 L60,300" stroke="#fff" strokeWidth="14" fill="none" opacity=".7"/>
+        <rect x="0" y="420" width="1600" height="54" fill="#f6f6f6"/>
+        <path d="M0,800 Q600,880 1200,800 T1600,780" stroke="#f6f6f6" strokeWidth="46" fill="none"/>
+        <rect x="920" y="0" width="44" height="1000" fill="#f6f6f6"/>
+        <g><rect x="640" y="180" width="250" height="380" fill="#d3d9df"/><rect x="640" y="180" width="250" height="18" fill="#c2cad1"/><text x="765" y="400" fontSize="28" fill="#7a7a7a" textAnchor="middle" fontWeight="500">F 栋</text></g>
+        <g><rect x="1100" y="140" width="320" height="300" fill="#d3d9df"/><rect x="1100" y="140" width="320" height="18" fill="#c2cad1"/><text x="1260" y="305" fontSize="28" fill="#7a7a7a" textAnchor="middle" fontWeight="500">G 栋</text></g>
+      </svg>
+      <div className="absolute top-5 left-5 w-[330px] p-[18px_18px_14px] rounded-lg shadow-overlay bg-white/85 backdrop-blur">
+        <div className="text-[22px] font-bold text-text mb-3.5">设备</div>
+        <div className="flex items-center gap-3 py-2 cursor-pointer">
+          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-soft shrink-0">
+            <div className="w-6 h-9 rounded phone-grad" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px] font-semibold mb-1">Xiaomi MIX Flip 2</div>
+            <div className="text-[12px] text-text-2 leading-[1.5]">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-ok mr-1 align-middle" />
+              小米移动互联网产业园 · 刚刚
+            </div>
+          </div>
+          <div className="text-text-3 text-[18px]">›</div>
+        </div>
+      </div>
+      <div className="absolute" style={{ top:'58%', left:'64%', transform:'translate(-50%,-50%)' }}>
+        <div className="relative w-[54px] h-[54px] rounded-full bg-white p-1 border-[3px] border-white shadow-modal flex items-center justify-center">
+          <div className="w-7 h-11 rounded phone-grad" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===========================  Super XiaoAi (second window)  =========================== */
+
+function DiscoverInAi({ onChat, onInstall, onDemo }) {
+  const cats = ['全部', '文档', '创意', '生活', '入门'];
+  const [active, setActive] = useState('全部');
+  const visible = active === '全部' ? DISCOVER_ITEMS : DISCOVER_ITEMS.filter(i => i.cat === active);
+
+  const handle = (it) => {
+    if (it.action === 'chat')    onChat?.(it);
+    if (it.action === 'install') onInstall?.(it);
+    if (it.action === 'demo')    onDemo?.(it);
+  };
+
+  return (
+    <div className="flex-1 overflow-y-auto px-9 py-7">
+      <h2 className="text-[24px] font-bold tracking-tight mb-1.5">灵感广场</h2>
+      <div className="text-[13px] text-text-2 mb-6">浏览小爱可以做的事 · 每张卡片底部告诉你点击会发生什么</div>
+
+      <div className="flex flex-wrap gap-2 mb-6">
+        {cats.map(c => (
+          <button key={c} onClick={() => setActive(c)}
+                  className={`px-4 py-1.5 rounded-full border text-[13px] transition-colors
+                             ${active===c ? 'bg-accent-bg border-accent-light text-accent font-medium' : 'bg-surface border-border text-text-2 hover:border-border-strong hover:text-text'}`}>
+            {c}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-3" style={{ gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))' }}>
+        {visible.map((it, i) => (
+          <div key={i} onClick={() => handle(it)}
+               className="bg-surface border border-border rounded-xl p-4 cursor-pointer hover:border-border-strong hover:shadow-card transition-all flex flex-col gap-2">
+            <div className="text-[22px]">{it.icon}</div>
+            <div className="text-[14.5px] font-semibold">{it.name}</div>
+            <div className="text-[12px] text-text-3 leading-[1.5] flex-1">{it.desc}</div>
+            <div className={`flex items-center gap-1 mt-2 text-[12px] font-medium ${
+              it.action === 'chat'    ? 'text-accent'   :
+              it.action === 'install' ? 'text-[#3a9a5c]':
+                                        'text-[#c89b2b]'
+            }`}>
+              <span>{
+                it.action === 'chat'    ? '→' :
+                it.action === 'install' ? '+' :
+                                          '▶'
+              }</span>
+              <span>{it.actionLabel}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 p-4 bg-accent-bg border border-accent-light rounded-xl text-[12.5px] text-text-2 leading-[1.7]">
+        <b className="text-accent">说明</b>:点击会发生三种情况之一 ——<br/>
+        <span className="text-accent font-medium">→ 开始对话</span>:跳到对话框,自动填好提示词,你检查后发送;<br/>
+        <span className="text-[#3a9a5c] font-medium">+ 添加到工具箱</span>:静默下载,新建对话时通过加号引用;<br/>
+        <span className="text-[#c89b2b] font-medium">▶ 看示范</span>:播放一段演示视频,看完关掉。
+      </div>
+    </div>
+  );
+}
+
+function FilesInAi() {
+  return (
+    <div className="flex-1 overflow-y-auto px-9 py-7">
+      <h2 className="text-[24px] font-bold tracking-tight mb-1.5">文件</h2>
+      <div className="text-[13px] text-text-2 mb-6">小爱生成的文件、从其他设备接收的文件都在这里</div>
+      <div className="bg-surface border border-border rounded-xl divide-y divide-border overflow-hidden">
+        {FILES_LIST.map((f, i) => (
+          <div key={i} className="flex items-center gap-3 px-4 py-3 hover:bg-surface-2 cursor-pointer">
+            <div className="w-9 h-9 rounded-lg bg-surface-2 flex items-center justify-center text-[18px] shrink-0">{f.icon}</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] font-medium truncate">{f.name}</div>
+              <div className="text-[11.5px] text-text-3 truncate">{f.size} · {f.from}</div>
+            </div>
+            <button className="text-[12px] text-accent hover:underline">打开对话</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TasksInAi() {
+  return (
+    <div className="flex-1 overflow-y-auto px-9 py-7">
+      <h2 className="text-[24px] font-bold tracking-tight mb-1.5">定时任务</h2>
+      <div className="text-[13px] text-text-2 mb-6">小爱按时间帮你做事 · 在对话里说"提醒我"或"每天 X 点 ..."就能创建</div>
+      <div className="bg-surface border border-border rounded-xl divide-y divide-border overflow-hidden">
+        {TASKS_LIST.map((t, i) => (
+          <div key={i} className="flex items-center px-4 py-3.5">
+            <div className="flex-1 min-w-0">
+              <div className={`text-[14px] ${t.on ? 'font-semibold text-text' : 'text-text-3'}`}>{t.name}</div>
+              <div className="text-[11.5px] text-text-3 mt-0.5">{t.time}</div>
+            </div>
+            <span className={`w-9 h-5 rounded-full relative shrink-0 transition-colors ${t.on ? 'bg-accent' : 'bg-off'}`}>
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-soft transition-transform ${t.on ? 'right-0.5' : 'left-0.5'}`} />
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AiConvView({ conv }) {
+  const [input, setInput] = useState('');
+  return (
+    <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex-1 flex flex-col w-full max-w-[760px] mx-auto px-10 pb-1 overflow-hidden min-h-0">
+        <div className="flex items-center gap-2.5 py-3 border-b border-border shrink-0">
+          <div className="text-[15px] font-semibold flex-1 truncate min-w-0">{conv.title}</div>
+          <div className="text-[12px] text-text-3 shrink-0">超级小爱</div>
+        </div>
+        <MessageList messages={conv.messages} />
+      </div>
+      <div className="px-6 pb-6 pt-4 shrink-0 flex justify-center">
+        <ChatInputFull placeholder="发消息或 @ 设备帮你做事" value={input} onChange={setInput} onSend={() => setInput('')} />
+      </div>
+    </div>
+  );
+}
+
+function AiWelcome({ onOpenDiscover }) {
+  const [input, setInput] = useState('');
+  const prompts = [
+    { emoji:'🎨', text:'生成网页' },
+    { emoji:'🧭', text:'出行建议' },
+    { emoji:'🗂️', text:'整理桌面' },
+    { emoji:'🔔', text:'同步手机通知' },
+  ];
+  return (
+    <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex-1 flex flex-col items-center justify-center px-10 gap-1.5 min-h-0 py-5">
+        <div className="text-[46px] mb-3.5 text-grad">✦</div>
+        <div className="text-[24px] font-semibold tracking-tight text-text">Hi, 我是超级小爱</div>
+        <div className="text-[13.5px] text-text-2 text-center mb-6">你的全生态 AI 助手 · 能问、能做、能记住</div>
+        <div className="grid grid-cols-2 gap-2.5 w-full max-w-[480px]">
+          {prompts.map((p, i) => (
+            <div key={i} onClick={() => setInput(p.text)}
+                 className="border border-border rounded-lg px-3.5 py-3 bg-surface text-[13px] text-text flex items-center gap-2 cursor-pointer hover:bg-accent-bg hover:border-accent">
+              <span className="text-[16px]">{p.emoji}</span><span>{p.text}</span>
+            </div>
+          ))}
+        </div>
+        <button onClick={onOpenDiscover}
+                className="mt-5 text-[12.5px] text-text-3 hover:text-accent inline-flex items-center gap-1">
+          💡 浏览灵感广场,看看小爱还能做什么 →
+        </button>
+      </div>
+      <div className="px-6 pb-6 pt-4 shrink-0 flex justify-center">
+        <ChatInputFull placeholder="发消息或 @ 设备帮你做事" value={input} onChange={setInput} onSend={() => setInput('')} />
+      </div>
+    </div>
+  );
+}
+
+/* ===========================  Settings (只在主窗口里)  =========================== */
+
+function SettingsWindow({ open, onClose }) {
+  const [tab, setTab] = useState('account');
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+  if (!open) return null;
+  const tabs = [
+    { id:'account', label:'账号',     icon:'👤' },
+    { id:'connect', label:'互联',     icon:'🔗' },
+    { id:'cloud',   label:'云服务',   icon:'☁️' },
+    { id:'ai',      label:'超级小爱', icon:'✦'  },
+  ];
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.22] backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-[680px] max-w-[92vw] h-[480px] max-h-[88vh] rounded-[14px] overflow-hidden animate-popIn shadow-modal flex bg-[#f5f5f5]">
+        <div className="w-[160px] shrink-0 flex flex-col pt-5 pb-4 px-3 bg-[#f5f5f5]">
+          <div className="text-[18px] font-bold text-text mb-1 px-2">设置</div>
+          <div className="text-[11px] text-text-3 mb-4 px-2">小米互联服务</div>
+          <div className="flex flex-col gap-0.5">
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                      className={`text-left px-3 py-2 rounded-lg text-[13px] flex items-center gap-2 transition-colors
+                                 ${tab === t.id ? 'bg-white text-accent font-semibold shadow-soft' : 'text-text-2 hover:bg-white/60'}`}>
+                <span className="w-[18px] text-center">{t.icon}</span>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex-1 bg-white/80 rounded-l-xl overflow-y-auto px-6 py-5 relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-[20px] text-text-3 hover:text-text">✕</button>
+
+          {tab === 'account' && (
+            <>
+              <div className="flex flex-col items-center justify-center gap-1 pt-10 pb-6">
+                <div className="w-[80px] h-[80px] rounded-full bg-gradient-to-br from-sky-200 via-sky-400 to-blue-700 mb-3 flex items-end justify-center text-[36px] leading-none pb-1 overflow-hidden">🧑</div>
+                <div className="text-[18px] font-bold">倪妮</div>
+                <div className="text-[12.5px] text-text-3">小米 ID:000001</div>
+              </div>
+              <div className="bg-accent-bg border border-accent-light rounded-xl p-3 text-[12px] text-text-2 leading-relaxed mb-4">
+                💡 退出登录会同时清空主窗口和超级小爱的数据 · 只有一个账号
+              </div>
+              <div className="flex justify-center">
+                <button className="px-6 py-2 text-[13px] text-[#e74c3c] font-medium border border-[#e74c3c]/30 rounded-lg hover:bg-[#e74c3c]/5">退出登录</button>
+              </div>
+            </>
+          )}
+
+          {tab === 'connect' && (
+            <>
+              <SettingsSection title="设备互联">
+                <SettingsRow label="启用妙享桌面" control={<MiniToggle defaultOn />} />
+                <SettingsRow label="自动隐藏标题栏和虚拟导航键" control={<MiniToggle defaultOn />} />
+                <SettingsRow label="跨设备剪贴板" sub="复制的文字、图片或文件,可粘贴到已连接的小米手机或平板" control={<MiniToggle defaultOn />} />
+              </SettingsSection>
+              <SettingsSection title="小米互传">
+                <SettingsRow label="接收文件保存目录" sub="/Users/mi/Downloads" control={<button className="px-3 py-1 rounded-md bg-white border border-border-strong text-[12px] hover:bg-surface-2">更改</button>} />
+                <SettingsRow label="允许陌生人发送" sub="关闭后只有同账号的设备可发送" control={<MiniToggle />} />
+              </SettingsSection>
+            </>
+          )}
+
+          {tab === 'cloud' && (
+            <>
+              <SettingsSection title="云相册">
+                <SettingsRow label="自动同步" control={<MiniToggle defaultOn />} />
+                <SettingsRow label="原图下载目录" sub="/Users/mi/Pictures/iCloud" control={<button className="px-3 py-1 rounded-md bg-white border border-border-strong text-[12px] hover:bg-surface-2">更改</button>} />
+              </SettingsSection>
+              <SettingsSection title="云笔记">
+                <SettingsRow label="实时同步" control={<MiniToggle defaultOn />} />
+                <SettingsRow label="启动时打开上次的笔记" control={<MiniToggle defaultOn />} />
+              </SettingsSection>
+              <SettingsSection title="查找设备">
+                <SettingsRow label="实时位置更新" sub="关闭后只显示设备最后一次的位置" control={<MiniToggle defaultOn />} />
+              </SettingsSection>
+            </>
+          )}
+
+          {tab === 'ai' && (
+            <>
+              <SettingsSection title="对话">
+                <SettingsRow label="对话语音播报" control={<MiniToggle />} />
+                <SettingsRow label="保留历史对话" sub="开启后所有对话永久保存,可在「历史对话」中查看" control={<MiniToggle defaultOn />} />
+              </SettingsSection>
+              <SettingsSection title="侧栏对话">
+                <SettingsRow label="云笔记侧栏对话"  control={<MiniToggle defaultOn />} />
+                <SettingsRow label="云相册侧栏对话"  control={<MiniToggle defaultOn />} />
+                <SettingsRow label="查找设备侧栏对话" control={<MiniToggle defaultOn />} />
+              </SettingsSection>
+              <SettingsSection title="跨设备 session">
+                <SettingsRow label="同步手机和平板的小爱对话" sub="关闭后无法在 PC 端查看其他设备上的对话历史" control={<MiniToggle defaultOn />} />
+              </SettingsSection>
+              <SettingsSection title="技能与工具">
+                <SettingsRow label="管理我的工具箱" sub="查看从灵感广场添加的 skill,可以一键卸载" control={<button className="px-3 py-1 rounded-md bg-accent text-white text-[12px] font-medium hover:bg-[#3b5de7]">打开</button>} />
+              </SettingsSection>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsSection({ title, children }) {
+  return (
+    <div className="mb-5">
+      <div className="text-[11px] text-text-3 mb-1.5 px-3 tracking-wide">{title}</div>
+      <div className="bg-white rounded-xl divide-y divide-black/[.06] overflow-hidden">{children}</div>
+    </div>
+  );
+}
+
+function SettingsRow({ label, sub, control }) {
+  return (
+    <div className="flex items-center px-4 py-3">
+      <div className="flex-1 min-w-0">
+        <div className="text-[14px] text-text">{label}</div>
+        {sub && <div className="text-[12px] text-text-3 mt-0.5">{sub}</div>}
+      </div>
+      {control}
+    </div>
+  );
+}
+
+function MiniToggle({ defaultOn=false }) {
+  const [on, setOn] = useState(defaultOn);
+  return (
+    <button onClick={() => setOn(o => !o)}
+            className={`relative w-[34px] h-[20px] rounded-full transition-colors shrink-0 ${on ? 'bg-accent' : 'bg-black/[.15]'}`}>
+      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-soft transition-transform ${on ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+    </button>
+  );
+}
+
+/* ===========================  Discover feedback (toast/demo modal)  =========================== */
+
+function Toast({ toast, onClose }) {
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(onClose, 2400);
+    return () => clearTimeout(t);
+  }, [toast, onClose]);
+  if (!toast) return null;
+  return (
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[300] animate-fadeIn">
+      <div className="px-4 py-2.5 rounded-full bg-text text-white shadow-modal text-[13px] flex items-center gap-2">
+        <span className="w-[18px] h-[18px] rounded-full bg-ok flex items-center justify-center text-[10px]">✓</span>
+        <span>{toast}</span>
+      </div>
+    </div>
+  );
+}
+
+function DemoModal({ item, onClose }) {
+  if (!item) return null;
+  return (
+    <div className="fixed inset-0 z-[260] flex items-center justify-center animate-fadeIn">
+      <div className="absolute inset-0 bg-black/[.55]" onClick={onClose} />
+      <div className="relative w-[640px] max-w-[92vw] rounded-[14px] overflow-hidden animate-popIn bg-[#1a1a1a] shadow-modal">
+        <div className="h-10 flex items-center px-4 bg-[#222]">
+          <div className="text-white text-[13px] font-semibold flex-1 truncate">▶ 示范 · {item.name}</div>
+          <button onClick={onClose} className="text-white/60 hover:text-white">
+            <Icon.Close width="14" height="14" />
+          </button>
+        </div>
+        <div className="aspect-[16/9] flex items-center justify-center bg-gradient-to-br from-[#2a2a3a] via-[#1f1f2c] to-[#1a1a26] relative">
+          <div className="text-center text-white">
+            <div className="text-[48px] mb-4 opacity-50">{item.icon}</div>
+            <div className="text-[15px] font-medium mb-1">{item.name}</div>
+            <div className="text-[12px] text-white/50">演示视频占位 · 真实场景为 30s ~ 1min</div>
+          </div>
+          <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
+            <button className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center">▶</button>
+            <div className="flex-1 h-1 bg-white/15 rounded-full overflow-hidden">
+              <div className="h-full bg-white/70 w-[35%]" />
+            </div>
+            <span className="text-[11px] text-white/60">0:11 / 0:32</span>
+          </div>
+        </div>
+        <div className="px-5 py-4 bg-[#1a1a1a] text-white/80 text-[13px] leading-relaxed">{item.desc}</div>
+      </div>
+    </div>
+  );
+}
+
+function SuperAiWindow({ active, setActive, activeConvId, setActiveConvId, onInstallSkill, onPlayDemo, onChatPreset }) {
+  // active: 'new' | 'history' | 'cross' | 'discover' | 'files' | 'tasks'
+
+  return (
+    <div className="app-bg border border-border rounded-2xl shadow-lg overflow-hidden flex flex-col h-[680px] relative">
+      <TitleBar title="超级小爱" />
+      <div className="flex flex-1 min-h-0">
+        {/* 左栏:5 个入口 + 历史对话列表 */}
+        <aside className="w-[220px] bg-surface-2 border-r border-border flex flex-col shrink-0">
+          <div className="flex-1 min-h-0 overflow-y-auto pt-3 pb-1 px-2">
+            <NavItem active={active==='new'}      icon="＋" label="新建对话"     onClick={() => { setActive('new'); setActiveConvId(null); }} />
+            <NavItem active={active==='cross'}    icon="🔄" label="跨设备 session" onClick={() => setActive('cross')} />
+            <NavItem active={active==='discover'} icon="💡" label="灵感广场"     onClick={() => setActive('discover')} />
+            <NavItem active={active==='files'}    icon="🗂️" label="文件"         onClick={() => setActive('files')} />
+            <NavItem active={active==='tasks'}    icon="⏰" label="定时任务"     onClick={() => setActive('tasks')} />
+
+            <SectionLabel>历史对话</SectionLabel>
+            {AI_HISTORY.map(h => (
+              <div key={h.id} onClick={() => { setActive('history'); setActiveConvId(h.id); }}
+                   className={`px-2.5 py-1.5 rounded-md cursor-pointer text-[12.5px] leading-[1.4] mb-px
+                              ${activeConvId === h.id ? 'bg-black/[.06] text-text font-medium' : 'text-text-2 hover:bg-black/[.04] hover:text-text'}`}>
+                <div className="truncate">{h.title}</div>
+                <div className="text-[11px] text-text-3 mt-0.5">{h.time}</div>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* 右栏:内容区 */}
+        {active === 'new'      && <AiWelcome onOpenDiscover={() => setActive('discover')} />}
+        {active === 'history'  && activeConvId && <AiConvView conv={AI_CONVS[activeConvId]} />}
+        {active === 'cross'    && <CrossInAi />}
+        {active === 'discover' && <DiscoverInAi onChat={onChatPreset} onInstall={onInstallSkill} onDemo={onPlayDemo} />}
+        {active === 'files'    && <FilesInAi />}
+        {active === 'tasks'    && <TasksInAi />}
+      </div>
+    </div>
+  );
+}
+
+/* ===========================  Main window (互联 APP)  =========================== */
+
+function MainSidebar({ activeTab, onSelectTab, onOpenAi, onOpenSettings }) {
+  return (
+    <aside className="w-[200px] bg-surface-2 border-r border-border flex flex-col shrink-0">
+      <div className="flex-1 min-h-0 overflow-y-auto py-2.5 px-2">
+        <NavItem active={activeTab==='hub'}      icon="🔗" label="设备互联" onClick={() => onSelectTab('hub')} />
+        <NavItem active={activeTab==='transfer'} icon="📤" label="小米互传" onClick={() => onSelectTab('transfer')} />
+
+        <div className="h-px bg-border my-2 mx-1.5" />
+        <SectionLabel>云服务</SectionLabel>
+        <NavItem active={activeTab==='cloud-photo'} icon="📷" label="云相册"  onClick={() => onSelectTab('cloud-photo')} />
+        <NavItem active={activeTab==='cloud-note'}  icon="📝" label="云笔记"  onClick={() => onSelectTab('cloud-note')} />
+        <NavItem active={activeTab==='find-device'} icon="📍" label="查找设备" onClick={() => onSelectTab('find-device')} />
+
+        <div className="h-px bg-border my-2 mx-1.5" />
+        {/* 超级小爱:这里只是一个入口,点击新开第二窗口 */}
+        <div onClick={onOpenAi}
+             className="flex items-center gap-2 px-2.5 py-2 rounded-md text-[13px] cursor-pointer mb-px transition-colors bg-gradient-to-br from-[#eef2ff] to-[#f5edf3] hover:from-[#dbe4ff] hover:to-[#ede5f0] border border-[#d8def5]">
+          <span className="w-[20px] h-[20px] rounded-full ai-avatar flex items-center justify-center text-white text-[10px] font-semibold shrink-0">✦</span>
+          <span className="text-grad font-semibold">超级小爱</span>
+          <Icon.External width="11" height="11" className="ml-auto text-text-3" />
+        </div>
+      </div>
+      <div className="shrink-0 border-t border-border py-2 px-2.5 flex items-center gap-2">
+        <button title="账号"
+                className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-300 to-purple-300 flex items-center justify-center text-[11px] text-white font-bold">倪</button>
+        <span className="text-[11.5px] text-text-3 flex-1">倪妮</span>
+        <button onClick={onOpenSettings} title="设置"
+                className="w-7 h-7 rounded-md text-text-3 hover:text-text hover:bg-black/[.05] flex items-center justify-center">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.4">
+            <circle cx="8" cy="8" r="2.2"/>
+            <path d="M8 1.5v2M8 12.5v2M14.5 8h-2M3.5 8h-2M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4M12.6 12.6l-1.4-1.4M4.8 4.8L3.4 3.4" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function MainWindow({ onOpenAi, onOpenSettings }) {
+  const [activeTab,    setActiveTab]    = useState('hub');
+  const [activeNoteId, setActiveNoteId] = useState('lijiang');
+  const [activeAlbumId, setActiveAlbumId] = useState('cam');
+  const [hubTab, setHubTab] = useState('phone');
+
+  const hubDeviceName = hubTab === 'phone' ? 'Xiaomi 17 Pro' : 'Xiaomi Pad 7';
+
+  const renderRail = () => {
+    if (activeTab === 'hub')         return <HubAiRail context={{ kind:'hub', deviceName:hubDeviceName }} />;
+    if (activeTab === 'transfer')    return <HubAiRail context={{ kind:'transfer', deviceName:hubDeviceName }} />;
+    if (activeTab === 'cloud-note')  return <NoteAgentRail note={NOTES_LIST.find(n => n.id === activeNoteId)} />;
+    if (activeTab === 'cloud-photo') return <AlbumAgentRail album={ALBUMS.find(a => a.id === activeAlbumId)} />;
+    if (activeTab === 'find-device') return <FindAgentRail />;
+    return null;
+  };
+
+  return (
+    <div className="app-bg border border-border rounded-2xl shadow-lg overflow-hidden flex flex-col h-[680px] relative">
+      <TitleBar title="小米互联服务" />
+      <div className="flex flex-1 min-h-0">
+        <MainSidebar activeTab={activeTab} onSelectTab={setActiveTab} onOpenAi={onOpenAi} onOpenSettings={onOpenSettings} />
+        <div className="flex-1 flex flex-col min-w-0">
+          {activeTab === 'hub'         && <DeviceHubPage tab={hubTab} setTab={setHubTab} />}
+          {activeTab === 'transfer'    && <TransferPage />}
+          {activeTab === 'cloud-photo' && <CloudPhotoPage activeAlbumId={activeAlbumId} setActiveAlbumId={setActiveAlbumId} />}
+          {activeTab === 'cloud-note'  && <CloudNotePage activeNoteId={activeNoteId} setActiveNoteId={setActiveNoteId} />}
+          {activeTab === 'find-device' && <FindDevicePage />}
+        </div>
+        {renderRail()}
+      </div>
+    </div>
+  );
+}
+
+/* ===========================  Top-level App (双窗口演示)  =========================== */
+
+function App() {
+  // 演示态:'main' | 'ai' | 'both'
+  const [demoView, setDemoView] = useState('both');
+  const [aiActive, setAiActive] = useState('new'); // 超级小爱窗口当前页
+  const [aiActiveConvId, setAiActiveConvId] = useState(null);
+
+  // 全局:设置窗 + 灵感广场反馈
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [demoItem, setDemoItem] = useState(null);
+
+  const aiWindowRef = useRef(null);
+  const openAi = () => {
+    setDemoView('both');
+    setTimeout(() => {
+      aiWindowRef.current?.scrollIntoView({ behavior:'smooth', block:'start' });
+    }, 50);
+  };
+
+  const onChatPreset = (item) => {
+    setDemoView(v => v === 'main' ? 'both' : v);
+    setAiActive('new');
+    setAiActiveConvId(null);
+    setToast(`已把「${item.name}」的提示词填到对话框,检查后发送即可`);
+  };
+  const onInstallSkill = (item) => {
+    setToast(`已把「${item.name}」加到工具箱 · 新建对话时通过 + 引用`);
+  };
+  const onPlayDemo = (item) => setDemoItem(item);
+
+  const aiProps = {
+    active: aiActive,
+    setActive: setAiActive,
+    activeConvId: aiActiveConvId,
+    setActiveConvId: setAiActiveConvId,
+    onChatPreset,
+    onInstallSkill,
+    onPlayDemo,
+  };
+
+  return (
+    <div className="max-w-[1320px] mx-auto px-5 py-6 pb-16">
+      <h1 className="text-[22px] font-semibold mb-1 tracking-tight">方案 5 · 上下文绑定的右栏</h1>
+      <p className="text-text-2 text-[14px] mb-3">主窗口右栏按页面配 · 笔记/相册/查找右栏对话绑定当前内容 · 超级小爱独立第二窗口</p>
+
+      <div className="bg-accent-bg border-l-[3px] border-accent rounded-md px-3.5 py-2.5 text-[13px] text-text-2 mb-3 leading-[1.7]">
+        <b className="text-text">核心改动</b>:
+        <span className="ml-1">① 右栏不再全局,按页面配</span>·
+        <span>② 跨设备 session 移到超级小爱窗口</span>·
+        <span>③ 笔记/相册/查找右栏对话绑定当前内容,切换跟随</span>·
+        <span>④ 灵感广场卡片用动作词代替术语 · 三种点击反馈</span>·
+        <span>⑤ 超级小爱独立第二窗口,承接 5% 非互联场景</span>·
+        <span>⑥ 设置只在主窗口里</span>
+      </div>
+
+      {/* 演示切换 */}
+      <div className="mb-4 flex items-center gap-2 text-[12px] flex-wrap">
+        <span className="text-text-3">演示视图:</span>
+        <div className="flex bg-[#fff8d6] border border-[#e8c46a] rounded-lg p-0.5">
+          <button onClick={() => setDemoView('main')} className={`px-3 py-1 rounded-md text-[12px] font-medium ${demoView==='main' ? 'bg-white text-text shadow-soft' : 'text-[#8a6a1c] hover:bg-white/60'}`}>主窗口</button>
+          <button onClick={() => setDemoView('ai')}   className={`px-3 py-1 rounded-md text-[12px] font-medium ${demoView==='ai'   ? 'bg-white text-text shadow-soft' : 'text-[#8a6a1c] hover:bg-white/60'}`}>超级小爱窗口</button>
+          <button onClick={() => setDemoView('both')} className={`px-3 py-1 rounded-md text-[12px] font-medium ${demoView==='both' ? 'bg-white text-text shadow-soft' : 'text-[#8a6a1c] hover:bg-white/60'}`}>双窗口对照</button>
+        </div>
+        <span className="text-text-3 ml-2">点左栏「超级小爱」打开第二窗口 · 主窗口齿轮打开设置</span>
+        <span className="ml-auto text-text-3">提示:可去超级小爱的「灵感广场」试三种动作词</span>
+      </div>
+
+      {demoView === 'main' && <MainWindow onOpenAi={openAi} onOpenSettings={() => setSettingsOpen(true)} />}
+      {demoView === 'ai'   && <SuperAiWindow {...aiProps} />}
+      {demoView === 'both' && (
+        <div className="flex flex-col gap-5">
+          <div>
+            <div className="text-[11.5px] text-text-3 mb-1.5 px-1 font-semibold tracking-wide">主窗口 · 小米互联服务</div>
+            <MainWindow onOpenAi={openAi} onOpenSettings={() => setSettingsOpen(true)} />
+          </div>
+          <div ref={aiWindowRef}>
+            <div className="text-[11.5px] text-text-3 mb-1.5 px-1 font-semibold tracking-wide">第二窗口 · 超级小爱</div>
+            <SuperAiWindow {...aiProps} />
+          </div>
+        </div>
+      )}
+
+      <SettingsWindow open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <Toast toast={toast} onClose={() => setToast(null)} />
+      <DemoModal item={demoItem} onClose={() => setDemoItem(null)} />
+
+      <div className="mt-5 p-4 px-5 bg-surface border border-border rounded-xl text-[13px] text-text-2 leading-[1.8]">
+        <b className="text-text">设计要点</b>:
+        <ol className="list-decimal pl-5 mt-1.5 space-y-1">
+          <li><b>主窗口左栏</b>只放核心功能 + 超级小爱入口(渐变描边强调"它会新开窗口")</li>
+          <li><b>主窗口右栏</b>:互联/互传 = 偏跨设备调度的小爱(蓝紫);云笔记/相册/查找 = 处理当前内容的小爱(绿);跨设备 session 已移到第二窗口</li>
+          <li><b>右栏对话</b>:绑定当前内容(笔记/相册/设备),切换对象时上下文跟随 · 提示词聚焦在当前对象上</li>
+          <li><b>灵感广场</b>三种动作词:→ 开始对话(自动填提示词跳对话框) / + 添加到工具箱(toast) / ▶ 看示范(视频弹窗) · 用户不需要知道 skill/prompt 是什么</li>
+          <li><b>第二窗口独立</b>:新建/跨设备 session/灵感/文件/任务都在这里 · 历史对话列表保留</li>
+          <li><b>设置</b>:只在主窗口里,4 个 tab(账号/互联/云/小爱),超级小爱窗口不放设置入口</li>
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
