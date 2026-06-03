@@ -1606,17 +1606,9 @@ function MainSidebar({ activeTab, onSelectTab, onOpenAi, onOpenSettings }) {
           <Icon.External width="11" height="11" className="ml-auto text-text-3" />
         </div>
       </div>
-      <div className="shrink-0 border-t border-border py-2 px-2.5 flex items-center gap-2">
-        <button title="账号"
-                className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-300 to-purple-300 flex items-center justify-center text-[11px] text-white font-bold">倪</button>
-        <span className="text-[11.5px] text-text-3 flex-1">倪妮</span>
+      <div className="shrink-0 border-t border-border py-2 px-2.5 flex items-center">
         <button onClick={onOpenSettings} title="设置"
-                className="w-7 h-7 rounded-md text-text-3 hover:text-text hover:bg-black/[.05] flex items-center justify-center">
-          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.4">
-            <circle cx="8" cy="8" r="2.2"/>
-            <path d="M8 1.5v2M8 12.5v2M14.5 8h-2M3.5 8h-2M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4M12.6 12.6l-1.4-1.4M4.8 4.8L3.4 3.4" strokeLinecap="round"/>
-          </svg>
-        </button>
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-300 to-purple-300 flex items-center justify-center text-[12px] text-white font-bold hover:opacity-90">倪</button>
       </div>
     </aside>
   );
