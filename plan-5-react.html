@@ -534,11 +534,18 @@ function RailHeaderActions({ kind, activeId, setActiveId }) {
                 {items.map(it => (
                   <div key={it.id}
                        onClick={() => { setActiveId?.(it.id); setHistoryOpen(false); }}
-                       className={`px-3 py-1.5 cursor-pointer flex items-center gap-2 ${activeId === it.id ? 'bg-surface-2' : 'hover:bg-surface-2'}`}>
+                       className={`group px-3 py-1.5 cursor-pointer flex items-center gap-2 ${activeId === it.id ? 'bg-surface-2' : 'hover:bg-surface-2'}`}>
                     <div className="flex-1 min-w-0">
                       <div className={`text-[12.5px] truncate leading-[1.3] ${activeId === it.id ? 'font-medium text-accent' : 'text-text'}`}>{it.title}</div>
                     </div>
-                    <span className="text-[10.5px] text-text-3 shrink-0">{it.time}</span>
+                    <span className="text-[10.5px] text-text-3 shrink-0 group-hover:hidden">{it.time}</span>
+                    <button onClick={(e) => { e.stopPropagation(); }}
+                            title="删除对话"
+                            className="hidden group-hover:flex w-5 h-5 rounded items-center justify-center text-text-3 hover:text-[#e74c3c] hover:bg-[#e74c3c]/10 shrink-0">
+                      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 4h10M6 4V3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M4 4v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4"/>
+                      </svg>
+                    </button>
                   </div>
                 ))}
               </div>
